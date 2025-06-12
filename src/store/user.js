@@ -75,7 +75,7 @@ export const useUser = defineStore("user", {
 				this.reset();
 
 				// router.push("/login");
-				// location.reload();
+				location.reload();
 				resolve();
 			});
 		},
