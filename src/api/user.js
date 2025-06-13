@@ -35,3 +35,11 @@ export function queryAllDictItems() {
 		method: 'get'
 	})
 }
+
+export function editPwd(data) {
+	return request({
+		url: '/gy-core/sys/user/updatePassword',
+		method: 'PUT',
+		data
+	})
+}
