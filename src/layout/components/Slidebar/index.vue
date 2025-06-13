@@ -81,6 +81,7 @@ const handleMenuClick = (item) => {
 }
 :deep(.ant-menu) {
 	background: transparent;
+	font-size: 12px;
 	.ant-menu-item {
 		padding-left: 16px !important;
 		height: 52px;

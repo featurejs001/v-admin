@@ -1,5 +1,5 @@
 const settings = {
-	title: "vite-vue",
+	title: "光跃投资智能平台",
 };
 
 export default settings;
