@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@ant-design/icons-vue": "^7.0.1",
+    "@zxcvbn-ts/core": "^3.0.4",
     "ant-design-vue": "^4.2.6",
     "axios": "^1.9.0",
     "js-cookie": "^3.0.5",

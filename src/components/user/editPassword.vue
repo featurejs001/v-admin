@@ -1,24 +1,15 @@
 <template>
-	<a-modal
-	 class="sys-modal" 
-	 v-model:open="open" 
-	 title="修改密码" 
-	 :confirmLoading="loading"
-	 @ok="handleOk" 
-	 @cancel="handleCancel" 
-	 width="600px">
-	 	<template #title>
-			<div>修改密码111</div>
-		</template>
+	<Modal v-model="open" :title="'修改密码'" :loading="loading" @close="handleClose" @submit="handleOk">
 		<a-form
 		    :model="formState"
 		    name="basic"
 			ref="formRef"
-		    :label-col="{ span: 4 }"
-		    :wrapper-col="{ span: 20 }"
+		    :label-col="{ span: 5 }"
+		    :wrapper-col="{ span: 19 }"
 			:rules="formRules"
 			:colon="false"
 		    autocomplete="off"
+			class="form"
 		>
 			<a-form-item
 		      label="旧密码"
@@ -32,6 +23,8 @@
 		      name="password"
 		    >
 		      <a-input-password v-model:value="formState.password" allow-clear />
+			  <!-- <div class="strength-bar"></div> -->
+			  <a-progress :percent="pwdStrength" :steps="5" :showInfo="false" :strokeColor="strokeColor" />
 		    </a-form-item>
 
 			<a-form-item
@@ -41,15 +34,16 @@
 		      <a-input-password v-model:value="formState.confirmpassword" allow-clear />
 		    </a-form-item>
 		</a-form>
-	</a-modal>
+	</Modal>
 </template>
 <script setup>
-import { h, reactive, ref } from "vue";
+import { h, reactive, ref, computed, watch } from "vue";
 import { editPwd } from "@/api/user";
 import { message } from "ant-design-vue";
 import { useUser } from "@/store/user";
 import { storeToRefs } from 'pinia';
-import { FullscreenOutlined, FullscreenExitOutlined, CloseOutlined } from '@ant-design/icons-vue';
+import { zxcvbn } from '@zxcvbn-ts/core';
+import Modal from "@/components/Modal/index.vue";
 
 const userStore = useUser();
 const { userInfo } = storeToRefs(userStore);
@@ -57,6 +51,7 @@ const { userInfo } = storeToRefs(userStore);
 const formRef = ref(null);
 const open = ref(false);
 const loading = ref(false);
+const strokeColor = ref('#e74242');
 const formState = reactive({
 	oldpassword: "",
 	password: "",
@@ -76,6 +71,29 @@ const formRules = reactive({
 			}
 		  }
 		}]
+})
+const pwdStrength = computed(() => {
+	const score = formState.password ? zxcvbn(formState.password).score : -1;
+	const precent = 20 * (score + 1);
+	// console.log("precent :", precent, score)
+	switch(score) {
+		case 0:
+			strokeColor.value = '#e74242';
+			break;
+		case 1:
+			strokeColor.value = '#ED6F6F';
+			break;
+		case 2:
+			strokeColor.value = '#EFBD47';
+			break;
+		case 3:
+			strokeColor.value = 'rgba(85, 209, 135, 0.5)';
+			break;
+		case 4:
+			strokeColor.value = '#55D187';
+			break;
+	}
+	return precent;
 })
 
 const handleSubmit = () => {
@@ -109,19 +127,6 @@ const handleCancel = () => {
 	open.value = false;
 }
 
-const closeSvg = {
-  template: `<svg viewBox="0 0 24 24" style="enable-background:new 0 0 24 24;">
-        <path class="st0" d="M4.8,9C4.5,9,4.3,8.7,4.3,8.5c0-0.1,0.1-0.3,0.2-0.4l4.2-3.9C8.8,4,9.1,4,9.3,4.2c0.2,0.2,0.2,0.5,0,0.7 L5.1,8.8C5,8.9,4.9,9,4.8,9L4.8,9z M4.9,22.5c-1.3,0-2.4-1-2.5-2.3l-0.8-8c-0.1-1.4,0.9-2.6,2.2-2.7l14.9-1.5 c1.4-0.1,2.6,0.9,2.7,2.2l0.8,8c0.1,1.4-0.9,2.6-2.2,2.7L5.2,22.5C5.1,22.5,5,22.5,4.9,22.5L4.9,22.5z M19.1,9.1c-0.1,0-0.1,0-0.2,0 L4,10.5c-0.8,0.1-1.4,0.8-1.3,1.6l0.8,8c0.1,0.8,0.8,1.4,1.6,1.3c0,0,0,0,0,0L20,20c0.8-0.1,1.4-0.8,1.3-1.6l-0.8-8 C20.5,9.7,19.8,9.1,19.1,9.1L19.1,9.1z M10.8,4.5C10,4.5,9.3,3.8,9.3,3s0.7-1.5,1.5-1.5s1.5,0.7,1.5,1.5C12.3,3.8,11.6,4.5,10.8,4.5 z M10.8,2.5c-0.3,0-0.5,0.2-0.5,0.5s0.2,0.5,0.5,0.5s0.5-0.2,0.5-0.5S11.1,2.5,10.8,2.5C10.8,2.5,10.8,2.5,10.8,2.5z M12.7,4.3 C12.6,4,12.8,3.8,13,3.7c0.1,0,0.3,0,0.4,0.1l4.8,3c0.2,0.1,0.3,0.5,0.2,0.7c-0.1,0.2-0.5,0.3-0.7,0.2l-4.8-3 C12.8,4.5,12.7,4.4,12.7,4.3L12.7,4.3z"/>
-        <text transform="matrix(0.995 -0.1001 0.1001 0.995 3.7525 18.9285)">CLOSE</text>
-    </svg>`
-}
-
-const closeIcon = h("div", {}, [
-	h('FullscreenOutlined'),
-	h('FullscreenExitOutlined'),
-	h('CloseOutlined')
-])
-
 defineExpose({
 	handleOpen
 })
@@ -129,5 +134,19 @@ defineExpose({
 <style lang="less" scoped>
 :deep(.ant-modal-body) {
 	padding-left: 5px 40px;
+}
+:deep(.ant-progress-steps-item) {
+	margin-inline-end: 6px;
+	width: calc(20% - 6px) !important;
+	height: 6px !important;
+	&:first-child {
+		border-radius: 6px 0px 0px 6px;
+	}
+	&:last-child {
+		border-radius: 0px 6px 6px 0px;
+	}
+}
+:deep(.ant-form), .form {
+	max-width: 500px;
 }
 </style>
