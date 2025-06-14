@@ -16,21 +16,18 @@
 	</div>
 </template>
 
-<script>
-export default {
-	name: "Hamburger",
-	props: {
-		isActive: {
-			type: Boolean,
-			default: false,
-		},
-	},
-	methods: {
-		toggleClick() {
-			this.$emit("toggleClick");
-		},
-	},
-};
+<script setup>
+import { defineProps, defineEmits } from "vue";
+const prosp = defineProps({
+	isActive: {
+		type: Boolean,
+		default: false,
+	}
+})
+const emits = defineEmits(['toggleClick'])
+const toggleClick = () => {
+	emits('toggleClick')
+}
 </script>
 
 <style scoped>

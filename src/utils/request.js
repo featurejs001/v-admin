@@ -38,7 +38,6 @@ service.interceptors.request.use(
 			config.headers['X-Tenant-Id'] = tenantId;
 			config.headers['X-Version'] = 'v3';
 
-			console.log("---->", router)
 			let routeParams = router.currentRoute.value.params;
 			if (routeParams.appId) {
 				config.headers['X-Low-App-ID'] = routeParams.appId;
@@ -61,7 +60,7 @@ service.interceptors.request.use(
 		// if (config.newBaseURL) {
 		// 	config.baseURL = config.newBaseURL;
 		// }
-		console.log('config', config); // for debug
+		// console.log('config', config); // for debug
 		return config;
 	},
 	(error) => {

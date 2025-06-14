@@ -28,7 +28,7 @@ const props = defineProps({
 		default: false
 	},
 	width: {
-		type: Boolean,
+		type: String,
 		default: '600px'
 	},
 	modelValue: {

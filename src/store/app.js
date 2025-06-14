@@ -18,6 +18,9 @@ export const useApp = defineStore("app", {
 	state: () => {
 		return getDefaultState();
 	},
+	getters: {
+		isSidebarOpened: (state) => state.sidebar.opened
+	},
 	actions: {
 		toggleSideBar() {
 		    this.sidebar.opened = !this.sidebar.opened

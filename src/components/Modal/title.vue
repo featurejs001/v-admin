@@ -2,9 +2,24 @@
 	<div class="header">
 		<div class="title">{{ title }}</div>
 		<div>
-			<FullscreenOutlined v-if="isShowFullcreen && !isFullscreen" @click.stop="handleFullscreen(true)" />
-			<FullscreenExitOutlined v-else-if="isShowFullcreen" @click.stop="handleFullscreen(false)" />
-			<CloseOutlined @click.stop="handleClose" />
+			<a-tooltip placement="bottom" v-if="isShowFullcreen && !isFullscreen">
+				<template #title>
+					最大化
+				</template>
+				<FullscreenOutlined  @click.stop="handleFullscreen(true)" />
+			</a-tooltip>
+			<a-tooltip placement="bottom" v-if="isShowFullcreen && isFullscreen">
+				<template #title>
+					还原
+				</template>
+				<FullscreenExitOutlined  @click.stop="handleFullscreen(false)" />
+			</a-tooltip>
+			<a-tooltip placement="bottom">
+				<template #title>
+					关闭
+				</template>
+				<CloseOutlined @click.stop="handleClose" />
+			</a-tooltip>
 		</div>
 	</div>
 </template>

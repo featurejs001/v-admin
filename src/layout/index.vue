@@ -1,6 +1,6 @@
 <template>
 	<a-layout class="wrap">
-	  <a-layout-sider class="aside" width="var(--sideBarWidth)" >
+	  <a-layout-sider :class="['aside']" :width="isSidebarOpened?'var(--sideBarWidth)':'80px'"  >
       	<Sliderbar  />
 	  </a-layout-sider>
       <a-layout class="container">
@@ -14,8 +14,13 @@
     </a-layout>
 </template>
 <script setup>
+import { useApp } from "@/store/app"
+import { storeToRefs } from 'pinia'
 import Sliderbar from "@/layout/components/Slidebar/index.vue"
 import Navbar from "@/layout/components/Navbar.vue"
+
+const appStore = useApp();
+const { isSidebarOpened } = storeToRefs(appStore);
 
 </script>
 <style lang="less" scoped>
