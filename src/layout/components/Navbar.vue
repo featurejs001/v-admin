@@ -54,16 +54,15 @@ const handleFullscreen = () => {
 </script>
 <style lang="less" scoped>
 .navbar {
-	height: 100%;
+	height: 30px;
 	overflow: hidden;
 	position: relative;
-	box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
 	color: var(--text-color);
 	display: flex;
 	justify-content: space-between;
 
 	.hamburger-container {
-		line-height: 46px;
+		line-height: 30px;
 		height: 100%;
 		float: left;
 		cursor: pointer;
@@ -77,7 +76,7 @@ const handleFullscreen = () => {
 
 	.right-menu {
 		height: 100%;
-		line-height: 50px;
+		line-height: 30px;
 		padding-right: 20px;
 
 		&:focus {

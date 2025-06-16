@@ -3,8 +3,8 @@
 		<Avatar />
 		<div class="scrollbar-wrapper">
 			<a-menu
-				v-model:openKeys="openKeys"
-				v-model:selectedKeys="selectedKeys"
+				v-model:openKeys="state.openKeys"
+				v-model:selectedKeys="state.selectedKeys"
 				:mode="state.mode"
 				theme="dark"
 				:items="routes"
@@ -23,13 +23,11 @@ import { useApp } from "@/store/app"
 import { useUser } from "@/store/user"
 import Avatar from "@/layout/components/Avatar.vue";
 import { storeToRefs } from 'pinia'
-import { computed, ref, watch, reactive } from 'vue';
-import { useRouter } from 'vue-router';
+import { computed, ref, watch, reactive, onMounted } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
 
 const router = useRouter();
-
-const openKeys = ref([]);
-const selectedKeys = ref([]);
+const curRoute = useRoute();
 
 const appStore = useApp();
 const { isSidebarOpened } = storeToRefs(appStore);
@@ -40,10 +38,11 @@ const { permissionRoutes } = storeToRefs(userStore)
 
 const state = reactive({
 	inlineCollapsed: false,
-	mode: 'inline'
+	mode: 'inline',
+	openKeys: [],
+	selectedKeys: []
 })
 watch(isSidebarOpened, (newVal) => {
-	console.log("sidebar :", newVal)
 	state.inlineCollapsed = newVal;
 	if (newVal) {
 		state.mode = 'inline'
@@ -52,6 +51,9 @@ watch(isSidebarOpened, (newVal) => {
 	}
 }, {deep: true})
 
+watch(() => curRoute.name, (newVal) => {
+	state.selectedKeys = [newVal];
+}, {immediate: true})
 
 const routes = computed(() => {
 	const menus = permissionRoutes.value.filter(v => !v.hidden).map((item, index) => {
@@ -67,7 +69,7 @@ const routes = computed(() => {
 				}
 			})
 		}
-		if (children.length === 1 && !item.isAwaysShow) {
+		if (children.length === 1 && !item.meta) {
 			return children[0];
 		}
 		return {
@@ -89,6 +91,7 @@ const handleMenuClick = (item) => {
 		name: item.key
 	})
 }
+
 </script>
 <style lang="less" scoped>
 :deep(.el-scrollbar__view) {

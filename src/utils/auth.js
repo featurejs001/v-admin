@@ -2,6 +2,7 @@ import Cookies from "js-cookie";
 
 const TokenKey = "Authorization";
 const TENANT_ID = 'TENANT_ID';
+const historyRoutesKey = 'historyRoutesCache'
 function getDomain() {
 	return location.hostname;
 }
@@ -21,4 +22,18 @@ export function setToken(token) {
 
 export function removeToken() {
 	return Cookies.remove(TokenKey);
+}
+
+export function setHistoryRoutes(vals) {
+	localStorage.setItem(historyRoutesKey, JSON.stringify(vals))
+}
+
+export function getHistoryRoutes() {
+	const jsonData = localStorage.getItem(historyRoutesKey) || "";
+	let data = [];
+	try {
+		data = JSON.parse(jsonData);
+	} catch (e) {
+	}
+	return data;
 }

@@ -1,7 +1,8 @@
 import { defineStore } from "pinia";
-import { Login, getUserInfo, queryAllDictItems, logout } from "@/api/user";
-import { getToken, setToken } from "@/utils/auth";
+import { Login, getUserInfo, queryAllDictItems, logout, getUserPermissionByToken, getCurrentUserRoles } from "@/api/user";
+import { getToken, setToken, removeToken } from "@/utils/auth";
 import { constantRoutes, dynamicRoutes} from "@/router";
+import { filterAsyncRoutes } from "@/utils/permission";
 /**
  * 用户信息
  * @methods setUserInfos 设置用户信息
@@ -13,7 +14,11 @@ const getDefaultState = () => {
 		userInfo: {
 		},
 		permissionRoutes: [],
-		allDictItems: []
+		allDictItems: [],
+		allAuthList: [],
+		authList: [],
+		premissionCodeList: [],
+		sysSafeMode: false,
 	};
 };
 
@@ -26,7 +31,7 @@ export const useUser = defineStore("user", {
 			this.token = value;
 		},
 		reset() {
-			setToken("");
+			removeToken();
 			this.$reset()
 		},
 		login(data) {
@@ -58,6 +63,7 @@ export const useUser = defineStore("user", {
 					this.allDictItems = res.result.sysAllDictItems;
 					resolve(this.token)
 				}).catch((e) => {
+					this.reset();
 					resolve('')
 				})
 				
@@ -80,9 +86,34 @@ export const useUser = defineStore("user", {
 			});
 		},
 		generateRoutes() {
-			return new Promise((resolve) => {
-				this.permissionRoutes = [...constantRoutes, ...dynamicRoutes]
-				resolve();
+			return new Promise((resolve, reject) => {
+				// resolve({ dynamicRoutes, isRedirect: true})
+				Promise.all([getUserPermissionByToken(), getCurrentUserRoles()]).then(res => {
+				    const systemPermission = res[0]?.result || {
+						menu: []
+					};
+					const gUserRoles = res[1]?.result || [];
+
+					if (!gUserRoles.includes('mgr') && !gUserRoles.includes('admin')) {
+				        systemPermission.menu = systemPermission.menu.filter((menuItem) => menuItem.path !== '/gy/admin');
+				    }
+
+					if (gUserRoles.includes('mgr') && gUserRoles.includes('IR')) {
+				        systemPermission.menu = systemPermission.menu.filter((menuItem) => menuItem.path !== '/gy/admin');
+				    }
+					
+					this.premissionCodeList = systemPermission.codeList || [];
+					this.authList = systemPermission.auth || [];
+					this.allAuthList = systemPermission.allAuth || [];
+					this.sysSafeMode = systemPermission.sysSafeMode || false;
+
+					const asyncRoutes = filterAsyncRoutes( dynamicRoutes, systemPermission.menu)
+					
+					this.permissionRoutes = [...constantRoutes, ...asyncRoutes]
+					resolve(asyncRoutes)
+				}).catch(e => {
+					reject(e)
+				})
 			})
 		},
 		queryAllDictItems() {

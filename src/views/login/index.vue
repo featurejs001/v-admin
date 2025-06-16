@@ -70,7 +70,7 @@ const handleLogin = () => {
 		...loginForm
 	}).then(res => {
 		message.success('登录成功')
-		router.push("/");
+		router.replace("/");
 		return;
 	}).finally(() => {
 		loading.value = false;

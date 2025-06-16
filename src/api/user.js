@@ -43,3 +43,25 @@ export function editPwd(data) {
 		data
 	})
 }
+
+export function getUserPermissionByToken() {
+	return request({
+		url: '/gy-core/sys/permission/getUserPermissionByToken',
+		method: 'get'
+	})
+}
+
+export function getCurrentUserRoles() {
+	return request({
+		url: '/gy-core/gy.gy/vIndustryAllInfo/getCurrentUserRoles',
+		method: 'get'
+	})
+}
+
+export function getSystemUsers(params) {
+	return request({
+		url: '/gy-core/sys/user/list',
+		method: 'get',
+		params
+	})
+}

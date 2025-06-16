@@ -1,5 +1,6 @@
 import { defineStore } from "pinia";
 import Cookies from 'js-cookie';
+import { getHistoryRoutes, setHistoryRoutes } from '@/utils/auth';	
 
 const getDefaultState = () => {
 	return {
@@ -10,7 +11,8 @@ const getDefaultState = () => {
 		device: 'desktop',
 		lastPage: {},
 		sidebarLogo: '',
-		isFullscreen: false
+		isFullscreen: false,
+		historyRoutes: getHistoryRoutes() || []
 	};
 };
 
@@ -67,6 +69,22 @@ export const useApp = defineStore("app", {
 				}
 			}
 			this.isFullscreen = value;
+		},
+		setHistoryRoutes(route) {
+			if (Array.isArray(route)) {
+				this.historyRoutes = route;
+				setHistoryRoutes(this.historyRoutes);
+				return true;
+			}
+			if (['/login', '/404', '/'].includes(route.path) || !route.meta?.title) {
+				return false;	
+			}
+			const check = this.historyRoutes.find(item => item.path === route.path);
+			// console.log("setHistoryRoutes :", check, route)
+			if (!check) {
+			    this.historyRoutes.push(route);
+				setHistoryRoutes(this.historyRoutes);
+			}
 		}
 	}
 })
