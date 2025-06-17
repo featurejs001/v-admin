@@ -12,6 +12,7 @@ const getDefaultState = () => {
 		lastPage: {},
 		sidebarLogo: '',
 		isFullscreen: false,
+		isDomFullscreen: false,
 		historyRoutes: getHistoryRoutes() || []
 	};
 };
@@ -69,6 +70,9 @@ export const useApp = defineStore("app", {
 				}
 			}
 			this.isFullscreen = value;
+		},
+		setDomFullScreen(value) {
+			this.isDomFullscreen = value;
 		},
 		setHistoryRoutes(route) {
 			if (Array.isArray(route)) {

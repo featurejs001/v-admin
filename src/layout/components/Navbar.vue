@@ -77,7 +77,7 @@ const handleFullscreen = () => {
 	.right-menu {
 		height: 100%;
 		line-height: 30px;
-		padding-right: 20px;
+		padding-right: 12px;
 
 		&:focus {
 			outline: none;

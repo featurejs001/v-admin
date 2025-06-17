@@ -75,8 +75,8 @@ const handleClick = (item) => {
 .sidebar-logo-container {
   position: relative;
   width: max-content;
-  height: 50px;
-  line-height: 50px;
+  height: 30px;
+  line-height: 30px;
   overflow: hidden;
   padding: 0 0 0 8px;
 
@@ -93,7 +93,7 @@ const handleClick = (item) => {
       margin: 0;
     //   color: rgba(255, 255, 255, 0.7);
       font-weight: 600;
-      line-height: 50px;
+      line-height: 30px;
       font-size: 12px;
       font-family: Avenir, Helvetica Neue, Arial, Helvetica, sans-serif;
       vertical-align: middle;

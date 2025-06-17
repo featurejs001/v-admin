@@ -1,5 +1,5 @@
 <template>
-	<div >
+	<div class="slider-container">
 		<Avatar />
 		<div class="scrollbar-wrapper">
 			<a-menu
@@ -14,6 +14,8 @@
 			>
 			</a-menu>
 		</div>
+		<div class="system-name" v-if="isSidebarOpened">光跃投资智能平台</div>
+		<div class="system-name" v-else>光跃投资</div>
 	</div>
 </template>
 
@@ -49,7 +51,7 @@ watch(isSidebarOpened, (newVal) => {
 	} else {
 		state.mode = 'vertical'
 	}
-}, {deep: true})
+}, {immediate: true})
 
 watch(() => curRoute.name, (newVal) => {
 	state.selectedKeys = [newVal];
@@ -94,16 +96,32 @@ const handleMenuClick = (item) => {
 
 </script>
 <style lang="less" scoped>
+.slider-container {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+
+	.scrollbar-wrapper {
+		width: 100%;
+		height: calc(100% - 80px);
+		overflow: hidden;
+		flex: 1;
+	}
+
+	.system-name {
+		overflow: hidden;
+	    text-overflow: ellipsis;
+	    white-space: nowrap;
+	    font-size: 12px;
+	    color: rgba(255, 255, 255, 0.7);
+	    text-align: center;
+	}
+}
 :deep(.el-scrollbar__view) {
 	height: 100%;
 	.el-menu {
 		height: 100%;
 	}
-}
-.scrollbar-wrapper {
-	width: 100%;
-	height: calc(100% - 80px);
-	overflow: hidden;
 }
 
 :deep(.ant-menu) {
@@ -129,6 +147,7 @@ const handleMenuClick = (item) => {
 			width: 100%;
 			height: 52px;
 			line-height: 52px;
+			padding: 14px 24px;
 		}
 	}
 

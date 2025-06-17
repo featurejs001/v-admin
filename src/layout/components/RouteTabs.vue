@@ -47,7 +47,7 @@ const handleDelClick = (targetKey) => {
 </script>
 <style lang="less" scoped>
 .tabs {
-	padding: 0px 15px;
+	padding: 0px 12px;
 	height: 30px;
 	line-height: 30px;
 	overflow: hidden;
@@ -60,19 +60,31 @@ const handleDelClick = (targetKey) => {
 			background: none;
 			border: none;
 			.ant-tabs-tab-btn {
-				font-size: 12px;
-				line-height: 30px;
+				font-size: 12.5px;
+				line-height: 26px;
+				color: rgba(0,0,0,0.88);
 			}
 			.ant-tabs-tab-remove {
 				padding: 0px;
+				visibility: hidden;
+				.anticon {
+					width: 7px;
+				}
+			}
+			&:hover {
+				.ant-tabs-tab-remove {
+			    	visibility: visible;
+				}
 			}
 			&.ant-tabs-tab-active {
 				background: var(--active-color);
 				.ant-tabs-tab-remove {
 					color: #FFF;
+					visibility: visible;
 				}
 				.ant-tabs-tab-btn {
 					color: #FFF;
+					font-size: 13px;
 				}
 			}
 		}
