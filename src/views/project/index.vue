@@ -1,10 +1,15 @@
 <template>
-	<div>
-		<Search @success="handleSearch" @export="handleExport" />
+	<div class="project-wrap">
+		<div class="filter-container">
+			<Search @success="handleSearch" @export="handleExport" />
+			<Filter />
+		</div>
 	</div>
 </template>
 <script setup>
 import Search from './components/search.vue'
+import Filter from './components/filter.vue'
+import { reactive } from "vue"
 
 // 定义表头和字段映射
 const headers = [
@@ -89,3 +94,19 @@ const handleSearch = () => {
 const handleExport = async () => {
 }
 </script>
+<style lang="less" scoped>
+.project-wrap {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	.filter-container {
+		margin-bottom: 8px;
+		flex-shrink: 0;
+		flex-grow: 0;
+	}
+	.table-container {
+		flex-grow: 1;
+		flex-shrink: 1;
+	}
+}
+</style>

@@ -11,8 +11,7 @@
 				:inlineIndent="16"
 				:subMenuOpenDelay="0.2"
 				@click="handleMenuClick"
-			>
-			</a-menu>
+			/>
 		</div>
 		<div class="system-name" v-if="isSidebarOpened">光跃投资智能平台</div>
 		<div class="system-name" v-else>光跃投资</div>
