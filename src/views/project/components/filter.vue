@@ -3,7 +3,7 @@
 		<div v-if="state.loading" class="loading">
 			<a-spin  />
 		</div>
-		<div v-else>
+		<div v-else v-show="state.isOpen">
 			<div class="common_tab_level" v-for="item in state.leverList" :key="item.key">
 				<div class="flex items-start">
 					<div class="first_introduction_text">
@@ -14,7 +14,7 @@
 						iconsize="15"
 						isupload="false"
 						type="button"
-						@click="clickAll(item.key)"
+						@click="handleClickAll(item.key)"
 					>
 						<a-tooltip :title="getToolHint(state.tooltips, '项目中心', '全选')">
 	                        全选
@@ -22,50 +22,80 @@
 							<span v-else class="minus">-</span>
 	                    </a-tooltip>
 					</a-button>
-					<div class="flex-row filter-tags ">
-						<span :class="['filter-tag', item.key.includes('domain') ? 'classic' : '']" v-for="i in 30" :key="i">汽车电动化(21)</span>
+					<div :class="['flex-row', 'filter-tags', !item.showMore || item.showAll ? 'all' : '']">
+						<span
+						 v-for="tag in item.tags" 
+						 :key="tag"
+						 :class="[
+						 	'filter-tag', 
+							item.key.includes('domain') ? 'classic' : '', 
+							item.selectedTags.includes(tag) ? 'active' : ''
+						  ]"
+						  @click="handleCheckedTag(item.key, tag)"
+						>{{ tag }}(21)</span>
 					</div>
 					<a-button
 						class="my_shouqi"
 						type="link"
+						v-if="item.showMore"
+						@click="item.showAll = !item.showAll"
 					>
-						<span>
-							<span class="common_plus_icon">+ </span>
-							<span class="more">更多</span>
-						</span>
+						<a-tooltip :title="getToolHint(state.tooltips, '项目中心', item.showAll ? '收起' : '更多')">
+                          <span v-if="item.showAll" class="common_plus_icon less_btn_icon" style="position: relative; top: 0px; right: 4px">- </span>
+                          <span v-else class="common_plus_icon">+ </span>
+                          <span class="more">{{ item.showAll ? '收起' : '更多' }}</span>
+                        </a-tooltip>
 					</a-button>
 				</div>
+			</div>
+		</div>
+		<div class="collapse">
+			<div v-if="state.isOpen" class="title" @click="state.isOpen = false">
+				<UpOutlined />
+				收起
+			</div>
+			<div v-else class="title" @click="state.isOpen = true">
+				<DownOutlined />
+				展开
 			</div>
 		</div>
 	</div>
 </template>
 <script setup>
 import { reactive, onMounted } from 'vue'
-import { getToolTip } from '@/api/industry'
+import { getToolTip, getCategoryList, getDomainNth } from '@/api/industry'
+import { getSystemUsers } from "@/api/user"
 import { getToolHint } from "@/utils/helper"
+import { UpOutlined, DownOutlined } from '@ant-design/icons-vue'
 
 const state = reactive({
+	isOpen: true,
 	loading: false,
 	tooltips: [],
 	selectedDomain1Tags: [],
+	orderMap: {}, // 存储每个domain的nth值
+	domainAllList: [],
 	leverList: [
 		{
 			name: '一级赛道',
 			key: 'domain1',
 			tags: [],
-			selectedTags: []
+			selectedTags: [],
+			showMore: true,
 		},
 		{
 			name: '二级赛道',
 			key: 'domain2',
 			tags: [],
 			selectedTags: [],
+			showMore: true,
 		},
 		{
 			name: '三级赛道',
 			key: 'domain3',
 			tags: [],
 			selectedTags: [],
+			showMore: true,
 		},
 		{
 			name: '行业等级',
@@ -77,7 +107,7 @@ const state = reactive({
 			name: '轮次',
 			key: 'turn2',
 			tags: ['种子/天使轮', 'A轮', 'B轮', 'C轮', 'D轮至Pre-IPO', '股权投资', '战略投资', 'IPO', '被收购', '其他', '未知'],
-			selectedTags: []
+			selectedTags: [],
 		},
 		{
 			name: '项目阶段',
@@ -106,26 +136,157 @@ const state = reactive({
 	]
 })
 
-const clickAll = (key) => {
+const handleClickAll = (key) => {
+	const index = state.leverList.findIndex(item => item.key === key)
+	if (index === -1) {
+		return
+	}
+	state.leverList[index].selectedTags = []
+}
+
+const handleCheckedTag = (key, tag) => {
+	const index = state.leverList.findIndex(item => item.key === key)
+	if (index === -1) {
+		return
+	}
+	const tagIndex = state.leverList[index].selectedTags.findIndex(item => item === tag)
+	if (tagIndex === -1) {
+		state.leverList[index].selectedTags.push(tag)
+	} else {
+		state.leverList[index].selectedTags.splice(tagIndex, 1)
+	}
+
+	changeDomainTags();
+}
+
+function sortDomainTags(domainTags, level = 0) {
+	return domainTags?.sort((a, b) => {
+	  let orderA = state.orderMap[a] ? state.orderMap[a].nth : Infinity;
+	  let orderB = state.orderMap[b] ? state.orderMap[b].nth : Infinity;
+	  if (level === 1 && orderA === orderB) {
+
+	  }
+	  return orderA - orderB;
+	});
+}
+
+function getDomainOptions(level, value) {
+    // value = value?.replace(/\(\d+\)/, ''); // 移除括号和数字
+	
+    const domainOptions = Array.from(
+      new Set(
+        state.domainAllList
+          .filter((item) => item[`domain${level}`] === value)
+          .map((item) => item[`domain${Number(level) + 1}`])
+      )
+    )
+
+    return domainOptions;
+}
+const getDomainTags = (domainTags, level) => {
+	  let tags = []
+	  domainTags?.forEach((domainTag) => {
+	    tags = tags.concat(getDomainOptions(level, domainTag))
+	  });
+	  return Array.from(new Set(tags));
+};
+
+// 切换赛道后，其他赛道过滤
+function changeDomainTags() {
+	let tags1 = [];
+	let tags2 = [];
+	// let tags3 = [];
+	
+	let allData = [...state.domainAllList];
+	const index1 = state.leverList.findIndex(item => item.key === 'domain1')
+	const index2 = state.leverList.findIndex(item => item.key === 'domain2')
+	const index3 = state.leverList.findIndex(item => item.key === 'domain3')
+
+	if (state.leverList[index1].selectedTags.length !== 0) {
+		allData = allData.filter(item => state.leverList[0].selectedTags.includes(item.domain1))
+		tags1 = [...state.leverList[index1].selectedTags];
+	} else {
+		tags1 = [...state.leverList[index1].tags];
+	}
+	state.leverList[index2].tags = sortDomainTags(getDomainTags(tags1, 1))
+	
+	if (state.leverList[index2].selectedTags.length !== 0) {
+		allData = allData.filter(item => state.leverList[1].selectedTags.includes(item.domain2));
+		tags2 = [...state.leverList[index2].selectedTags];
+	} else {
+		tags2 = [...state.leverList[index2].tags];
+	}
+
+	state.leverList[index3].tags = sortDomainTags(getDomainTags(tags2, 2))
 
 }
 
-const getData = () => {
+const initData = () => {
+	state.loading = true;
 	const promiseAll = []
 	let promiseIndex = 0
 	promiseAll[promiseIndex++] = getToolTip().then((res) => {
 		state.tooltips = res.result || []
-	}).finally(() => {
-		return Promise.resolve()
+		return Promise.resolve(res)
+	}).catch(() => {
+		return Promise.resolve({})
 	})
 
-	Promise.all(promiseAll).then(() => {
-		console.log('all')
+	promiseAll[promiseIndex++] = getCategoryList({
+		pageNo: 1,
+		pageSize: 100000
+	}).then((res) => {
+	    return Promise.resolve(res)
+	}).catch(() => {
+		return Promise.resolve({})
+	})
+
+	promiseAll[promiseIndex++] = getDomainNth().then((res) => {
+	    return Promise.resolve(res)
+	}).catch(() => {
+		return Promise.resolve({})
+	})
+
+	promiseAll[promiseIndex++] = getSystemUsers({
+	    pageNo: 1,
+		pageSize: 100000
+	}).then(res => {
+		const users = res?.result?.records?.filter?.(item => !['管理员rootroot', '毛振华', '孙婷'].includes(item.realname))?.map?.(item => item.realname) || []
+		const mainIndex = state.leverList.findIndex(item => item.key === 'main')
+		state.leverList[mainIndex].tags = [...users]
+
+		const assistantIndex = state.leverList.findIndex(item => item.key === 'assistant')
+		state.leverList[assistantIndex].tags = [...users]
+		return Promise.resolve(res)
+	}).catch(() => {})
+
+	Promise.all(promiseAll).then((res) => {
+		let orderMap = {}
+		const nthList = res[2]?.result || [];
+		nthList.forEach(item => {
+			orderMap[item.name] = {
+				...item,
+				nth: item.nth === 0 || item.name === '未分类I' ? 100000 : item.nth,
+			}
+		})
+		
+
+		const domainList = res[1]?.result?.records || []
+		state.domainAllList = domainList;
+
+		state.orderMap = orderMap;
+
+		let tag1 = sortDomainTags(Array.from(new Set(domainList.map(item => item.domain1)))).map(item => item);
+		const leverIndex = state.leverList.findIndex(item => item.key === 'domain1')
+		state.leverList[leverIndex].tags = tag1;
+		changeDomainTags()
+	}).finally(() => {
+		state.loading = false;
 	})
 }
 
 onMounted(() => {
-	getData()
+	initData()
 })
 </script>
 <style lang="less" scoped>
@@ -189,6 +350,11 @@ onMounted(() => {
 			overflow: hidden; 
 			max-height: 30px; 
 			transition: max-height 0.3s ease 0s;
+			&.all {
+				flex-wrap: wrap;
+			    overflow: visible;
+			    max-height: none;
+			}
 
 			.filter-tag {
 				overflow-wrap: break-word;
@@ -198,10 +364,58 @@ onMounted(() => {
 				margin: 0px 0 0 3px;
 				color: #555;
 				line-height: 30px;
+				padding: 0px 7px;
+				min-width: 109px;
+				cursor: pointer;
 				&.classic {
 					width: 188px;
 					flex: 0 0 188px;
 				}
+				&.active,&:hover {
+					color: #167FFF;
+				}
+			}
+		}
+	}
+
+	.collapse {
+	    display: flex;
+	    justify-content: center;
+	    margin-top: 0rem;
+	    position: relative;
+		&::before {
+			content: "";
+			position: absolute;
+			top: 50%;
+			left: 0;
+			transform: translateY(-50%);
+			content: "";
+			width: 100%;
+			height: 1px;
+			background-color: rgba(0, 0, 0, 0.15);
+		}
+		.title {
+			position: relative;
+		    background: white;
+		    z-index: 1;
+			padding: 0 15px;
+		}
+		.title {
+			position: relative;
+		    background: white;
+		    z-index: 1;
+			padding: 0 15px;
+			font-size: 13.5px;
+			cursor: pointer;
+			height: 32px;
+			display: flex;
+			align-items: center;
+			color: #888888;
+			&:hover {
+				color: #167FFF;
+			}
+			:deep(.anticon) {
+				margin-right: 8px;
 			}
 		}
 	}

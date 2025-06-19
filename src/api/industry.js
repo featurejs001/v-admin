@@ -1,9 +1,18 @@
 
 import request from '@/utils/request';
-export function getIndustryList() {
+
+export function getProjectList(params) {
+	return request({
+		url: '/gy-core/gy.gy/vProjectAllInfo/listFilteredStatus',
+		method: 'get',
+		params
+	})
+}
+export function getCategoryList(params) {
 	return request({
 		url: '/gy-core/gy.gy/vIndustryAllInfo/list',
 		method: 'get',
+		params
 	})
 }
 
@@ -14,7 +23,7 @@ export function getToolTip() {
 	})
 }
 
-export function getIndustryNth() {
+export function getDomainNth() {
 	return request({
 		url: '/gy-core/gy.gy/vIndustryAllInfo/getResult/domain_nth_xhwe',
 		method: 'get',

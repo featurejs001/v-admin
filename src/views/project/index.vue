@@ -3,13 +3,15 @@
 		<div class="filter-container">
 			<Search @success="handleSearch" @export="handleExport" />
 			<Filter />
+			记录：{{ state.total }}/{{ state.records.length }}
 		</div>
 	</div>
 </template>
 <script setup>
 import Search from './components/search.vue'
 import Filter from './components/filter.vue'
-import { reactive } from "vue"
+import { reactive, onMounted } from "vue"
+import { getProjectList } from "@/api/industry";
 
 // 定义表头和字段映射
 const headers = [
@@ -80,12 +82,15 @@ const headers = [
     )
     .map((header) => header.label);
 
-   const state = reactive({
-       params: {
-           pageNo: 1,
-           pageSize: 10,
-	   }
-   })
+const state = reactive({
+	loading: false,
+	params: {
+       pageNo: 1,
+       pageSize: 10,
+	},
+	total: 0,
+	records: []
+})
 
 const handleSearch = () => {
 	console.log("handleSearch")
@@ -93,12 +98,31 @@ const handleSearch = () => {
 
 const handleExport = async () => {
 }
+
+onMounted(() => {
+	state.loading = true;
+	
+    getProjectList({
+		column: 'investDate',
+		order: 'desc',
+		pageNo: 1,
+		pageSize: 100000,
+		type: 1
+	}).then((res) => {
+        state.records = res?.result?.pageList?.records || [];
+		state.total = res?.result?.pageList?.total || 0;
+    }).finally(() => {
+		
+		state.loading = false;
+	})
+})
 </script>
 <style lang="less" scoped>
 .project-wrap {
 	display: flex;
 	flex-direction: column;
 	height: 100%;
+	overflow-y: auto;
 	.filter-container {
 		margin-bottom: 8px;
 		flex-shrink: 0;
