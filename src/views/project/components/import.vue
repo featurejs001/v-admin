@@ -72,7 +72,7 @@ import {
 	importThirdProjectFromLocalFile
 } from '@/api/industry';
 
-const emit = defineEmits(['success'])
+const emits = defineEmits(['success'])
 
 const state = reactive({
 	importType: '',
