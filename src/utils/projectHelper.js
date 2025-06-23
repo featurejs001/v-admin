@@ -71,6 +71,358 @@ export const selectedHeaders = headers
     )
     .map((header) => header.label);
 
+export const priorityFilter = ['跟进', '关注', '其他', '投后'];
+
+export const turnFilter = ['种子/天使轮', 'A轮', 'B轮', 'C轮', 'D轮至Pre-IPO', '股权投资', '战略投资', 'IPO', '被收购', '其他', '未知'];
+
+export const stageFilter = ['线索', '跟进', '立项', '上会', '投后', '废弃'];
+
+export const followStageFilter = ['暂无接触', '资料分析', '外围访谈', '高管访谈', 'CEO访谈', '业务尽调', '三方财法尽调']
+
+export const getProjectColumns = (filterMaps = {}) => { 
+	return [{
+	    title: '项目',
+	    align: 'center',
+	    dataIndex: 'name',
+	    fixed: 'left',
+	    slot: 'name',
+	    resizable: true,
+	    sorter: true,
+	    width: 90,
+	 }, {
+	    title: '行业等级',
+	    align: 'center',
+	    dataIndex: 'priority',
+	    resizable: true,
+	    sorter: true,
+		width: 90,
+	    filters: priorityFilter.map(item => {
+			return {
+				text: item,
+				value: item
+			}
+		}),
+		filteredValue: filterMaps?.name || [],
+	    onFilter: (value, record) => record.priority === value,
+	}, {
+		title: '项目阶段',
+	    align: 'center',
+	    dataIndex: 'stage',
+	    resizable: true,
+	    sorter: true,
+	    filters: stageFilter.map(item => {
+			return {
+				text: item,
+				value: item
+			}
+		}),
+	    filteredValue: filterMaps?.state || [],
+	    onFilter: (value, record) => record.stage === value,
+	    width: 90,
+	}, {
+		title: '跟进阶段',
+	    align: 'center',
+	    dataIndex: 'followStage',
+	    resizable: true,
+	    sorter: true,
+	    filteredValue: filterMaps?.followStage || [],
+	    onFilter: (value, record) => record.followStage === value,
+	    filters: followStageFilter,
+	    width: 90,
+	}, {
+		title: '融资开始',
+	    align: 'center',
+	    dataIndex: 'financingWindowStartTime',
+	    customRender: ({ text }) => {
+	      return !text ? '' : text.split('-').slice(0, 2).join('-');
+	    },
+	    resizable: true,
+	    sorter: true,
+	    width: 90,
+	}, {
+		title: '融资结束',
+	    align: 'center',
+	    dataIndex: 'financingWindowEndTime',
+	    customRender: ({ text }) => {
+	      return !text ? '' : text.split('-').slice(0, 2).join('-');
+	    },
+	    resizable: true,
+	    sorter: true,
+	    width: 90,
+	}, {
+		title: '最近融资',
+	    align: 'center',
+	    dataIndex: 'investDate',
+	    resizable: true,
+	    defaultSortOrder: 'descend',
+	    sortDirections: ['ascend', 'descend'],
+	    sorter: (a, b) => {
+	      return new Date(a.investDate) - new Date(b.investDate);
+	    },
+	    width: 80,
+	}, {
+		title: '轮次',
+	    align: 'center',
+	    dataIndex: 'turn2',
+	    resizable: true,
+	    sorter: true,
+	    width: 90,
+	    filteredValue: filterMaps?.turn2 || [],
+	    onFilter: (value, record) => true,
+	    filters: turnFilter,
+	},   {
+	    title: '金额',
+	    align: 'center',
+	    dataIndex: 'amount',
+	    resizable: true,
+	    sorter: true,
+	    width: 90,
+	},
+	{
+		title: '投资方',
+		// align: 'center',
+		dataIndex: 'investor',
+		resizable: true,
+		align: 'left',
+		sorter: true,
+		width: 90,
+	},
+	{
+		title: '一级赛道',
+		align: 'left',
+		dataIndex: 'domain1',
+		resizable: true,
+		sorter: true,
+		// filters: domain1Filter,
+		width: 110,
+	},
+	{
+		title: '二级赛道',
+		align: 'left',
+		dataIndex: 'domain2',
+		resizable: true,
+		sorter: true,
+		width: 110,
+		// filters: domain2Filter,
+	},
+	{
+		title: '三级赛道',
+		align: 'left',
+		dataIndex: 'domain3',
+		resizable: true,
+		sorter: true,
+		width: 110,
+		// filters: domain3Filter,
+	}, {
+		title: '简介',
+	    // align: 'center',
+	    dataIndex: 'briefIntroduction',
+	    resizable: true,
+	    align: 'left',
+	    sorter: true,
+	    width: 110,
+	}, {
+		title: '成立时间',
+	    // align: 'center',
+	    dataIndex: 'foundationDate',
+	    resizable: true,
+	    align: 'left',
+	    sorter: true,
+	    width: 70,
+	}, {
+		title: '第三方链接',
+	    // align: 'center',
+	    dataIndex: 'thirdLink',
+	    resizable: true,
+	    align: 'left',
+	    sorter: true,
+	    width: 110,
+	}, {
+		title: '官网',
+	    // align: 'center',
+	    dataIndex: 'website',
+	    resizable: true,
+	    align: 'left',
+	    sorter: true,
+	    width: 110,
+	}, {
+		align: 'center',
+	    // customRender: ({text}) => {
+	    //   return getTextByCode(text);
+	    // },
+	    dataIndex: 'province',
+	    resizable: true,
+	    ifShow: false,
+	    sorter: true,
+	    title: '省',
+	    filteredValue: null,
+	    onFilter: (value, record) => true,
+	    filters: [], // provinceFilter,
+	    width: 50,
+	}, {
+		title: '市',
+	    // align: 'center',
+	    dataIndex: 'city',
+	    resizable: true,
+	    ifShow: false,
+	    align: 'center',
+	    sorter: true,
+	    // customRender: ({text}) => {
+	    //   return getTextByCode(text);
+	    // },
+	    filteredValue: null,
+	    onFilter: (value, record) => true,
+	    filters: [], // cityFilter,
+	    width: 50,
+	}, {
+		 title: '区',
+	    // align: 'center',
+	    dataIndex: 'region',
+	    resizable: true,
+	    ifShow: false,
+	    align: 'center',
+	    sorter: true,
+	    // customRender: ({text}) => {
+	    //   return getTextByCode(text);
+	    // },
+	    filteredValue: null,
+	    onFilter: (value, record) => true,
+	    filters: [], // regionFilter,
+	    width: 50,
+	}, {
+		title: '标签',
+	    align: 'left',
+	    dataIndex: 'tags',
+	    ellipsis: true,
+	    resizable: true,
+	    sorter: true,
+	    width: 70,
+	}, {
+		title: '主理人',
+	    align: 'left',
+	    dataIndex: 'main',
+	    resizable: true,
+	    sorter: true,
+	    width: 90,
+	}, {
+		title: '协理人',
+	    align: 'left',
+	    dataIndex: 'assistant',
+	    resizable: true,
+	    sorter: true,
+	    width: 90,
+	}, {
+		title: '其他人',
+	    align: 'left',
+	    dataIndex: 'other',
+	    resizable: true,
+	    sorter: true,
+	}, {
+		title: '创建时间',
+	    align: 'center',
+	    dataIndex: 'createTime',
+	    resizable: true,
+	    sorter: true,
+	    ifShow: true,
+	    width: 80,
+	    // filters: otherFilter,
+	    customRender: ({ text }) => {
+	      if (!text) {
+	        return '';
+	      }
+
+	      const datePart = text.split(' ')[0]; // 获取'YYYY-MM-DD'
+
+	      return datePart; // 返回日期部分
+	    },
+	},{
+		title: '更新时间',
+	    align: 'center',
+	    dataIndex: 'updateTime',
+	    resizable: true,
+	    sorter: true,
+	    width: 80,
+	    // filters: otherFilter,
+	    customRender: ({ text }) => {
+	      if (!text) {
+	        return '';
+	      }
+
+	      const datePart = text.split(' ')[0]; // 获取'YYYY-MM-DD'
+
+	      return datePart; // 返回日期部分
+	    },
+	}, {
+		title: '项目主体',
+	    // align: 'center',
+	    dataIndex: 'fullName',
+	    resizable: true,
+	    align: 'left',
+	    sorter: true,
+	    width: 90,
+	}, {
+		title: '项目别名',
+	    // align: 'center',
+	    dataIndex: 'alias',
+	    resizable: true,
+	    align: 'left',
+	    sorter: true,
+	    width: 90,
+	}, {
+		title: '推送人',
+	    // align: 'center',
+	    dataIndex: 'op_1',
+	    resizable: true,
+	    align: 'left',
+	    sorter: true,
+	    ifShow: true,
+	    width: 50,
+	}, {
+		title: '推送对象',
+	    // align: 'center',
+	    dataIndex: 'op_2',
+	    resizable: true,
+	    align: 'left',
+	    sorter: true,
+	    ifShow: true,
+	    width: 50,
+	}, {
+		title: '推送时间',
+	    dataIndex: 'op_time',
+	    resizable: true,
+	    align: 'left',
+	    sorter: true,
+	    width: 70,
+	}, {
+		title: '推送分类',
+	    dataIndex: 'op_status',
+	    resizable: true,
+	    align: 'left',
+	    sorter: true,
+	    width: 50,
+	}, {
+		title: '推送状态',
+	    dataIndex: 'pushStatus',
+	    resizable: true,
+	    align: 'left',
+	    sorter: true,
+	    width: 50,
+	}, {
+		title: '创建人',
+	    align: 'left',
+	    dataIndex: 'createBy',
+	    resizable: true,
+	    sorter: true,
+	    width: 90,
+	}, {
+		title: '更新人',
+	    align: 'left',
+	    dataIndex: 'updateBy',
+	    resizable: true,
+	    sorter: true,
+	    width: 90,
+	}] 
+}
 export const exportToExcel = (records) => {
 	// 根据配置对象选择表头
     const selectedHeaderKeys = headers.filter((header) => selectedHeaders.includes(header.label)).map((header) => header.key);

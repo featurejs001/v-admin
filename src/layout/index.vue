@@ -44,8 +44,12 @@ const { isSidebarOpened, isDomFullscreen } = storeToRefs(appStore);
 		color: rgba(255, 255, 255, 0.7);
 	}
 	.main {
-		padding: 12px;
+		// padding: 12px;
 		background: #FFF;
+		> div {
+			padding: 12px;
+			overflow-y: auto;
+		}
 	}
 }
 </style>

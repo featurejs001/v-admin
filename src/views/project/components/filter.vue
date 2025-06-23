@@ -67,6 +67,12 @@ import { getToolTip, getCategoryList, getDomainNth } from '@/api/industry'
 import { getSystemUsers } from "@/api/user"
 import { getToolHint } from "@/utils/helper"
 import { UpOutlined, DownOutlined } from '@ant-design/icons-vue'
+import { 
+	priorityFilter,
+	turnFilter,
+	stageFilter,
+	followStageFilter
+} from "@/utils/projectHelper";
 
 const emits = defineEmits(['filterChange'])
 
@@ -110,25 +116,25 @@ const state = reactive({
 		{
 			name: '行业等级',
 			key: 'priority',
-			tags: ['跟进', '关注', '其他', '投后'],
+			tags: [...priorityFilter],
 			selectedTags: [],
 		},
 		{
 			name: '轮次',
 			key: 'turn2',
-			tags: ['种子/天使轮', 'A轮', 'B轮', 'C轮', 'D轮至Pre-IPO', '股权投资', '战略投资', 'IPO', '被收购', '其他', '未知'],
+			tags: [...turnFilter],
 			selectedTags: [],
 		},
 		{
 			name: '项目阶段',
 			key: 'stage',
-			tags: ['线索', '跟进', '立项', '上会', '投后', '废弃'],
+			tags: [...stageFilter],
 			selectedTags: [],
 		},
 		{
 			name: '跟进状态',
 			key: 'followStage',
-			tags: ['暂无接触', '资料分析', '外围访谈', '高管访谈', 'CEO访谈', '业务尽调', '三方财法尽调'],
+			tags: [...followStageFilter],
 			selectedTags: [],
 		},
 		{
