@@ -12,7 +12,7 @@
 			</a-popconfirm>
 		</div>
 		<div class="table-content" ref="tableRef">
-			<a-table  :dataSource="$props.dataSource" :columns="$props.columns" :scroll="state.scroll" size="small">
+			<a-table v-bind="$props.tableProps" :scroll="state.scroll" @change="handleTableChange" size="small">
 				<template #headerCell="{ column }">
 		          <span v-if="column.isCheckbox" v-bind="selectHeaderProps">选择</span>
 		          <span v-else >{{ column.title }}</span>
@@ -30,6 +30,9 @@
 					<FilterOutlined v-if="!filtered" />
 					<FilterFilled v-else />
 				</template>
+				<template v-if="$slots['customFilterDropdown']" #customFilterDropdown="props">
+					<slot name="customFilterDropdown" v-bind="props"></slot>
+				</template>
 			</a-table>
 		</div>
 	</div>
@@ -39,20 +42,27 @@ import { SettingOutlined, FilterOutlined, FilterFilled } from '@ant-design/icons
 import { defineProps, toRefs, ref, onMounted, reactive, onBeforeUnmount } from "vue"
 
 const props = defineProps({
-	dataSource: {
-		type: Array,
-		default: () => []
-	},
-	columns: {
-		type: Array,
-		default: () => []
-	},
-	scroll: {
+	tableProps: {
 		type: Object,
-		default: () => ({ x: '100%' })
+		default: () => ({
+			dataSource: [],
+			columns: []
+		})
 	},
+	// dataSource: {
+	// 	type: Array,
+	// 	default: () => []
+	// },
+	// columns: {
+	// 	type: Array,
+	// 	default: () => []
+	// },
+	// scroll: {
+	// 	type: Object,
+	// 	default: () => ({ x: '100%' })
+	// },
 	isFixedMaxHeight: {
-		type: Object,
+		type: Boolean,
 		default: false
 	},
 	minHeight: {
@@ -62,18 +72,22 @@ const props = defineProps({
 })
 // console.log("props:", props)
 
-const { scroll, isFixedMaxHeight } = toRefs(props)
+const { tableProps, isFixedMaxHeight } = toRefs(props)
 
 const tableRef = ref(null);
 const state = reactive({
 	scroll: {
-		x: props.scroll.x,
-		y: props.scroll.y || undefined
+		x: tableProps.value?.scroll?.x || '100%',
+		y: tableProps.value?.scroll?.y || undefined
 	}
 })
 
 const handleSettingSave = () => {
 	console.log('save')
+}
+
+const handleTableChange = (pagination, filters, sorter) => {
+	console.log('pagination, filters, sorter', pagination, filters, sorter)
 }
 
 const handleResize = () => {
@@ -190,6 +204,55 @@ onBeforeUnmount(() => {
 		    text-overflow: ellipsis;
 		    word-break: keep-all;
 		}
+		.ant-table-cell {
+			.ant-checkbox-checked {
+				.ant-checkbox-inner {
+				    border-color: #167FFF;
+				    background: transparent;
+				    width: 14px;
+				    height: 14px;
+					border-radius: 2px;
+					&::after {
+						border-color: #167fff;
+					}
+				}
+			}
+		}
+	}
+	:deep(.ant-pagination) {
+		color: #888888;
+    	font-size: 14px;
+		.ant-pagination-disabled {
+			display: none;
+		}
+		.ant-pagination-item {
+			margin: 0 4px;
+			a {
+				color: #888888;
+				font-weight: 400;
+				font-size: 14px;
+			}
+			&:hover, {
+				background-color: transparent;
+				a {
+					color: var(--active-color);
+				}
+				
+			}
+			&.ant-pagination-item-active {
+				background-color: var(--active-color);
+				border-radius: 2px;
+				a {
+					color: #FFF;
+				}
+			}
+		}
+		.ant-pagination-next:hover, .ant-pagination-prev:hover {
+			.ant-pagination-item-link {
+				background-color: transparent;
+			}
+		}
+		
 	}
 }
 </style>

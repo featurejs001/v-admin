@@ -19,6 +19,7 @@ const getDefaultState = () => {
 		authList: [],
 		premissionCodeList: [],
 		sysSafeMode: false,
+		gUserRoles: [], // 
 	};
 };
 
@@ -106,6 +107,7 @@ export const useUser = defineStore("user", {
 					this.authList = systemPermission.auth || [];
 					this.allAuthList = systemPermission.allAuth || [];
 					this.sysSafeMode = systemPermission.sysSafeMode || false;
+					this.gUserRoles = gUserRoles;
 
 					const asyncRoutes = filterAsyncRoutes( dynamicRoutes, systemPermission.menu)
 					

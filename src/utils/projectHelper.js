@@ -79,7 +79,26 @@ export const stageFilter = ['线索', '跟进', '立项', '上会', '投后', '�
 
 export const followStageFilter = ['暂无接触', '资料分析', '外围访谈', '高管访谈', 'CEO访谈', '业务尽调', '三方财法尽调']
 
-export const getProjectColumns = (filterMaps = {}) => { 
+function sortColumn(a, b, key) {
+	const aPinyin = pinyin(a[key], {
+        style: pinyin.STYLE_NORMAL,
+    })
+    .flat()
+    .join('');
+
+    const bPinyin = pinyin(b[key], {
+        style: pinyin.STYLE_NORMAL,
+    })
+    .flat()
+    .join('');
+
+    if (aPinyin === bPinyin) return 0;
+
+    const compareResult = aPinyin.localeCompare(bPinyin);
+    return compareResult;
+}
+
+export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}) => { 
 	return [{
 	    title: '项目',
 	    align: 'center',
@@ -95,15 +114,13 @@ export const getProjectColumns = (filterMaps = {}) => {
 	    dataIndex: 'priority',
 	    resizable: true,
 	    sorter: true,
-		width: 90,
+		width: 120,
 	    filters: priorityFilter.map(item => {
 			return {
 				text: item,
 				value: item
 			}
 		}),
-		filteredValue: filterMaps?.name || [],
-	    onFilter: (value, record) => record.priority === value,
 	}, {
 		title: '项目阶段',
 	    align: 'center',
@@ -116,19 +133,20 @@ export const getProjectColumns = (filterMaps = {}) => {
 				value: item
 			}
 		}),
-	    filteredValue: filterMaps?.state || [],
-	    onFilter: (value, record) => record.stage === value,
-	    width: 90,
+	    width: 120,
 	}, {
 		title: '跟进阶段',
 	    align: 'center',
 	    dataIndex: 'followStage',
 	    resizable: true,
 	    sorter: true,
-	    filteredValue: filterMaps?.followStage || [],
-	    onFilter: (value, record) => record.followStage === value,
-	    filters: followStageFilter,
-	    width: 90,
+	    filters: followStageFilter.map(item => {
+			return {
+				text: item,
+				value: item
+			}
+		}),
+	    width: 120,
 	}, {
 		title: '融资开始',
 	    align: 'center',
@@ -138,7 +156,7 @@ export const getProjectColumns = (filterMaps = {}) => {
 	    },
 	    resizable: true,
 	    sorter: true,
-	    width: 90,
+	    width: 120,
 	}, {
 		title: '融资结束',
 	    align: 'center',
@@ -148,7 +166,7 @@ export const getProjectColumns = (filterMaps = {}) => {
 	    },
 	    resizable: true,
 	    sorter: true,
-	    width: 90,
+	    width: 120,
 	}, {
 		title: '最近融资',
 	    align: 'center',
@@ -156,10 +174,8 @@ export const getProjectColumns = (filterMaps = {}) => {
 	    resizable: true,
 	    defaultSortOrder: 'descend',
 	    sortDirections: ['ascend', 'descend'],
-	    sorter: (a, b) => {
-	      return new Date(a.investDate) - new Date(b.investDate);
-	    },
-	    width: 80,
+	    sorter: true,
+	    width: 120,
 	}, {
 		title: '轮次',
 	    align: 'center',
@@ -167,9 +183,12 @@ export const getProjectColumns = (filterMaps = {}) => {
 	    resizable: true,
 	    sorter: true,
 	    width: 90,
-	    filteredValue: filterMaps?.turn2 || [],
-	    onFilter: (value, record) => true,
-	    filters: turnFilter,
+	    filters: turnFilter.map(item => {
+			return {
+				value: item,
+				text: item
+			}
+		}),
 	},   {
 	    title: '金额',
 	    align: 'center',
@@ -228,7 +247,7 @@ export const getProjectColumns = (filterMaps = {}) => {
 	    resizable: true,
 	    align: 'left',
 	    sorter: true,
-	    width: 70,
+	    width: 120,
 	}, {
 		title: '第三方链接',
 	    // align: 'center',
@@ -250,19 +269,18 @@ export const getProjectColumns = (filterMaps = {}) => {
 	    // customRender: ({text}) => {
 	    //   return getTextByCode(text);
 	    // },
-	    dataIndex: 'province',
+	    dataIndex: 'provinceMap',
 	    resizable: true,
 	    ifShow: false,
 	    sorter: true,
 	    title: '省',
-	    filteredValue: null,
-	    onFilter: (value, record) => true,
-	    filters: [], // provinceFilter,
-	    width: 50,
+	    filteredValue: [],
+	    filters: filterValuesMap['province'] || [],
+	    width: 100,
 	}, {
 		title: '市',
 	    // align: 'center',
-	    dataIndex: 'city',
+	    dataIndex: 'cityMap',
 	    resizable: true,
 	    ifShow: false,
 	    align: 'center',
@@ -270,14 +288,13 @@ export const getProjectColumns = (filterMaps = {}) => {
 	    // customRender: ({text}) => {
 	    //   return getTextByCode(text);
 	    // },
-	    filteredValue: null,
-	    onFilter: (value, record) => true,
-	    filters: [], // cityFilter,
-	    width: 50,
+	    filteredValue: [],
+	    filters: filterValuesMap['city'] || [],
+	    width: 100,
 	}, {
 		 title: '区',
 	    // align: 'center',
-	    dataIndex: 'region',
+	    dataIndex: 'regionMap',
 	    resizable: true,
 	    ifShow: false,
 	    align: 'center',
@@ -285,10 +302,9 @@ export const getProjectColumns = (filterMaps = {}) => {
 	    // customRender: ({text}) => {
 	    //   return getTextByCode(text);
 	    // },
-	    filteredValue: null,
-	    onFilter: (value, record) => true,
-	    filters: [], // regionFilter,
-	    width: 50,
+	    filteredValue: [],
+	    filters: filterValuesMap['region'] || [],
+	    width: 100,
 	}, {
 		title: '标签',
 	    align: 'left',
@@ -296,27 +312,28 @@ export const getProjectColumns = (filterMaps = {}) => {
 	    ellipsis: true,
 	    resizable: true,
 	    sorter: true,
-	    width: 70,
+	    width: 100,
 	}, {
 		title: '主理人',
 	    align: 'left',
 	    dataIndex: 'main',
 	    resizable: true,
 	    sorter: true,
-	    width: 90,
+	    width: 100,
 	}, {
 		title: '协理人',
 	    align: 'left',
 	    dataIndex: 'assistant',
 	    resizable: true,
 	    sorter: true,
-	    width: 90,
+	    width: 100,
 	}, {
 		title: '其他人',
 	    align: 'left',
 	    dataIndex: 'other',
 	    resizable: true,
 	    sorter: true,
+		width: 90
 	}, {
 		title: '创建时间',
 	    align: 'center',
@@ -324,7 +341,7 @@ export const getProjectColumns = (filterMaps = {}) => {
 	    resizable: true,
 	    sorter: true,
 	    ifShow: true,
-	    width: 80,
+	    width: 120,
 	    // filters: otherFilter,
 	    customRender: ({ text }) => {
 	      if (!text) {
@@ -359,7 +376,7 @@ export const getProjectColumns = (filterMaps = {}) => {
 	    resizable: true,
 	    align: 'left',
 	    sorter: true,
-	    width: 90,
+	    width: 120,
 	}, {
 		title: '项目别名',
 	    // align: 'center',
@@ -367,7 +384,7 @@ export const getProjectColumns = (filterMaps = {}) => {
 	    resizable: true,
 	    align: 'left',
 	    sorter: true,
-	    width: 90,
+	    width: 120,
 	}, {
 		title: '推送人',
 	    // align: 'center',
@@ -408,6 +425,67 @@ export const getProjectColumns = (filterMaps = {}) => {
 	    sorter: true,
 	    width: 50,
 	}, {
+	    title: '删除人',
+	    dataIndex: 'delByUsername',
+	    resizable: true,
+	    align: 'left',
+	    sorter: true,
+	    ifShow: true,
+	    width: 50,
+	},
+	{
+	    title: '删除时间',
+	    dataIndex: 'delTime',
+	    resizable: true,
+	    align: 'left',
+	    sorter: true,
+	    width: 70,
+	}, {
+	    title: '移入人',
+	    dataIndex: 'importByUsername',
+	    resizable: true,
+	    align: 'left',
+	    sorter: true,
+	    ifShow: true,
+	    width: 50,
+	}, 
+	{
+	    title: '移入时间',
+	    dataIndex: 'importTime',
+	    resizable: true,
+	    align: 'left',
+	    sorter: true,
+	    ifShow: true,
+	    width: 70,
+	}, 
+	{
+	    title: '拒收人',
+	    dataIndex: 'rejectByUsername',
+	    resizable: true,
+	    align: 'left',
+	    ifShow: true,
+	    sorter: true,
+	    width: 50,
+	},
+	{
+	    title: '拒收时间',
+	    dataIndex: 'rejectTime',
+	    resizable: true,
+	    align: 'left',
+	    ifShow: true,
+	    sorter: true,
+	    width: 70,
+	},
+	{
+	    title: '屏蔽区间',
+	    dataIndex: 'blockTime',
+	    resizable: true,
+	    ifShow: true,
+	    align: 'left',
+	    sorter: true,
+	    width: 70,
+	},
+	{
 		title: '创建人',
 	    align: 'left',
 	    dataIndex: 'createBy',
@@ -421,7 +499,31 @@ export const getProjectColumns = (filterMaps = {}) => {
 	    resizable: true,
 	    sorter: true,
 	    width: 90,
-	}] 
+	},{
+		title: '操作',
+	    dataIndex: 'action1',
+		slot: 'action1',
+	    fixed: 'right',
+	    width: 120,
+	}].map(item => {
+		const newItem = {
+			...item,
+			ellipsis: true,
+		}
+		if (newItem.filters) {
+			newItem.customFilterDropdown = true;
+			newItem.filteredValue = filterMaps?.[newItem.dataIndex] || [];
+		}
+		if (true === newItem.sorter) {
+			newItem.sorter = (a, b) => {
+				if (['createTime', 'updateTime', 'op_time', 'delTime', 'importTime', 'rejectTime', 'blockTime'].includes(newItem.dataIndex)) {
+					return new Date(a[newItem.dataIndex]) - new Date(b[newItem.dataIndex])
+				}
+				return sortColumn(a, b, newItem.dataIndex)
+			}
+		}
+		return newItem;
+	})
 }
 export const exportToExcel = (records) => {
 	// 根据配置对象选择表头

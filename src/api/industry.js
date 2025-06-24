@@ -30,9 +30,9 @@ export function getDomainNth() {
 	})
 }
 
-export function getIndustrFieldValues() {
+export function getIndustrFieldValues(path) {
     return request({
-        url: '/gy-core/gy.gy/vIndustryAllInfo/getResult/report_project_field_values_proj_center_gsh',
+        url: '/gy-core/gy.gy/vIndustryAllInfo/getResult/' + path,
         method: 'get',
     })
 }

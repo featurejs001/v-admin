@@ -4,7 +4,7 @@
 			<a-spin  />
 		</div>
 		<div v-else v-show="state.isOpen">
-			<div class="common_tab_level" v-for="item in state.leverList" :key="item.key">
+			<div class="common_tab_level" v-for="item in state.leverList.filter(v => !v.isHide)" :key="item.key">
 				<div class="flex items-start">
 					<div class="first_introduction_text">
 						<span class="">{{ item.name }}</span>
@@ -146,6 +146,27 @@ const state = reactive({
 		{
 			name: '协理人',
 			key: 'assistant',
+			tags: [],
+			selectedTags: [],
+		},
+		{
+			name: '省',
+			key: 'provinceMap',
+			isHide: true,
+			tags: [],
+			selectedTags: [],
+		},
+		{
+			name: '市',
+			key: 'cityMap',
+			isHide: true,
+			tags: [],
+			selectedTags: [],
+		},
+		{
+			name: '区',
+			key: 'regionMap',
+			isHide: true,
 			tags: [],
 			selectedTags: [],
 		}
@@ -420,8 +441,17 @@ onBeforeUnmount(() => {
 	window.removeEventListener("resize", handleResize);
 })
 
+const setFilterItem = (key, selectedTags) => {
+    const item = state.leverList.find(item => item.key === key);
+	if (item) { 
+		item.selectedTags = [...selectedTags];
+		getFilterItems()
+	}
+}
+
 defineExpose({
-	getFilterItems
+	getFilterItems,
+	setFilterItem
 })
 
 </script>
