@@ -345,6 +345,17 @@ a:focus-visible {
 	outline: none;
 }
 
+.custom-checkbox {
+	&.ant-checkbox-wrapper:hover .ant-checkbox:after {
+		visibility: hidden !important;
+	}
+	.ant-checkbox-inner {
+		width: 14px;
+		height: 14px;
+		border-radius: 2px;
+	}
+}
+
 .ant-tooltip {
 	.ant-tooltip-inner {
 		font-size: 13px;

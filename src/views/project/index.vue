@@ -18,16 +18,10 @@
 				showQuickJumper: true
 		 	},
 			dataSource: state.filterAllRecords,
-			columns: getProjectColumns(state.params.filters, state.filterValuesMap),
+			columns: getProjectColumns(state.params.filters, state.filterValuesMap, state.filterAllRecords, state.recordType, state.selectedOption),
 			bordered: true,
 			rowKey: 'projectId',
-			rowSelection: { 
-				fixed: true,
-				selection: {key: 'projectId'},
-				columnTitle: '选择',
-				selectedRowKeys: state.selectedRowKeys, 
-				onChange: onSelectChange
-			}
+			
 		 }"
 		 :isFixedMaxHeight="true">
 			<template #header-left>
@@ -53,6 +47,13 @@
 			          <a-select-option value="删除列表">删除列表</a-select-option>
 				    </a-select>
 				</div>
+			</template>
+			<template #checkbox="{record}">
+				<a-checkbox
+			      :checked="state.selectedRowKeys.includes(record.projectId)"
+				  class="custom-checkbox"
+			      @change="onSelectChange(record.projectId)"
+			    />
 			</template>
 			<template #name="{ column, record, index, text }">
 		        <a style="color: rgba(0, 0, 0, 0.65)" @click="handleEdit(record)">
@@ -244,7 +245,7 @@ const handleFilterChange = async () => {
 		data: [...state.allRecords], 
 		filters: state.params.filters,
 		searchKey: state.params.searchKey,
-		sorts: state.params.sorts
+		sorts: state.recordType === 'merge' ? state.params.sorts : [{field:'name', order: 'asc'}]
 	})
 	
 	if (state.recordType === 'merge') {
@@ -283,6 +284,7 @@ const handleToggleMerge = () => {
 	} else {
 		state.recordType = 'merge'
 	}
+	handleFilterChange();
 }
 
 const handleBatchPush = () => {
@@ -301,9 +303,14 @@ const handleSelectChange = (value) => {
 	console.log("handleSelectChange", value)
 }
 
-const onSelectChange = (keys, selectedRows) => {
-	console.log("keys :", keys, selectedRows)
-	state.selectedRowKeys = keys
+const onSelectChange = (key) => {
+	console.log("keys :", key)
+	if (state.selectedRowKeys.includes(key)) {
+		state.selectedRowKeys = state.selectedRowKeys.filter(item => item !== key)
+	} else {
+		state.selectedRowKeys.push(key)
+	}
+	// state.selectedRowKeys = keys
 }
 
 const handleCheckGroupChange = (checkList, setSelectedKeys, column) => {

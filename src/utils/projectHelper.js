@@ -98,8 +98,72 @@ function sortColumn(a, b, key) {
     return compareResult;
 }
 
-export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}) => { 
+const mergeColumnList = [
+	'stage',
+    'followStage',
+    'checkbox',
+    'action1',
+    'priority',
+    'name',
+    'briefIntroduction',
+    'foundationDate',
+    'thirdLink',
+    'website',
+    'province',
+    'city',
+    'region',
+    'provinceMap',
+    'cityMap',
+    'regionMap',
+    'tags',
+    'main',
+    'assistant',
+    'other',
+    'fullName',
+    'alias',
+    'createBy',
+    'updateBy',
+    'createTime',
+    'updateTime',
+	'financingWindowStartTime',
+	'financingWindowEndTime'
+]
+
+const getRowSpan1 = (index, field, data) => {
+    // return 3;
+
+    const item = data[index];
+    if (index > 0 && item[field] === data[index - 1][field]) {
+      return 0;
+    }
+
+    // if (index > 0 && item[field] === data[index - 1][field] && item[field] === null) {
+    //   return 1;
+    // }
+    // if (item[field] === null) {
+    //   return 1;
+    // }
+
+    let count = 1;
+    for (let i = index + 1; i < data.length; i++) {
+      if (data[i][field] === item[field]) {
+        count++;
+      } else {
+        break;
+      }
+    }
+    return count;
+};
+
+export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}, records ,recordType, selectedOption) => { 
 	return [{
+		title: '选择',
+		align: 'center',
+		dataIndex: 'checkbox',
+		width: 80,
+		fixed: 'left',
+		slot: 'checkbox',
+	}, {
 	    title: '项目',
 	    align: 'center',
 	    dataIndex: 'name',
@@ -172,7 +236,7 @@ export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}) => {
 	    align: 'center',
 	    dataIndex: 'investDate',
 	    resizable: true,
-	    defaultSortOrder: 'descend',
+	    defaultSortOrder: recordType === 'merge' ? 'descend' : undefined,
 	    sortDirections: ['ascend', 'descend'],
 	    sorter: true,
 	    width: 120,
@@ -513,6 +577,14 @@ export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}) => {
 		if (newItem.filters) {
 			newItem.customFilterDropdown = true;
 			newItem.filteredValue = filterMaps?.[newItem.dataIndex] || [];
+		}
+		if (recordType === 'single' && mergeColumnList.includes(newItem.dataIndex)) {
+			newItem.customCell = (_, index, column) => {
+				return {
+					rowSpan: getRowSpan1(index, 'name', records),
+              		style: { verticalAlign: 'top' },
+				}
+			}
 		}
 		if (true === newItem.sorter) {
 			newItem.sorter = (a, b) => {
