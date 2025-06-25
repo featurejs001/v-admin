@@ -20,7 +20,7 @@ export default defineConfig((mode) => {
 		},
 		base: "./",
 		server: {
-			host: "localhost",
+			host: "0.0.0.0",
 			port: env.VITE_PORT,
 			open: true,
 			proxy: {

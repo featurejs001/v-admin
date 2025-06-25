@@ -79,6 +79,7 @@ const handleClick = (item) => {
   line-height: 30px;
   overflow: hidden;
   padding: 0 0 0 8px;
+  margin-bottom: 10px;
 
 
     & .sidebar-logo {

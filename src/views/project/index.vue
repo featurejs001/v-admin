@@ -346,6 +346,7 @@ onMounted(() => {
 		margin-bottom: 4px;
 		display: inline-flex;
 		align-items: center;
+		justify-content: center;
 		.icon {
 			fill: var(--active-color);
 		}

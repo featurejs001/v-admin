@@ -42,6 +42,7 @@ const { isSidebarOpened, isDomFullscreen } = storeToRefs(appStore);
 	.aside {
 		background: var(--sideBarBg);
 		color: rgba(255, 255, 255, 0.7);
+		padding: 10px 0;
 	}
 	.main {
 		// padding: 12px;
