@@ -41,7 +41,7 @@
 						@click="item.showAll = !item.showAll"
 					>
 						<a-tooltip :title="getToolHint(state.tooltips, '项目中心', item.showAll ? '收起' : '更多')">
-                          <span v-if="item.showAll" class="common_plus_icon less_btn_icon" style="position: relative; top: 0px; right: 4px">- </span>
+                          <span v-if="item.showAll" class="common_plus_icon less_btn_icon" style="position: relative; top: 0px; right: 0px">- </span>
                           <span v-else class="common_plus_icon">+ </span>
                           <span class="more">{{ item.showAll ? '收起' : '更多' }}</span>
                         </a-tooltip>

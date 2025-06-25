@@ -59,6 +59,7 @@ const handleDelClick = (targetKey) => {
 			border-radius: 2px 2px 0px 0px;
 			background: none;
 			border: none;
+			height: 26px;
 			.ant-tabs-tab-btn {
 				font-size: 12.5px;
 				line-height: 26px;

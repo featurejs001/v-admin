@@ -127,10 +127,11 @@ const handleMenuClick = (item) => {
 	background: transparent;
 	font-size: 12px;
 	.ant-menu-item {
-		height: 52px;
-		line-height: 52px;
+		height: 32px;
+		line-height: 32px;
 		margin: 0px;
 		width: 100%;
+		border-radius: 0px;
 	}
 
 	.ant-menu-item-selected {
@@ -144,9 +145,10 @@ const handleMenuClick = (item) => {
 		.ant-menu-submenu-title {
 			margin: 0px;
 			width: 100%;
-			height: 52px;
-			line-height: 52px;
+			height: 32px;
+			line-height: 32px;
 			padding: 14px 24px;
+			border-radius: 0px;
 		}
 	}
 
