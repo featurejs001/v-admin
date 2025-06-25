@@ -8,6 +8,54 @@ export function getProjectList(params) {
 		params
 	})
 }
+
+// 推送列表
+export function getPushList(params) {
+	return request({
+		url: '/gy-core/gy.gy/vProjectAllInfo/pushList',
+		method: 'get',
+		params
+	})
+}
+
+// 删除列表
+export function getDeleteList(params) {
+	return request({
+		url: '/gy-core/gy.gy/vProjectAllInfo/recycleBin',
+		method: 'get',
+		params
+	})
+}
+
+// 彻底删除 
+export function deleteProject(params) {
+	return request({
+		url: '/gy-core/gy.gy/vProjectAllInfo/delete',
+		method: 'DELETE',
+		params,
+		data: params
+	})
+}
+
+// 删除
+export function removeProject(params) {
+	return request({
+		url: '/gy-core/gy.gy/vProjectAllInfo/putRecycleBin',
+		method: 'DELETE',
+		params,
+		data: params
+	})
+}
+
+// 还原
+export function restoreProject(params) {
+	return request({
+		url: '/gy-core/gy.gy/vProjectAllInfo/revertRecycleBin',
+		method: 'PUT',
+		data: params
+	})
+}
+
 export function getCategoryList(params) {
 	return request({
 		url: '/gy-core/gy.gy/vIndustryAllInfo/list',

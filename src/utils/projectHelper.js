@@ -171,6 +171,7 @@ export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}, records
 	    slot: 'name',
 	    resizable: true,
 	    sorter: true,
+		// defaultSortOrder: recordType === 'merge' ? undefined : 'ascend',
 	    width: 90,
 	 }, {
 	    title: '行业等级',
@@ -236,8 +237,8 @@ export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}, records
 	    align: 'center',
 	    dataIndex: 'investDate',
 	    resizable: true,
-	    defaultSortOrder: recordType === 'merge' ? 'descend' : undefined,
-	    sortDirections: ['ascend', 'descend'],
+	    // defaultSortOrder: recordType === 'merge' ? 'descend' : undefined,
+	    // sortDirections: ['ascend', 'descend'],
 	    sorter: true,
 	    width: 120,
 	}, {
@@ -569,7 +570,16 @@ export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}, records
 		slot: 'action1',
 	    fixed: 'right',
 	    width: 120,
-	}].map(item => {
+	}].filter(item => {
+		if (selectedOption === '项目列表' && ['op_1','op_2','op_time','op_status', 'pushStatus','delTime','delByUsername', 'importTime','rejectTime', 'blockTime', 'importByUsername','rejectByUsername'].includes(item.dataIndex)) {
+			return false;
+		} else if (selectedOption === '推送列表' && ['delTime', 'delByUsername', 'importTime', 'rejectTime', 'blockTime', 'importByUsername', 'rejectByUsername'].includes(item.dataIndex)) {
+			return false;
+		} else if (selectedOption === '删除列表' && ['op_1','op_2','op_time','op_status', 'pushStatus', 'importTime', 'rejectTime', 'blockTime','importByUsername','rejectByUsername'].includes(item.dataIndex)) {
+			return false;
+		}
+		return true;
+	}).map(item => {
 		const newItem = {
 			...item,
 			ellipsis: true,
@@ -1053,15 +1063,15 @@ export function getProjectCountMap(records) {
 
         // followStage 转成 follow_stage, cityMap 转成 city, regionMap 转成 region, provinceMap 转成 province
         switch (item.catalog) {
-          case 'cityMap':
-            newItem.catalog = 'city';
-            break;
-          case 'regionMap':
-            newItem.catalog = 'region';
-            break;
-          case 'provinceMap':
-            newItem.catalog = 'province';
-            break;
+        //   case 'cityMap':
+        //     newItem.catalog = 'city';
+        //     break;
+        //   case 'regionMap':
+        //     newItem.catalog = 'region';
+        //     break;
+        //   case 'provinceMap':
+        //     newItem.catalog = 'province';
+        //     break;
           default:
             break;
         }
