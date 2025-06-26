@@ -135,3 +135,21 @@ export function importThirdProjectFromLocalFile(params) {
 		params
 	})
 }
+
+// 推送
+export function pushProject(data) {
+	return request({
+		url: '/gy-core/gy.gy/vProjectAllInfo/push',
+		method: 'PUT',
+		data
+	})
+}
+
+// 批量修改阶段
+export function updateProjectStage(data) {
+	return request({
+		url: '/gy-core/gy.gy/vProjectAllInfo/batchEditFollowStage',
+		method: 'POST',
+		data
+	})
+}

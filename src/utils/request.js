@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { notification } from 'ant-design-vue';
+import { notification, Modal } from 'ant-design-vue';
 import { useUser } from '@/store/user';
 import signMd5Utils from '@/utils/signMd5Utils';
 import router from '@/router'
@@ -94,10 +94,19 @@ service.interceptors.response.use(
 		// if the custom code is not 20000, it is judged as an error. 602: 错误弹框提示（有确认、取消操作按钮）
 		if (![0, 200].includes(res.code)) {
 
-			notification.error({
-				message: '错误提示',
-    			description:res.message || 'Error'
-			})
+			if (response.config.url.includes('/vProjectAllInfo/push')) {
+				Modal.error({
+				    title: '错误提示',
+				    content: res.message || 'Error',
+					centered: true,
+				});
+			} else {
+				notification.error({
+					message: '错误提示',
+	    			description:res.message || 'Error'
+				})
+			}
+			
 
 			// // 50008: Illegal token; 50012: Other clients logged in; 50014: Token expired;
 			// if (res.code === 50008 || res.code === 50012 || res.code === 50014) {

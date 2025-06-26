@@ -155,6 +155,14 @@ const getRowSpan1 = (index, field, data) => {
     return count;
 };
 
+/**
+ * filterMaps: { field: [] } 已选择得过滤体哦阿健
+ * filterValuesMap: { field: [value1, value2] }  // 过滤条件可选值
+ * records: 数据 
+ * recordType: merge: 合并(每个项目一条数据) | single: 单行(根据项目合并单元格)
+ * selectedOption: 项目列表 | 推送列表 | 删除列表  根据选择不通显示不通得列
+ * @returns
+ */
 export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}, records ,recordType, selectedOption) => { 
 	return [{
 		title: '选择',
@@ -180,24 +188,14 @@ export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}, records
 	    resizable: true,
 	    sorter: true,
 		width: 120,
-	    filters: priorityFilter.map(item => {
-			return {
-				text: item,
-				value: item
-			}
-		}),
+	    filters: [],
 	}, {
 		title: '项目阶段',
 	    align: 'center',
 	    dataIndex: 'stage',
 	    resizable: true,
 	    sorter: true,
-	    filters: stageFilter.map(item => {
-			return {
-				text: item,
-				value: item
-			}
-		}),
+	    filters: [],
 	    width: 120,
 	}, {
 		title: '跟进阶段',
@@ -205,12 +203,7 @@ export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}, records
 	    dataIndex: 'followStage',
 	    resizable: true,
 	    sorter: true,
-	    filters: followStageFilter.map(item => {
-			return {
-				text: item,
-				value: item
-			}
-		}),
+	    filters: [],
 	    width: 120,
 	}, {
 		title: '融资开始',
@@ -248,12 +241,7 @@ export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}, records
 	    resizable: true,
 	    sorter: true,
 	    width: 90,
-	    filters: turnFilter.map(item => {
-			return {
-				value: item,
-				text: item
-			}
-		}),
+	    filters: [],
 	},   {
 	    title: '金额',
 	    align: 'center',
@@ -340,7 +328,7 @@ export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}, records
 	    sorter: true,
 	    title: '省',
 	    filteredValue: [],
-	    filters: filterValuesMap['province'] || [],
+	    filters: [],
 	    width: 100,
 	}, {
 		title: '市',
@@ -354,7 +342,7 @@ export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}, records
 	    //   return getTextByCode(text);
 	    // },
 	    filteredValue: [],
-	    filters: filterValuesMap['city'] || [],
+	    filters: [],
 	    width: 100,
 	}, {
 		 title: '区',
@@ -368,7 +356,7 @@ export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}, records
 	    //   return getTextByCode(text);
 	    // },
 	    filteredValue: [],
-	    filters: filterValuesMap['region'] || [],
+	    filters: [],
 	    width: 100,
 	}, {
 		title: '标签',
@@ -586,6 +574,13 @@ export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}, records
 		}
 		if (newItem.filters) {
 			newItem.customFilterDropdown = true;
+			// console.log("filterValuesMap ", newItem.dataIndex, filterValuesMap[newItem.dataIndex])
+			newItem.filters = filterValuesMap?.[newItem.dataIndex]?.map(item => {
+				return {
+					text: item,
+					value: item
+				}
+			}) || [];
 			newItem.filteredValue = filterMaps?.[newItem.dataIndex] || [];
 		}
 		if (recordType === 'single' && mergeColumnList.includes(newItem.dataIndex)) {
@@ -595,7 +590,8 @@ export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}, records
               		style: { verticalAlign: 'top' },
 				}
 			}
-		}
+		} 
+		
 		if (true === newItem.sorter) {
 			newItem.sorter = (a, b) => {
 				if (['createTime', 'updateTime', 'op_time', 'delTime', 'importTime', 'rejectTime', 'blockTime'].includes(newItem.dataIndex)) {

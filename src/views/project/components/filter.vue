@@ -63,7 +63,7 @@
 </template>
 <script setup>
 import { reactive, onMounted, watch, onBeforeUnmount, nextTick, defineEmits, defineExpose, defineProps } from 'vue'
-import { getToolTip, getCategoryList, getDomainNth } from '@/api/industry'
+import { getToolTip, getCategoryList, getDomainNth, getIndustrFieldValues } from '@/api/industry'
 import { getSystemUsers } from "@/api/user"
 import { getToolHint } from "@/utils/helper"
 import { UpOutlined, DownOutlined } from '@ant-design/icons-vue'
@@ -73,6 +73,18 @@ import {
 	stageFilter,
 	followStageFilter
 } from "@/utils/projectHelper";
+import { useUser } from "@/store/user";
+import { storeToRefs } from "pinia";
+import {
+    getCitiesByProvinces,
+    getCityOptions,
+    getIntersectionOfRegions,
+    getRegionOptions,
+    getRegionsByCities,
+	getAllRegions,
+	getProvinceByName1
+  } from '@/utils/areaDataUtil';
+  import { provinceOrder, pinyinSort } from "@/utils/util1";
 
 const emits = defineEmits(['filterChange'])
 
@@ -80,8 +92,15 @@ const props = defineProps({
     statsMap: {
 		type: Object,
 		default: () => ({})
+	},
+	fromWhichComponent: {
+		type: String,
+		default: 'project_center'
 	}
 })
+
+const userStore = useUser();
+const { gUserRoles } = storeToRefs(userStore);
 
 const state = reactive({
 	isOpen: true,
@@ -170,7 +189,10 @@ const state = reactive({
 			tags: [],
 			selectedTags: [],
 		}
-	]
+	],
+	provinceTags: [],
+	cityTags: [],
+	regionTags: [],
 })
 
 const handleResize = async () => {
@@ -197,6 +219,37 @@ const handleClickAll = (key) => {
 		return
 	}
 	state.leverList[index].selectedTags = []
+	if (key.includes("domain")) {
+		const curLevel = Number(key.replace('domain', ''));
+		let nextLevel = curLevel + 1;
+		while (nextLevel) {
+			const nextIndex = state.leverList.findIndex(item => item.key === `domain${nextLevel}`);
+			if (-1 === nextIndex) {
+				break;
+			}
+			state.leverList[nextIndex].selectedTags = [];
+			nextLevel++;
+		}
+		changeDomainTags();
+	} else if (['provinceMap', 'cityMap', 'regionMap'].includes(key)) {
+		if ('provinceMap' === key) {
+			const cityIndex = state.leverList.findIndex(item => item.key === 'cityMap');
+			const regionIndex = state.leverList.findIndex(item => item.key === 'regionMap');
+			if (cityIndex !== -1) {
+				state.leverList[cityIndex].selectedTags = [];
+			}
+			if (regionIndex !== -1) {
+				state.leverList[regionIndex].selectedTags = [];
+			}
+		} else if ('cityMap' === key) {
+			const regionIndex = state.leverList.findIndex(item => item.key === 'regionMap');
+			if (regionIndex !== -1) {
+				state.leverList[regionIndex].selectedTags = [];
+			}
+		}
+		changeCityTags();
+	}
+	getFilterItems()
 }
 
 // 选中上级标签
@@ -271,12 +324,124 @@ const uncheckChildTag = (key, tag) => {
 const getFilterItems = () => {
 	// 过滤数据
 	const filters = {};
+	const filterValuesMap = {}; // 可选项
 	state.leverList.forEach(item => {
 		if (item.selectedTags.length) {
 			filters[item.key] = item.selectedTags
 		}
+		filterValuesMap[item.key] = item.tags;
+	}) 
+	emits('filterChange', {
+		filters,
+		filterValuesMap
 	})
-	emits('filterChange', filters)
+}
+
+// 切换省市区后，下级过滤
+function changeCityTags() {
+	// let tags1 = [];
+	let cityList = [];
+	let regionList = [];
+	
+	let allData = [...state.domainAllList];
+	const index1 = state.leverList.findIndex(item => item.key === 'provinceMap')
+	const index2 = state.leverList.findIndex(item => item.key === 'cityMap')
+	const index3 = state.leverList.findIndex(item => item.key === 'regionMap')
+
+	if (state.leverList[index1].selectedTags.length !== 0) {
+		cityList = getCitiesByProvinces(state.leverList[index1].selectedTags)
+	} else {
+		cityList = getCitiesByProvinces(state.provinceTags)
+	}
+	cityList = Array.from(new Set(cityList))
+	state.leverList[index2].tags = customSort(pinyinSort(
+      cityList
+        .map((city) => ({
+          text: city,
+          value: city,
+        })),
+      'text',
+    ), 'cityMap').map(item => item.text);
+	
+	if (state.leverList[index2].selectedTags.length !== 0) {
+		regionList = getRegionsByCities(state.leverList[index2].selectedTags);
+	} else {
+		regionList = getRegionsByCities(state.leverList[index1].selectedTags.length !== 0 ? cityList : state.cityTags);
+	}
+	regionList = Array.from(new Set(regionList))
+	state.leverList[index3].tags = customSort(pinyinSort(
+		regionList
+        .map((city) => ({
+			...city,
+          text: city,
+          value: city,
+        })),
+      'text',
+    ), 'regionMap').map(item => item.text);
+
+}
+
+// 同时选中上级标签
+const checkedCityParentTag = (key, tag) => {
+	const provinceIndex = state.leverList.findIndex(item => item.key === 'provinceMap');
+
+	if ('cityMap' === key) {
+		// 获取上级省份
+		const provinceList = getProvinceByName1(tag, 'city');
+		
+		for (const item of provinceList) {
+			if (state.leverList[provinceIndex].selectedTags.includes(item[0])) {
+				continue;
+			}
+			state.leverList[provinceIndex].selectedTags.push(item[0]);
+		}
+	} else if ('regionMap' === key) {
+		// 获取上级城市
+		const cityList = getProvinceByName1(tag, 'region');
+		const cityIndex = state.leverList.findIndex(item => item.key === 'cityMap');
+		for (const item of cityList) {
+			// console.log("item :", item)
+			if (state.leverList[cityIndex].selectedTags.includes(item[1])) {
+				continue;
+			}
+			state.leverList[cityIndex].selectedTags.push(item[1]);
+			if (state.leverList[provinceIndex].selectedTags.includes(item[0])) {
+				continue;
+			}
+			state.leverList[provinceIndex].selectedTags.push(item[0]);
+		}
+	}
+}
+
+// 取消选中下级标签
+const uncheckCityChildTag = (key, tag) => {
+	const cityIndex = state.leverList.findIndex(item => item.key === 'cityMap');
+	const regionIndex = state.leverList.findIndex(item => item.key === 'regionMap');
+
+	if ('provinceMap' === key) {
+		// 获取下级城市
+		const cityList = getCityOptions(tag);
+		state.leverList[cityIndex].selectedTags = state.leverList[cityIndex].selectedTags.filter(item => {
+			if (cityList.includes(item)) {
+				// 过滤下级
+				uncheckCityChildTag('cityMap', item);
+				return false;
+			} else {
+				return true;
+			}
+		})
+	} else if ('cityMap' === key) {
+	    const regionList = getRegionOptions(tag);
+		// console.log("regionList :", regionList)
+		state.leverList[regionIndex].selectedTags = state.leverList[regionIndex].selectedTags.filter(item => {
+			if (regionList.includes(item)) {
+				// 过滤下级
+				return false;
+			} else {
+				return true;
+			}
+		})
+	}
 }
 
 const handleCheckedTag = (key, tag) => {
@@ -290,6 +455,9 @@ const handleCheckedTag = (key, tag) => {
 		if (key.includes("domain")) {
 			// 选中上级标签
 			checkedParentTag(key, tag)
+		} else if (['cityMap', 'regionMap'].includes(key)) {
+			// 选中上级标签
+			checkedCityParentTag(key, tag)
 		}
 	} else {
 		state.leverList[index].selectedTags.splice(tagIndex, 1)
@@ -297,12 +465,18 @@ const handleCheckedTag = (key, tag) => {
 		if (key.includes("domain")) {
 			// 过滤掉已取消选中的下级赛道标签
 			uncheckChildTag(key, tag)
+		} else if (['provinceMap', 'cityMap'].includes(key)) {
+			// 取消下级选中
+			uncheckCityChildTag(key, tag)
 		}
 	}
 
 	if (key.includes('domain')) {
 		// 页面显示tags修改
 		changeDomainTags();
+	} else if (['provinceMap', 'cityMap', 'regionMap'].includes(key)) {
+		// 页面显示tags修改
+		changeCityTags();
 	}
 	
 	getFilterItems()
@@ -368,6 +542,91 @@ function changeDomainTags() {
 	handleResize()
 }
 
+function customSort(array, levelKey = '', textKey = 'value') {
+	return array.sort((a, b) => {
+		const textA = a[textKey];
+		const textB = b[textKey];
+
+		// 检查是否包含括号
+		const hasParenA = props.statsMap[levelKey + '-' + textA] > 0; // textA.includes('(');
+		const hasParenB = props.statsMap[levelKey + '-' + textB] > 0;// textB.includes('(');
+		// console.log("customSort :", levelKey, textA, textB, hasParenA, hasParenB)
+
+		// 如果一个有括号一个没有，有括号的排在前面
+		if (hasParenA && !hasParenB) return -1;
+		if (!hasParenA && hasParenB) return 1;
+
+		// 都有括号或都没有括号，按拼音排序
+		return textA.localeCompare(textB, 'zh-CN');
+    });
+}
+
+const getProjectFieldValues = () => {
+	return new Promise(async (resolve) => {
+		try {
+			let result = null
+			if (!gUserRoles.value.includes('mgr') && !gUserRoles.value.includes('admin')) {
+		      if (props.fromWhichComponent === 'project_center') {
+		        result = await getIndustrFieldValues('touyan_report_project_field_values_proj_center_dgy');
+		      } else {
+		        result = await getIndustrFieldValues('touyan_report_project_field_values_info_center_dgy');
+		      }
+		    } else {
+		      if (props.fromWhichComponent === 'project_center') {
+		        result = await getIndustrFieldValues('report_project_field_values_proj_center_gsh');
+		      } else {
+		        result = await getIndustrFieldValues('report_project_field_values_info_center_gsh');
+		      }
+		    }
+
+			state.provinceTags = result?.result?.[0]?.province_values?.split(',')?.map((item) => {
+		      let [name, code] = item.split(':');
+		      return name;
+		    }) || [];
+
+			state.cityTags = result?.result?.[0]?.city_values?.split(',')?.map((item) => {
+		      let [name, code] = item.split(':');
+		      return name;
+		    }) || [];
+
+		    state.regionTags = result?.result?.[0]?.region_values?.split(',')?.map((item) => {
+		      let [name, code] = item.split(':');
+		      return name;
+		    }) || [];
+
+			changeCityTags()
+
+			// const cityList = getCitiesByProvinces(state.provinceTags)
+			// // console.log('cityList :', cityList, state.provinceTags)
+			// const cityIndex = state.leverList.findIndex(item => item.key === 'cityMap')
+			// state.leverList[cityIndex].tags = customSort(pinyinSort(
+			//       cityList
+			//         .map((city) => ({
+			//           text: city,
+			//           value: city,
+			//         })),
+			//       'text',
+			//     ), 'cityMap').map(item => item.text);
+
+			// const regionList = getRegionsByCities(state.cityTags)
+			// const regionIndex = state.leverList.findIndex(item => item.key === 'regionMap')
+			// state.leverList[regionIndex].tags = customSort(pinyinSort(
+			// 	regionList
+		    //     .map((city) => ({
+			// 		...city,
+		    //       text: city,
+		    //       value: city,
+		    //     })),
+		    //   'text',
+		    // ), 'regionMap').map(item => item.text);
+		} catch (e) {
+			console.error(e)
+		}
+		
+		resolve()
+	})
+}
+
 const initData = () => {
 	state.loading = true;
 	const promiseAll = []
@@ -405,7 +664,11 @@ const initData = () => {
 		const assistantIndex = state.leverList.findIndex(item => item.key === 'assistant')
 		state.leverList[assistantIndex].tags = [...users]
 		return Promise.resolve(res)
-	}).catch(() => {})
+	}).catch(() => {
+		return Promise.resolve({})
+	})
+
+	promiseAll[promiseIndex++] = getProjectFieldValues()
 
 	Promise.all(promiseAll).then((res) => {
 		let orderMap = {}
@@ -427,12 +690,21 @@ const initData = () => {
 		const leverIndex = state.leverList.findIndex(item => item.key === 'domain1')
 		state.leverList[leverIndex].tags = tag1;
 		changeDomainTags()
+
+		getFilterItems()
 	}).finally(() => {
 		state.loading = false;
 	})
 }
 
 onMounted(() => {
+	const provinceValues = []
+	for (const key in provinceOrder) {
+		provinceValues.push(key)
+	}
+	const index = state.leverList.findIndex(v => v.key === 'provinceMap')
+	state.leverList[index].tags = [...provinceValues]
+
 	initData()
 	window.addEventListener("resize", handleResize);
 })
@@ -441,17 +713,19 @@ onBeforeUnmount(() => {
 	window.removeEventListener("resize", handleResize);
 })
 
-const setFilterItem = (key, selectedTags) => {
-    const item = state.leverList.find(item => item.key === key);
-	if (item) { 
-		item.selectedTags = [...selectedTags];
-		getFilterItems()
-	}
-}
+// const setFilterItem = (key, selectedTags) => {
+//     const item = state.leverList.find(item => item.key === key);
+// 	if (item) { 
+// 		item.selectedTags = [...selectedTags];
+// 		getFilterItems()
+// 	}
+// }
 
 defineExpose({
 	getFilterItems,
-	setFilterItem
+	// setFilterItem,
+	handleCheckedTag,
+	handleClickAll
 })
 
 </script>

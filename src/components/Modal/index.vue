@@ -49,7 +49,7 @@ const state = reactive({
 })
 watch(modelValue, (newVal) => {
 	state.open = newVal;
-})
+}, {immediate: true})
 
 const handleFullscreen = (flag) => {
 	state.isFullscreeen = flag;

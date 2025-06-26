@@ -13,7 +13,7 @@ const getDefaultState = () => {
 		sidebarLogo: '',
 		isFullscreen: false,
 		isDomFullscreen: false,
-		historyRoutes: getHistoryRoutes() || []
+		historyRoutes: getHistoryRoutes() || [],
 	};
 };
 

@@ -114,12 +114,13 @@ for (let i = 0, len = regionData.length; i < len; i++) {
       const cityText = province[j].label;
       const cityChildren = [];
       for (const prop in REGION_DATA[cityCode]) {
+		const regionText = REGION_DATA[cityCode][prop];
         cityChildren.push({
           value: prop,
-          label: REGION_DATA[cityCode][prop],
+          label: regionText,
         });
-        CodeToText[prop] = REGION_DATA[cityCode][prop];
-        TextToCode[provinceText][cityText][REGION_DATA[cityCode][prop]] = {
+        CodeToText[prop] = regionText;
+        TextToCode[provinceText][cityText][regionText] = {
           code: prop,
         };
       }
@@ -298,10 +299,7 @@ function getCitiesByProvinces(provinces) {
       for (const cityName in TextToCode[provinceName]) {
         // 跳过"全部"和"code"属性
         if (cityName !== '全部' && cityName !== 'code') {
-          cities.push({
-			name: cityName,
-			provinceName
-		  });
+          cities.push(cityName);
         }
       }
     }
@@ -316,29 +314,27 @@ function getCitiesByProvinces(provinces) {
  * @returns {Array}
  */
 function getRegionsByCities(cities) {
-	console.log('ciicicic :', cities, TextToCode)
   const regions = [];
   // 确保 cities 是数组
   const cityArray = Array.isArray(cities) ? cities : Array.from(cities);
 
-  cityArray.forEach((cityItem) => {
-    // for (const province in TextToCode) {
+  cityArray.forEach((city) => {
+    for (const province in TextToCode) {
 	// console.log("city :", city, TextToCode[province][city])
-	  const city = cityItem.name;
-	  const province = cityItem.provinceName;
+	//   const city = cityItem.name;
+	//   const province = cityItem.provinceName;
       if (TextToCode[province][city]) {
         const cityCode = TextToCode[province][city].code;
         const cityRegions = REGION_DATA[cityCode];
         for (const regionCode in cityRegions) {
-          regions.push({
-			name: cityRegions[regionCode],
-			provinceName: province,
-			cityName: city
-		  });
+			if ('市辖区' === cityRegions[regionCode]) {
+				continue;
+			}
+          regions.push(cityRegions[regionCode]);
         }
-        // break;
+        break;
       }
-    // }
+    }
   });
 
   return regions;
@@ -370,10 +366,7 @@ function getRegionOptions(cityName) {
       for (const regionName in TextToCode[province][cityName]) {
         // 跳过"全部"和"code"属性
         if (regionName !== '全部' && regionName !== 'code') {
-          regions.push({
-            value: TextToCode[province][cityName][regionName].code,
-            label: regionName,
-          });
+          regions.push(regionName);
         }
       }
       break; // 找到城市后就不需要继续遍历
@@ -417,7 +410,7 @@ export function getIntersectionOfRegions(regions1, regions2) {
 }
 
 // get provinve and city by name,传进来的是city或者region，返回 省份和城市
-export function getProvinceByName1(name) {
+export function getProvinceByName1(name, flag = '') {
   // 用于存储结果
   const results = [];
 
@@ -434,10 +427,13 @@ export function getProvinceByName1(name) {
       if (city === '全部' || city === 'code' || typeof provinceData[city] !== 'object') continue;
 
       // 如果找到匹配的城市
-      if (city === name) {
+      if ('region' !== flag && city === name) {
         results.push([province]);
         continue;
       }
+	  if (flag === 'city') { // 如果是市查找身份
+		continue;
+	  }
 
       // 遍历区域
       const cityData = provinceData[city];

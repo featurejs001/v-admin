@@ -263,7 +263,12 @@ button:focus-visible {
 
 .ant-input {
 	font-size: 13px;
-  height: 32px;
+  	height: 32px;
+}
+.ant-input-affix-wrapper {
+	.ant-input {
+		height: 22px;
+	}
 }
 
 .ant-btn, .ant-btn.ant-btn-sm {
@@ -273,7 +278,10 @@ button:focus-visible {
 
 .ant-btn-primary, .ant-btn-primary:active, .ant-btn-primary:focus {
 	outline: none;
-	background-color: var(--active-color);
+	&:not(.ant-btn-background-ghost) {
+		outline: none;
+		background-color: var(--active-color);
+	}
 }
 
 

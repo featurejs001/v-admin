@@ -1,6 +1,6 @@
 <template>
 	<div class="table-wrap">
-		<div class="header">
+		<div class="header" v-if="!$props.isHideLeft">
 			<slot name="header-left"></slot>
 			<a-popconfirm placement="rightBottom" ok-text="保存" cancel-text="重置" @confirm="handleSettingSave">
 				<a-tooltip placement="top">
@@ -14,13 +14,17 @@
 		<div class="table-content" ref="tableRef">
 			<a-table v-bind="$props.tableProps" :scroll="state.scroll" @change="handleTableChange" size="small">
 				<template #headerCell="{ column }">
-		          <span v-if="column.isCheckbox" v-bind="selectHeaderProps">选择</span>
+		          <span v-if="column.isCheckbox" >选择</span>
+		          <slot v-else-if="column.titleSlot" :name="column.titleSlot" v-bind="column">序号</slot>
 		          <span v-else >{{ column.title }}</span>
 		        </template>
 				<template #bodyCell="data">
 			          <!-- update-begin--author:liaozhiyang---date:220230717---for：【issues-179】antd3 一些警告以及报错(针对表格) -->
 			          <!-- update-begin--author:liusq---date:20230921---for：【issues/770】slotsBak异常报错的问题,增加判断column是否存在 -->
-			          <slot v-if="data.column?.slot" :name="data.column?.slot" v-bind="data || {}"></slot>
+					  <template v-if="data.column?.slot === 'commonRowIndex'">
+						{{ Number(data.index) + 1 }}
+					  </template>
+			          <slot v-else-if="data.column?.slot" :name="data.column?.slot" v-bind="data || {}"></slot>
 			          <template v-else>
 			            <span>{{ data.record[data.column?.dataIndex] }}</span>
 			          </template>
@@ -68,6 +72,10 @@ const props = defineProps({
 	minHeight: {
 		type: Number,
 		default: 400
+	},
+	isHideLeft: {
+		type: Boolean,
+		default: false
 	}
 })
 // console.log("props:", props)
@@ -188,16 +196,24 @@ onBeforeUnmount(() => {
 		    /* color: #167FFF!important; */
 		}
 		.ant-table-thead>tr>th {
-			    overflow: hidden;
-			    white-space: nowrap;
-			    text-overflow: ellipsis;
-			    word-break: keep-all;
+			    // overflow: hidden;
+			    // white-space: nowrap;
+			    // text-overflow: ellipsis;
+			    // word-break: keep-all;
+			font-size: 13.5px;
+			color: #444;
+		}
+		.ant-table-tbody >tr >td {
+			font-size: 13px;
+			color: #555;
+			line-height: 1;
 		}
 		.ant-table-thead > tr > th, 
 		.ant-table-thead > tr > td {
 			color: #444;
 			font-weight: 400;
     		font-size: 13.5px;
+			line-height: 1;
 		}
 		.ant-table-column-title {
 			overflow: hidden;
