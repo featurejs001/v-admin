@@ -324,7 +324,9 @@ const uncheckChildTag = (key, tag) => {
 const getFilterItems = () => {
 	// 过滤数据
 	const filters = {};
-	const filterValuesMap = {}; // 可选项
+	const filterValuesMap = {
+		allDomain: [...state.domainAllList]
+	}; // 可选项
 	state.leverList.forEach(item => {
 		if (item.selectedTags.length) {
 			filters[item.key] = item.selectedTags

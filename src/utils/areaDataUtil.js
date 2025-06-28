@@ -356,10 +356,14 @@ function getCityOptions(provinceName) {
 }
 
 // 根据城市名称获取区域选项
-function getRegionOptions(cityName) {
+function getRegionOptions(cityName, provinceName = '') {
   const regions = [];
+  let provicnceMap = TextToCode;
+  if (provinceName) {
+	provicnceMap[provinceName] = TextToCode[provinceName];
+  }
   // 遍历所有省份
-  for (const province in TextToCode) {
+  for (const province in provicnceMap) {
     // 在当前省份中查找城市
     if (TextToCode[province][cityName]) {
       // 获取城市下的所有区域

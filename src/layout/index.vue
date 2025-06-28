@@ -6,7 +6,7 @@
       <a-layout class="container">
         <a-layout-header class="header" :class="[isDomFullscreen, 'full', '']" >
 			<Navbar v-if="!isDomFullscreen" />
-			<RouteTabs />
+			<!-- <RouteTabs /> -->
 		</a-layout-header>
         <a-layout-content class="main">
 			<router-view />
@@ -34,7 +34,9 @@ const { isSidebarOpened, isDomFullscreen } = storeToRefs(appStore);
 		height: 60px;
 		padding: 0px;
 		background: var(--headerBg);
-		box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
+		// box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
+		box-shadow: 0 4px 4px rgba(0, 21, 41, 0.08);
+		border-bottom: 1px solid #d9d9d9;
 		&.full {
 			height: max-content;
 		}

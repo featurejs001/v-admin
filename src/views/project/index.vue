@@ -10,19 +10,25 @@
 		</div>
 		<Table
 		 :tableProps="{
+			scrollToFirstRowOnChange: true,
 			loading: state.loading,
-			pagination: {
-				total: state.filterAllRecords.length,
-				defaultPageSize: state.params.pageSize,
-				showTotal: (total) => `共 ${total} 条数据`,
-				showQuickJumper: true
-		 	},
-			dataSource: state.filterAllRecords,
-			columns: getProjectColumns(state.params.filters, state.filterValuesMap, state.filterAllRecords, state.recordType, state.selectedOption),
+			pagination: false,
+			dataSource: state.filterRecords,
+			columns: getProjectColumns(state.params.filters, state.filterValuesMap, state.filterRecords, state.recordType, state.selectedOption),
 			bordered: true,
 			
 		 }"
-		 :isFixedMaxHeight="true">
+		 :pagination="{
+			total: state.params.total,
+			current: state.params.pageNo,
+			defaultPageSize: state.params.pageSize,
+			showTotal: (total) => `共 ${total} 条数据`,
+			showQuickJumper: true,
+		  }"
+		 :isFixedMaxHeight="true"
+		 @change="handleTableChange"
+		 @pageChange="handlePageChange"
+		 >
 			<template #header-left>
 				<div style="display: flex; align-items: center;">
 					<a-button type="primary" ghost :icon="h(PlusOutlined)" @click="handleAdd">新增</a-button>
@@ -60,17 +66,48 @@
 			    />
 			</template>
 			<template #name="{ column, record, index, text }">
-		        <a style="color: rgba(0, 0, 0, 0.65)" @click="handleEdit(record)">
+		        <a style="color: rgba(0, 0, 0, 0.65)" @click="handleToRow(record)">
 		          <span style="display: flex; align-items: center;">{{ record.name }}</span>
 		        </a>
 		    </template>
+			<template #editCommon="{ column, record, index, text }">
+				<div v-if="state.edit.index !== index">
+					{{ text }}
+				</div>
+				<div v-else-if="state.edit.field !== column.dataIndex || state.edit.isModal" class="edit-span" @click="handleEdit(index, column.dataIndex, text, column.title)">
+					{{ text }}
+				</div>
+				<a-select
+			      v-else-if="editSelectOptions.length"
+			      v-model:value="state.edit.value"
+				  size="small"
+				  class="w-full"
+			      @select="handleChangeValue"
+			    >
+					<a-select-option v-for="item in editSelectOptions" :key="item" :value="item">{{ item }}</a-select-option>
+				</a-select>
+				<a-date-picker
+				 v-model:value="state.edit.value" 
+				 v-else-if="column.dataIndex === 'foundationDate'" 
+				 valueFormat="YYYY-MM-DD"
+				 size="small"
+				 class="w-full"
+				 @change="handleChangeValue" />
+			</template>
 			<template #action1="{ column, record, index, text }">
-				<a-tooltip placement="bottom" trigger="hover">
+				<a-tooltip v-if="state.edit.index === index" placement="bottom" trigger="hover">
+		          <template #title>
+		            <span>完成</span>
+		          </template>
+				  <CheckOutlined class="action-btn" @click="state.edit.index = -1" />
+				</a-tooltip>
+				<a-tooltip v-else placement="bottom" trigger="hover">
 		          <template #title>
 		            <span>编辑</span>
 		          </template>
-		          <EditOutlined class="action-btn" @click="handleEdit(record)" />
+		          <EditOutlined class="action-btn" @click="handleEdit(index, 'stage', record.stage, column.title)" />
 		        </a-tooltip>
+				
 				<template v-if="['项目列表', '推送列表'].includes(state.selectedOption)">
 					<a-tooltip placement="bottom" trigger="hover">
 			          <template #title>
@@ -82,12 +119,14 @@
 					    title="是否确认删除?"
 					    @confirm="() => handleRemove(record.projectId)"
 					>
-						<a-tooltip placement="bottom" trigger="hover">
-							<template #title>
-								<span>删除</span>
-							</template>
-							<DeleteOutlined class="action-btn danger" />
-				        </a-tooltip>
+						<template #default>
+							<a-tooltip placement="bottom" trigger="hover">
+								<template #title>
+									<span>删除</span>
+								</template>
+								<DeleteOutlined class="action-btn danger" />
+					        </a-tooltip>
+						</template>
 					</a-popconfirm>
 				</template>
 				<template v-else-if="['删除列表'].includes(state.selectedOption)">
@@ -95,23 +134,27 @@
 					    title="是否确认还原?"
 					    @confirm="() => handleRestore(record.projectId)"
 					>
-						<a-tooltip class="max-content" placement="bottom" trigger="hover">
-							<template #title>
-								<span>取回</span>
-							</template>
-							<RedoOutlined class="action-btn" @click="handleEdit(record)" />
-				        </a-tooltip>
+						<template #default>
+							<a-tooltip class="max-content" placement="bottom" trigger="hover">
+								<template #title>
+									<span>取回</span>
+								</template>
+								<RedoOutlined class="action-btn" />
+					        </a-tooltip>
+						</template>
 					</a-popconfirm>
 					<a-popconfirm
 					    title="是否确认删除?"
 					    @confirm="() => handleDelete(record.projectId)"
 					>
-						<a-tooltip placement="bottom" trigger="hover">
-							<template #title>
-								<span>彻底删除</span>
-							</template>
-							<ScissorOutlined class="action-btn danger" />
-				        </a-tooltip>
+						<template #default>
+							<a-tooltip placement="bottom" trigger="hover">
+								<template #title>
+									<span>彻底删除</span>
+								</template>
+								<ScissorOutlined class="action-btn danger" />
+					        </a-tooltip>
+						</template>
 					</a-popconfirm>
 				</template>
 			</template>
@@ -154,12 +197,20 @@
 		 :stageList="state.filterValuesMap?.stage || []"
 		 :followStageList="state.filterValuesMap?.followStage || []"
 		 />
+		 <EditFieldModal 
+		 	v-model="state.edit.modal"
+			:title="state.edit.title"
+		 	:field="state.edit.field"
+		 	:record="state.filterRecords[state.edit.index]"
+		 	@ok="handleChangeRow"
+			@close="state.edit.modal = false"
+		 />
 	</div>
 </template>
 <script setup>
 import Search from './components/search.vue'
 import Filter from './components/filter.vue'
-import { h, reactive, onMounted, ref } from "vue"
+import { h, reactive, onMounted, ref, computed } from "vue"
 import { 
 	getProjectList,
 	getPushList,
@@ -167,7 +218,8 @@ import {
 	getIndustrFieldValues,
 	removeProject,
 	deleteProject,
-	restoreProject
+	restoreProject,
+	editProject
 } from "@/api/industry";
 import { 
 	mergeRecordsByName, 
@@ -188,13 +240,16 @@ import {
 	FilterFilled,
 	ForwardOutlined,
 	RedoOutlined,
-	ScissorOutlined
+	ScissorOutlined,
+	CheckOutlined
 } from "@ant-design/icons-vue";
 import { message } from 'ant-design-vue';
 import BatchPushIcon from "@/assets/img/batchPushIcon.svg"
 import UserSelectModal from "@/components/user/selectModal.vue"
 import { pushProject } from "@/api/industry";
 import BatchEditModal from "./components/BatchEditModal.vue"
+// import { getCityOptions, getRegionOptions } from "@/utils/areaDataUtil"
+import EditFieldModal from "./components/EditFieldModal.vue"
 
 const props = defineProps({
     fromWhichComponent: {
@@ -210,8 +265,9 @@ const state = reactive({
 	loading: false,
 	selectedOption: '项目列表',
 	params: {
+	   total: 0,
        pageNo: 1,
-       pageSize: 10,
+       pageSize: 20,
 	   sorts: [], // 排序条件
 	   filters: {}, // 过滤条件
 	   searchKey: '', // 搜索关键字
@@ -225,6 +281,33 @@ const state = reactive({
 	selectedRowKeys: [],
 	filterValuesMap: {
 	},
+	edit: {
+		index: -1,
+		field: '',
+		value: '',
+		modal: false
+	}
+})
+
+const editSelectOptions = computed(() => {
+	/*const record = state.filterRecords[state.edit.index];
+	if (!record) return [];
+
+    if ('domain2' === state.edit.field) {
+        return state.filterValuesMap?.allDomain?.filter?.(item => item.domain1 === record.domain1)?.map(item => {
+			item.domain2;
+		}) || []
+    } else if ('domain3' === state.edit.field) {
+		return state.filterValuesMap?.allDomain?.filter?.(item => item.domain1 === record.domain1 && item.domain2 === record.domain2)?.map(item => {
+			item.domain3;
+		}) || []
+    } else if ('cityMap' === state.edit.field) {
+		return getCityOptions(record.provinceMap);
+	} else if ('regionMap' === state.edit.field) {
+		return getRegionOptions( record.cityMap, record.provinceMap );
+	}*/
+
+	return state.filterValuesMap[state.edit.field] || [];
 })
 	
 const getData = async () => {
@@ -286,14 +369,38 @@ const handleSearch = () => {
 	getData()
 }
 
+const getPageRecord = () => {
+	if (state.recordType === 'merge') {
+		const pages = getProjectsPages([...state.filterAllRecords], state.params.pageNo, state.params.pageSize);
+		// console.log("...stateleng :", pages)
+		state.params.total = pages.total;
+		state.filterRecords = pages.items;
+	} else {
+		const names = Array.from(new Set(state.filterAllRecords.map(item => item.name)));
+		state.params.total = names.length;
+		const pages = getProjectsPages([...names], state.params.pageNo, state.params.pageSize);
+		console.log("...stateleng :", pages)
+		const tempList = []
+		pages.items.forEach((name) => {
+			const temp = state.filterAllRecords.filter(item => item.name === name)
+			tempList.push(...temp);
+		});
+		console.log("filter lllll :", tempList.length)
+		state.filterRecords = [...tempList]
+	}
+	
+}
+
 const handleFilterChange = async () => {
+	
 	state.selectedRowKeys = []
 	const tempAllRecords = await getProjectsFilter({
 		data: [...state.allRecords], 
 		filters: state.params.filters,
 		searchKey: state.params.searchKey,
-		sorts: state.recordType === 'merge' ? state.params.sorts : [{field:'name', order: 'asc'}]
+		sorts: state.params.sorts
 	})
+	state.params.pageNo = 1;
 	
 	if (state.recordType === 'merge') {
 		// 合并数据
@@ -301,7 +408,8 @@ const handleFilterChange = async () => {
 	} else {
 		state.filterAllRecords = [...tempAllRecords]
 	}
-	// state.filterRecords = getProjectsPages([...state.filterAllRecords], state.params.pageNo, state.params.pageSize)
+	
+	getPageRecord()
 
 	// 每个标签数量统计
 	state.statsMap = getProjectCountMap([...tempAllRecords]);
@@ -344,8 +452,27 @@ const handleBatchPush = (id) => {
 	});
 }
 
-const handleEdit = () => {
-	console.log('handleEdit')
+const handleEdit = (index, field, value, title) => {
+	let modal = false;
+	if (['domain1', 'domain2', 'domain3'].includes(field)) {
+		modal = true;
+		title = '赛道编辑'
+	} else if (['provinceMap', 'cityMap', 'regionMap'].includes(field)) {
+		modal = true
+		title = '选择地区'
+	} else if (!['foundationDate'].includes(field) && !state.filterValuesMap[field]?.length) {
+		modal = true;
+	}
+	
+	Object.assign(state.edit, {
+		index,
+		field,
+		value,
+		modal,
+		title,
+		isModal: modal, // 是否弹框修改
+	})
+	console.log('handleEdit', state.edit)
 }
 
 // 还原
@@ -445,6 +572,49 @@ const handleBatchEdit = () => {
     })
 }
 
+const handlePageChange = (params) => {
+	state.params.pageNo = params.current;
+	state.params.pageSize = params.pageSize;
+	getPageRecord()
+}
+
+const handleTableChange = (params) => {
+	// console.log("params :", params)
+	if (params.sorter?.field && params.sorter?.order) {
+		state.params.sorts = [{
+			field: params.sorter.field,
+			order: params.sorter.order === 'ascend' ? 'asc' : 'desc'
+		}]
+	} else {
+		state.params.sorts = []
+	}
+	handleFilterChange()
+}
+
+// 修改数据
+const handleChangeRow = () => {}
+
+// 修改列数据
+const handleChangeValue = () => {
+	if (-1 === state.edit.index || !state.edit.field || !state.edit.value) {
+		message.error("请选择修改项");
+		return;
+	}
+	const obj = {
+		...state.filterRecords[state.edit.index],
+		[state.edit.field]: state.edit.value
+	}
+
+	editProject(obj).then(res => {
+		message.success("修改成功")
+		getData()
+	})
+}
+
+
+// 
+const handleToRow = () => {}
+
 onMounted(() => {
 	getData()
 })
@@ -505,6 +675,13 @@ onMounted(() => {
 				}
 			}
 		}
+	}
+
+	.edit-span {
+		background-color: rgba(24, 144, 255, 0.1);
+		width: 100%;
+		min-height: 13px;
+		cursor: pointer;
 	}
 }
 </style>

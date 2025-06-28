@@ -153,3 +153,12 @@ export function updateProjectStage(data) {
 		data
 	})
 }
+
+// 编辑
+export function editProject(data) {
+	return request({
+		url: '/gy-core/gy.gy/vProjectAllInfo/edit',
+		method: 'post',
+		data
+	})
+}

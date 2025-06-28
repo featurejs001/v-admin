@@ -2,17 +2,62 @@
 	<div class="table-wrap">
 		<div class="header" v-if="!$props.isHideLeft">
 			<slot name="header-left"></slot>
-			<a-popconfirm placement="rightBottom" ok-text="保存" cancel-text="重置" @confirm="handleSettingSave">
-				<a-tooltip placement="top">
-					<template #title>
-						列设置
-					</template>
-					<SettingOutlined class="setting-icon" />
-				</a-tooltip>
+			<a-popconfirm
+			 ok-text="保存" 
+			 cancel-text="重置" 
+			 @cancel="handleSettingReset"
+			 @confirm="handleSettingSave"
+			 overlayClassName="popover-colum" 
+			 placement="bottomRight" 
+			 trigger="click">
+			 	<template #default>
+					<a-tooltip placement="top">
+						<template #title>
+							列设置
+						</template>
+						<SettingOutlined class="setting-icon" />
+					</a-tooltip>
+				</template>
+				<template #icon>
+				</template>
+				<template #title>
+					<div style="width: 260px;display: flex; justify-content: space-between;">
+						<a-checkbox
+					      v-model:checked="state.sorter.checkAll"
+					      :indeterminate="state.sorter.indeterminate"
+						  class="custom-checkbox"
+					      @change="onColumnCheckAllChange"
+					    >
+						列展示
+						</a-checkbox>
+						<a-checkbox
+					      v-model:checked="state.sorter.showDataIndex"
+						  class="custom-checkbox"
+					      @change="onColumnIndexChange"
+					    >
+						序号列
+						</a-checkbox>
+					</div>
+				</template>
+				<template #description>
+					<VueDraggable ref="el" class="list" v-model="state.sorter.columns" handle=".dragHandle" @end="onSorterEnd">
+						<div class="list-item" v-for="item in state.sorter.columns" :key="item.dataIndex" v-show="!item.isHide">
+							<div class="dragHandle">
+								<MenuOutlined  style="margin-right: 5px;" />
+							</div>
+							<a-checkbox
+							 :checked="state.sorter.selectedColumns.includes(item.dataIndex)" 
+							 class="custom-checkbox"
+							 @change="onColumnCheckChange(item.dataIndex)">
+							 {{ item.title }}
+							</a-checkbox>
+						</div>
+					</VueDraggable>
+				</template>
 			</a-popconfirm>
 		</div>
 		<div class="table-content" ref="tableRef">
-			<a-table v-bind="$props.tableProps" :scroll="state.scroll" @change="handleTableChange" size="small">
+			<a-table v-bind="{...$props.tableProps, columns: tableColumns}" :scroll="state.scroll" @change="handleTableChange" size="small">
 				<template #headerCell="{ column }">
 		          <span v-if="column.isCheckbox" >选择</span>
 		          <slot v-else-if="column.titleSlot" :name="column.titleSlot" v-bind="column">序号</slot>
@@ -25,6 +70,9 @@
 						{{ Number(data.index) + 1 }}
 					  </template>
 			          <slot v-else-if="data.column?.slot" :name="data.column?.slot" v-bind="data || {}"></slot>
+					  <template v-else-if="'function' === typeof data.column?.customRender">
+						{{ data.column.customRender(data) }}
+					  </template>
 			          <template v-else>
 			            <span>{{ data.record[data.column?.dataIndex] }}</span>
 			          </template>
@@ -38,13 +86,18 @@
 					<slot name="customFilterDropdown" v-bind="props"></slot>
 				</template>
 			</a-table>
+			<div class="pagination">
+				<a-pagination v-if="pagination" v-bind="$props.pagination" size="small" @change="onChangePage" />
+			</div>
 		</div>
 	</div>
 </template>
 <script setup>
-import { SettingOutlined, FilterOutlined, FilterFilled } from '@ant-design/icons-vue'
-import { defineProps, toRefs, ref, onMounted, reactive, onBeforeUnmount } from "vue"
+import { SettingOutlined, FilterOutlined, FilterFilled, MenuOutlined } from '@ant-design/icons-vue'
+import { defineProps, toRefs, ref, onMounted, reactive, onBeforeUnmount, computed, watch } from "vue"
+import { VueDraggable } from 'vue-draggable-plus'
 
+const emits = defineEmits(["change", "pageChange"])
 const props = defineProps({
 	tableProps: {
 		type: Object,
@@ -52,6 +105,10 @@ const props = defineProps({
 			dataSource: [],
 			columns: []
 		})
+	},
+	pagination: {
+		type: [Object, Boolean],
+		default: false
 	},
 	// dataSource: {
 	// 	type: Array,
@@ -87,15 +144,73 @@ const state = reactive({
 	scroll: {
 		x: tableProps.value?.scroll?.x || '100%',
 		y: tableProps.value?.scroll?.y || undefined
+	},
+	sorter: {
+		indeterminate: false,
+		checkAll: false,
+		showDataIndex: false, // 是否显示序号列
+		columns: [], // 排序得字段
+		selectedColumns: []
 	}
+})
+
+const tableColumns = computed(() => {
+	const fields = tableProps.value.columns.filter(item => {
+		if (item.isHide) {
+			return false;
+		}
+		// 过滤不显示的列
+		return -1 !== state.sorter.selectedColumns.indexOf(item.dataIndex)
+	}).map(item => {
+		return {
+			...item
+		}
+	})
+	fields.sort((a, b) => {
+		const indexA = state.sorter.columns.findIndex(item => item.dataIndex === a.dataIndex)
+		const indexB = state.sorter.columns.findIndex(item => item.dataIndex === b.dataIndex)
+		return indexA - indexB
+	})
+	
+	if (state.sorter.showDataIndex) {
+		fields.unshift({
+			title: '序号',
+			dataIndex: 'index',
+			slot: 'commonRowIndex',
+			isCheckbox: false,
+			width: 60,
+			align: 'center',
+			fixed: 'left'
+		})
+	}
+	// console.log("fields", fields)
+	return fields;
 })
 
 const handleSettingSave = () => {
 	console.log('save')
 }
 
+const handleSettingReset = () => {
+	state.sorter.showDataIndex = false;
+	state.sorter.columns = tableProps.value.columns.map((item) => {
+		return {
+			dataIndex: item.dataIndex,
+			isHide: item.isHide,
+			title: item.title
+		}
+	})
+	state.sorter.selectedColumns = tableProps.value.columns.map((item) => item.dataIndex)
+	state.sorter.checkAll = state.sorter.selectedColumns.length === tableProps.value.columns.length  
+}
+
 const handleTableChange = (pagination, filters, sorter) => {
 	console.log('pagination, filters, sorter', pagination, filters, sorter)
+	emits("change", { pagination, filters, sorter })
+}
+
+const onSorterEnd = () => {
+	// console.log('onSorterEnd', state.sorter.columns)
 }
 
 const handleResize = () => {
@@ -111,10 +226,52 @@ const handleResize = () => {
 	}
 }
 
+const onChangePage = (page, pageSize) => {
+	console.log('page, pageSize', page, pageSize)
+	emits('pageChange', {
+		current: page,
+		pageSize
+	})
+}
+
+const onColumnCheckAllChange = () => {
+	Object.assign(state.sorter, {
+		indeterminate: false,
+		selectedColumns: state.sorter.checkAll ? tableProps.value.columns.map((item) => item.dataIndex) : [],
+	})
+}
+
+const onColumnCheckChange = (key) => {
+	const index = state.sorter.selectedColumns.indexOf(key);
+	if (index > -1) {
+		state.sorter.selectedColumns.splice(index, 1);
+	} else {
+		state.sorter.selectedColumns.push(key);
+	}
+
+	Object.assign(state, {
+		indeterminate: !!state.sorter.selectedColumns.length && state.sorter.selectedColumns.length < tableProps.value.columns.length,
+		checkAll: state.sorter.selectedColumns.length === tableProps.value.columns.length,
+	})
+}
+
+const onColumnIndexChange = () => {
+	// state.sorter.showDataIndex = !state.sorter.showDataIndex;
+}
+
 onMounted(() => {
-	
 	handleResize()
 	window.addEventListener('resize', handleResize)
+
+	state.sorter.columns = tableProps.value.columns.map((item) => {
+		return {
+			dataIndex: item.dataIndex,
+			isHide: item.isHide,
+			title: item.title
+		}
+	})
+	state.sorter.selectedColumns = tableProps.value.columns.map((item) => item.dataIndex)
+	state.sorter.checkAll = state.sorter.selectedColumns.length === tableProps.value.columns.length  
 })
 
 onBeforeUnmount(() => {
@@ -220,20 +377,20 @@ onBeforeUnmount(() => {
 		    text-overflow: ellipsis;
 		    word-break: keep-all;
 		}
-		.ant-table-cell {
-			.ant-checkbox-checked {
-				.ant-checkbox-inner {
-				    border-color: #167FFF;
-				    background: transparent;
-				    width: 14px;
-				    height: 14px;
-					border-radius: 2px;
-					&::after {
-						border-color: #167fff;
-					}
-				}
-			}
-		}
+		// .ant-table-cell {
+		// 	.ant-checkbox-checked {
+		// 		.ant-checkbox-inner {
+		// 		    border-color: #167FFF;
+		// 		    background: transparent;
+		// 		    width: 14px;
+		// 		    height: 14px;
+		// 			border-radius: 2px;
+		// 			&::after {
+		// 				border-color: #167fff;
+		// 			}
+		// 		}
+		// 	}
+		// }
 	}
 	:deep(.ant-pagination) {
 		color: #888888;
@@ -270,5 +427,10 @@ onBeforeUnmount(() => {
 		}
 		
 	}
+}
+.pagination {
+	display: flex;
+	justify-content: flex-end;
+	padding: 10px 0px;
 }
 </style>

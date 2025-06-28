@@ -1,13 +1,18 @@
 <template>
 	<a-tabs
       :activeKey="state.activeKey"
-      tab-position="top"
+      :tab-position="tabPosition"
 	  type="editable-card"
 	  class="tabs"
 	  @tabClick="handleTabClick"
 	  @edit="handleDelClick"
     >
-      <a-tab-pane v-for="item in historyRoutes" :key="item.name" :tab="item.meta.title" />
+      <a-tab-pane v-for="item in historyRoutes" :key="item.name"  >
+		<template #tab>
+			<ContainerOutlined />
+			<span class="title">{{ item.meta.title }}</span>
+		</template>
+	  </a-tab-pane>
     </a-tabs>
 </template>
 <script setup>
@@ -15,12 +20,20 @@ import { onMounted, reactive, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useApp } from "@/store/app";
 import { storeToRefs } from 'pinia';
+import { ContainerOutlined } from '@ant-design/icons-vue';
 
 const router = useRouter();
 const curRoute = useRoute();
 
 const appStore = useApp();
 const { historyRoutes } = storeToRefs(appStore);
+
+const props = defineProps({
+    tabPosition: {
+      type: String,
+      default: 'top'
+	}
+})
 
 const state = reactive({
 	activeKey: ''
@@ -47,10 +60,12 @@ const handleDelClick = (targetKey) => {
 </script>
 <style lang="less" scoped>
 .tabs {
-	padding: 0px 12px;
-	height: 30px;
-	line-height: 30px;
-	overflow: hidden;
+	&.ant-tabs-top {
+		padding: 0px 12px;
+		height: 30px;
+		line-height: 30px;
+		overflow: hidden;
+	}
 	:deep(.ant-tabs-nav) {
 		margin-bottom: 0px;
 		height: 100%;
@@ -91,6 +106,36 @@ const handleDelClick = (targetKey) => {
 		}
 		.ant-tabs-nav-add {
 			display: none;
+		}
+	}
+	&.ant-tabs-left {
+		border-top: 1px solid rgb(112 112 112 / 65%);
+		margin-top: 10px;
+		padding-top: 10px;
+		flex: 1;
+	    :deep(.ant-tabs-nav) {
+			width: 100%;
+			color: rgba(255, 255, 255, 0.65);
+			.ant-tabs-tab {
+				padding: 0px 16px;
+				display: flex;
+				justify-content: space-between;
+				.ant-tabs-tab-btn, .ant-tabs-tab-remove {
+					color: rgba(255, 255, 255, 0.65);
+				}
+				.ant-tabs-tab-btn {
+				    overflow: hidden;
+				    text-overflow: ellipsis;
+					.title {
+						overflow: hidden;
+				    	text-overflow: ellipsis;
+						margin-inline-start: 10px;
+					}
+					.anticon {
+						margin-right: 0px;
+					}
+				}
+			}
 		}
 	}
 }

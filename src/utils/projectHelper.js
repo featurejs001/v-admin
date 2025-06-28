@@ -193,6 +193,7 @@ export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}, records
 		title: '项目阶段',
 	    align: 'center',
 	    dataIndex: 'stage',
+		slot: 'editCommon',
 	    resizable: true,
 	    sorter: true,
 	    filters: [],
@@ -201,6 +202,7 @@ export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}, records
 		title: '跟进阶段',
 	    align: 'center',
 	    dataIndex: 'followStage',
+		slot: 'editCommon',
 	    resizable: true,
 	    sorter: true,
 	    filters: [],
@@ -263,6 +265,7 @@ export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}, records
 		title: '一级赛道',
 		align: 'left',
 		dataIndex: 'domain1',
+		slot: 'editCommon',
 		resizable: true,
 		sorter: true,
 		// filters: domain1Filter,
@@ -272,6 +275,7 @@ export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}, records
 		title: '二级赛道',
 		align: 'left',
 		dataIndex: 'domain2',
+		slot: 'editCommon',
 		resizable: true,
 		sorter: true,
 		width: 110,
@@ -281,6 +285,7 @@ export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}, records
 		title: '三级赛道',
 		align: 'left',
 		dataIndex: 'domain3',
+		slot: 'editCommon',
 		resizable: true,
 		sorter: true,
 		width: 110,
@@ -289,6 +294,7 @@ export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}, records
 		title: '简介',
 	    // align: 'center',
 	    dataIndex: 'briefIntroduction',
+		slot: 'editCommon',
 	    resizable: true,
 	    align: 'left',
 	    sorter: true,
@@ -297,6 +303,7 @@ export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}, records
 		title: '成立时间',
 	    // align: 'center',
 	    dataIndex: 'foundationDate',
+		slot: 'editCommon',
 	    resizable: true,
 	    align: 'left',
 	    sorter: true,
@@ -305,6 +312,7 @@ export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}, records
 		title: '第三方链接',
 	    // align: 'center',
 	    dataIndex: 'thirdLink',
+		slot: 'editCommon',
 	    resizable: true,
 	    align: 'left',
 	    sorter: true,
@@ -323,8 +331,8 @@ export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}, records
 	    //   return getTextByCode(text);
 	    // },
 	    dataIndex: 'provinceMap',
+		slot: 'editCommon',
 	    resizable: true,
-	    ifShow: false,
 	    sorter: true,
 	    title: '省',
 	    filteredValue: [],
@@ -334,8 +342,8 @@ export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}, records
 		title: '市',
 	    // align: 'center',
 	    dataIndex: 'cityMap',
+		slot: 'editCommon',
 	    resizable: true,
-	    ifShow: false,
 	    align: 'center',
 	    sorter: true,
 	    // customRender: ({text}) => {
@@ -348,8 +356,8 @@ export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}, records
 		 title: '区',
 	    // align: 'center',
 	    dataIndex: 'regionMap',
+		slot: 'editCommon',
 	    resizable: true,
-	    ifShow: false,
 	    align: 'center',
 	    sorter: true,
 	    // customRender: ({text}) => {
@@ -393,7 +401,6 @@ export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}, records
 	    dataIndex: 'createTime',
 	    resizable: true,
 	    sorter: true,
-	    ifShow: true,
 	    width: 120,
 	    // filters: otherFilter,
 	    customRender: ({ text }) => {
@@ -411,7 +418,7 @@ export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}, records
 	    dataIndex: 'updateTime',
 	    resizable: true,
 	    sorter: true,
-	    width: 80,
+	    width: 120,
 	    // filters: otherFilter,
 	    customRender: ({ text }) => {
 	      if (!text) {
@@ -426,6 +433,7 @@ export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}, records
 		title: '项目主体',
 	    // align: 'center',
 	    dataIndex: 'fullName',
+		slot: 'editCommon',
 	    resizable: true,
 	    align: 'left',
 	    sorter: true,
@@ -434,6 +442,7 @@ export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}, records
 		title: '项目别名',
 	    // align: 'center',
 	    dataIndex: 'alias',
+		slot: 'editCommon',
 	    resizable: true,
 	    align: 'left',
 	    sorter: true,
@@ -445,8 +454,7 @@ export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}, records
 	    resizable: true,
 	    align: 'left',
 	    sorter: true,
-	    ifShow: true,
-	    width: 50,
+	    width: 120,
 	}, {
 		title: '推送对象',
 	    // align: 'center',
@@ -454,37 +462,35 @@ export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}, records
 	    resizable: true,
 	    align: 'left',
 	    sorter: true,
-	    ifShow: true,
-	    width: 50,
+	    width: 120,
 	}, {
 		title: '推送时间',
 	    dataIndex: 'op_time',
 	    resizable: true,
 	    align: 'left',
 	    sorter: true,
-	    width: 70,
+	    width: 120,
 	}, {
 		title: '推送分类',
 	    dataIndex: 'op_status',
 	    resizable: true,
 	    align: 'left',
 	    sorter: true,
-	    width: 50,
+	    width: 120,
 	}, {
 		title: '推送状态',
 	    dataIndex: 'pushStatus',
 	    resizable: true,
 	    align: 'left',
 	    sorter: true,
-	    width: 50,
+	    width: 120,
 	}, {
 	    title: '删除人',
 	    dataIndex: 'delByUsername',
 	    resizable: true,
 	    align: 'left',
 	    sorter: true,
-	    ifShow: true,
-	    width: 50,
+	    width: 120,
 	},
 	{
 	    title: '删除时间',
@@ -499,8 +505,7 @@ export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}, records
 	    resizable: true,
 	    align: 'left',
 	    sorter: true,
-	    ifShow: true,
-	    width: 50,
+	    width: 120,
 	}, 
 	{
 	    title: '移入时间',
@@ -508,35 +513,31 @@ export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}, records
 	    resizable: true,
 	    align: 'left',
 	    sorter: true,
-	    ifShow: true,
-	    width: 70,
+	    width: 120,
 	}, 
 	{
 	    title: '拒收人',
 	    dataIndex: 'rejectByUsername',
 	    resizable: true,
 	    align: 'left',
-	    ifShow: true,
 	    sorter: true,
-	    width: 50,
+	    width: 120,
 	},
 	{
 	    title: '拒收时间',
 	    dataIndex: 'rejectTime',
 	    resizable: true,
 	    align: 'left',
-	    ifShow: true,
 	    sorter: true,
-	    width: 70,
+	    width: 120,
 	},
 	{
 	    title: '屏蔽区间',
 	    dataIndex: 'blockTime',
 	    resizable: true,
-	    ifShow: true,
 	    align: 'left',
 	    sorter: true,
-	    width: 70,
+	    width: 120,
 	},
 	{
 		title: '创建人',
@@ -544,34 +545,33 @@ export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}, records
 	    dataIndex: 'createBy',
 	    resizable: true,
 	    sorter: true,
-	    width: 90,
+	    width: 120,
 	}, {
 		title: '更新人',
 	    align: 'left',
 	    dataIndex: 'updateBy',
 	    resizable: true,
 	    sorter: true,
-	    width: 90,
+	    width: 120,
 	},{
 		title: '操作',
 	    dataIndex: 'action1',
 		slot: 'action1',
 	    fixed: 'right',
 	    width: 120,
-	}].filter(item => {
-		if (selectedOption === '项目列表' && ['op_1','op_2','op_time','op_status', 'pushStatus','delTime','delByUsername', 'importTime','rejectTime', 'blockTime', 'importByUsername','rejectByUsername'].includes(item.dataIndex)) {
-			return false;
-		} else if (selectedOption === '推送列表' && ['delTime', 'delByUsername', 'importTime', 'rejectTime', 'blockTime', 'importByUsername', 'rejectByUsername'].includes(item.dataIndex)) {
-			return false;
-		} else if (selectedOption === '删除列表' && ['op_1','op_2','op_time','op_status', 'pushStatus', 'importTime', 'rejectTime', 'blockTime','importByUsername','rejectByUsername'].includes(item.dataIndex)) {
-			return false;
-		}
-		return true;
-	}).map(item => {
+	}].map(item => {
 		const newItem = {
 			...item,
 			ellipsis: true,
 		}
+		if (selectedOption === '项目列表' && ['op_1','op_2','op_time','op_status', 'pushStatus','delTime','delByUsername', 'importTime','rejectTime', 'blockTime', 'importByUsername','rejectByUsername'].includes(item.dataIndex)) {
+			newItem.isHide = true;
+		} else if (selectedOption === '推送列表' && ['delTime', 'delByUsername', 'importTime', 'rejectTime', 'blockTime', 'importByUsername', 'rejectByUsername'].includes(item.dataIndex)) {
+			newItem.isHide = true;
+		} else if (selectedOption === '删除列表' && ['op_1','op_2','op_time','op_status', 'pushStatus', 'importTime', 'rejectTime', 'blockTime','importByUsername','rejectByUsername'].includes(item.dataIndex)) {
+			newItem.isHide = true;
+		}
+
 		if (newItem.filters) {
 			newItem.customFilterDropdown = true;
 			// console.log("filterValuesMap ", newItem.dataIndex, filterValuesMap[newItem.dataIndex])
@@ -584,22 +584,55 @@ export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}, records
 			newItem.filteredValue = filterMaps?.[newItem.dataIndex] || [];
 		}
 		if (recordType === 'single' && mergeColumnList.includes(newItem.dataIndex)) {
-			newItem.customCell = (_, index, column) => {
+			newItem.customCell = (_, rowIndex, column) => {
+				const checks = records.filter(record => record.name === records[rowIndex].name);
+				const firstIndex = records.findIndex(record => record.name === records[rowIndex].name);
+				if (firstIndex === rowIndex) {
+					return {
+						rowSpan: checks.length,
+						style: { verticalAlign: 'top' },
+					}
+				}
 				return {
-					rowSpan: getRowSpan1(index, 'name', records),
+					rowSpan: 0, // getRowSpan1(index, 'name', records),
               		style: { verticalAlign: 'top' },
 				}
 			}
-		} 
-		
-		if (true === newItem.sorter) {
-			newItem.sorter = (a, b) => {
-				if (['createTime', 'updateTime', 'op_time', 'delTime', 'importTime', 'rejectTime', 'blockTime'].includes(newItem.dataIndex)) {
-					return new Date(a[newItem.dataIndex]) - new Date(b[newItem.dataIndex])
+		} else if (recordType === 'single' && newItem.dataIndex.includes('domain')) {
+			// 赛道只有一条有数据，合并单元格
+			newItem.customCell = (_, rowIndex, column) => {
+				const checks = records.filter(record => record.name === records[rowIndex].name);
+				const firstIndex = records.findIndex(record => record.name === records[rowIndex].name);
+				const len = checks.filter(v => v.domain1 && v.domain2 && v.domain3)?.length || 0;
+				// console.log('00000', records[rowIndex].name, rowIndex, len, firstIndex)
+				if (len === 1 && rowIndex == firstIndex) {
+				    // 只有一条数据 
+					return {
+						rowSpan: checks.length,
+						style: { verticalAlign: 'top' },
+					}
+				} else if (len === 1) {
+					return {
+						rowSpan: 0,
+						style: { verticalAlign: 'top' }
+					}
+				} else {
+					return {
+						rowSpan: 1,
+						style: { verticalAlign: 'top' }
+					}
 				}
-				return sortColumn(a, b, newItem.dataIndex)
 			}
 		}
+		// if (true === newItem.sorter) {
+		// 	newItem.sorter = (a, b) => {
+		// 		if (['createTime', 'updateTime', 'op_time', 'delTime', 'importTime', 'rejectTime', 'blockTime'].includes(newItem.dataIndex)) {
+		// 			return new Date(a[newItem.dataIndex]) - new Date(b[newItem.dataIndex])
+		// 		}
+		// 		return sortColumn(a, b, newItem.dataIndex)
+		// 	}
+		// }
+		
 		return newItem;
 	})
 }
@@ -724,7 +757,7 @@ export function mergeRecordsByName(allRecords) {
 }
 
 // 按分页获取数据
-export async function getProjectsPages(data = [], page = 1, pageSize = 10) {
+export function getProjectsPages(data = [], page = 1, pageSize = 10) {
 	// 分页
 	const total = data.length;
 	const start = (page - 1) * pageSize;

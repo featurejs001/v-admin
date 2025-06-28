@@ -12,6 +12,7 @@
 				:subMenuOpenDelay="0.2"
 				@click="handleMenuClick"
 			/>
+			<RouteTabs :tabPosition="'left'" />
 		</div>
 		<div class="system-name" v-if="isSidebarOpened">光跃投资智能平台</div>
 		<div class="system-name" v-else>光跃投资</div>
@@ -26,6 +27,7 @@ import Avatar from "@/layout/components/Avatar.vue";
 import { storeToRefs } from 'pinia'
 import { computed, ref, watch, reactive, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
+import RouteTabs from "@/layout/components/RouteTabs.vue"
 
 const router = useRouter();
 const curRoute = useRoute();
@@ -105,6 +107,8 @@ const handleMenuClick = (item) => {
 		height: calc(100% - 80px);
 		overflow: hidden;
 		flex: 1;
+		display: flex;
+		flex-direction: column;
 	}
 
 	.system-name {
