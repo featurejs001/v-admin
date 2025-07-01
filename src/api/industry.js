@@ -162,3 +162,12 @@ export function editProject(data) {
 		data
 	})
 }
+
+// 
+export function getExtraInfoByName(params) {
+	return request({
+		url: '/gy-core/gy.gy/vProjectAllInfo/getExtraInfoByName',
+		method: 'get',
+		params
+	})
+}

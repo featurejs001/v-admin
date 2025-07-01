@@ -66,16 +66,24 @@
 			    />
 			</template>
 			<template #name="{ column, record, index, text }">
-		        <a style="color: rgba(0, 0, 0, 0.65)" @click="handleToRow(record)">
-		          <span style="display: flex; align-items: center;">{{ record.name }}</span>
-		        </a>
+				<a-tooltip placement="top" :trigger="String(text).length*15 >= column.width ? 'hover' : 'none'">
+					<template #title>
+						<div>{{ text }}</div>
+					</template>
+			        <a class="overflow-ellipsis" style="color: rgba(0, 0, 0, 0.65)" @click="handleToRow(record)">
+			          {{ record.name }}
+			        </a>
+				</a-tooltip>
 		    </template>
 			<template #editCommon="{ column, record, index, text }">
-				<div v-if="state.edit.index !== index">
-					{{ text }}
-				</div>
-				<div v-else-if="state.edit.field !== column.dataIndex || state.edit.isModal" class="edit-span" @click="handleEdit(index, column.dataIndex, text, column.title)">
-					{{ text }}
+				<a-tooltip placement="top" v-if="state.edit.index !== index" :trigger="String(text).length > 10 ? 'hover' : 'none'">
+					<template #title>
+						<div v-html="text"></div>
+					</template>
+					<div class="overflow-ellipsis" v-html="text">
+					</div>
+				</a-tooltip>
+				<div v-else-if="state.edit.field !== column.dataIndex || state.edit.isModal" class="overflow-ellipsis edit-span" @click="handleEdit(index, column.dataIndex, column.title)"  v-html="text">
 				</div>
 				<a-select
 			      v-else-if="editSelectOptions.length"
@@ -105,7 +113,7 @@
 		          <template #title>
 		            <span>编辑</span>
 		          </template>
-		          <EditOutlined class="action-btn" @click="handleEdit(index, 'stage', record.stage, column.title)" />
+		          <EditOutlined class="action-btn" @click="handleEdit(index, 'stage', column.title)" />
 		        </a-tooltip>
 				
 				<template v-if="['项目列表', '推送列表'].includes(state.selectedOption)">
@@ -202,7 +210,8 @@
 			:title="state.edit.title"
 		 	:field="state.edit.field"
 		 	:record="state.filterRecords[state.edit.index]"
-		 	@ok="handleChangeRow"
+			:allDomain="state.filterValuesMap?.allDomain || []"
+		 	@success="() => {state.edit.modal = false; getData()}"
 			@close="state.edit.modal = false"
 		 />
 	</div>
@@ -248,7 +257,7 @@ import BatchPushIcon from "@/assets/img/batchPushIcon.svg"
 import UserSelectModal from "@/components/user/selectModal.vue"
 import { pushProject } from "@/api/industry";
 import BatchEditModal from "./components/BatchEditModal.vue"
-// import { getCityOptions, getRegionOptions } from "@/utils/areaDataUtil"
+import { getTextByCode } from "@/utils/areaDataUtil"
 import EditFieldModal from "./components/EditFieldModal.vue"
 
 const props = defineProps({
@@ -452,14 +461,16 @@ const handleBatchPush = (id) => {
 	});
 }
 
-const handleEdit = (index, field, value, title) => {
+const handleEdit = (index, field, title) => {
+	const record = {...state.filterRecords[index]};
+	let value = record[field];
 	let modal = false;
 	if (['domain1', 'domain2', 'domain3'].includes(field)) {
 		modal = true;
 		title = '赛道编辑'
 	} else if (['provinceMap', 'cityMap', 'regionMap'].includes(field)) {
 		modal = true
-		title = '选择地区'
+		title = '选择地区';
 	} else if (!['foundationDate'].includes(field) && !state.filterValuesMap[field]?.length) {
 		modal = true;
 	}
@@ -592,7 +603,8 @@ const handleTableChange = (params) => {
 }
 
 // 修改数据
-const handleChangeRow = () => {}
+const handleChangeRow = (params) => {
+}
 
 // 修改列数据
 const handleChangeValue = () => {

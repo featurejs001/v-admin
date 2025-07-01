@@ -563,6 +563,7 @@ export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}, records
 		const newItem = {
 			...item,
 			ellipsis: true,
+			width: 'editCommon' !== item.slot ? item.width : 150, // 单元格默认展示10个字，超出省略号
 		}
 		if (selectedOption === '项目列表' && ['op_1','op_2','op_time','op_status', 'pushStatus','delTime','delByUsername', 'importTime','rejectTime', 'blockTime', 'importByUsername','rejectByUsername'].includes(item.dataIndex)) {
 			newItem.isHide = true;

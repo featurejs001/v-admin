@@ -161,7 +161,9 @@ h1 {
   font-size: 3.2em;
   line-height: 1.1;
 }
-
+p {
+	margin: 0px;
+}
 button {
   border-radius: 8px;
   border: 1px solid transparent;
@@ -264,8 +266,10 @@ button:focus-visible {
 .ant-input {
 	font-size: 13px;
   	height: 32px;
+	border-radius: 2px;
 }
 .ant-input-affix-wrapper {
+	border-radius: 2px;
 	.ant-input {
 		height: 22px;
 	}
@@ -355,7 +359,9 @@ a:focus-visible {
 }
 
 .custom-checkbox {
+	color: #555;
 	font-weight: 400;
+	font-size: 13px;
 	&.ant-checkbox-wrapper:hover .ant-checkbox:after {
 		visibility: hidden !important;
 	}
@@ -472,6 +478,9 @@ a:focus-visible {
 }
 
 .ant-select {
+	.ant-select-selector {
+		border-radius: 2px;
+	}
 	&.ant-select-single.ant-select-sm {
 		.ant-select-selector {
 			font-size: 13px;
@@ -479,6 +488,24 @@ a:focus-visible {
 		}
 	}
 }
+.ant-select-dropdown {
+	.ant-select-item {
+		color: #555;
+		font-size: 13px;
+	}
+	.ant-select-item-option-selected:not(.ant-select-item-option-disabled) {
+		color: #555;
+		font-size: 13px;
+		font-weight: 400;
+	}
+}
 .w-full {
 	width: 100%;
+}
+
+.overflow-ellipsis {
+	overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    word-break: keep-all;
 }
