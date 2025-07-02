@@ -76,14 +76,14 @@
 				</a-tooltip>
 		    </template>
 			<template #editCommon="{ column, record, index, text }">
-				<a-tooltip placement="top" v-if="state.edit.index !== index" :trigger="String(text).length > 10 ? 'hover' : 'none'">
+				<a-tooltip placement="top" v-if="state.edit.index !== index" :trigger="column.ellipsis && String(text).length > 10 ? 'hover' : 'none'">
 					<template #title>
 						<div v-html="text"></div>
 					</template>
-					<div class="overflow-ellipsis" v-html="text">
+					<div :class="[column.ellipsis ? 'overflow-ellipsis' : '']" v-html="text" @click="handleEdit(index, column.dataIndex, column.title)">
 					</div>
 				</a-tooltip>
-				<div v-else-if="state.edit.field !== column.dataIndex || state.edit.isModal" class="overflow-ellipsis edit-span" @click="handleEdit(index, column.dataIndex, column.title)"  v-html="text">
+				<div v-else-if="state.edit.field !== column.dataIndex || state.edit.isModal" :class="['edit-span', column.ellipsis ? 'overflow-ellipsis' : '']" @click="handleEdit(index, column.dataIndex, column.title)"  v-html="text">
 				</div>
 				<a-select
 			      v-else-if="editSelectOptions.length"
@@ -101,6 +101,13 @@
 				 size="small"
 				 class="w-full"
 				 @change="handleChangeValue" />
+				<a-textarea
+				  v-else
+			      v-model:value="state.edit.value"
+			      placeholder="请输入"
+			      :rows="4"
+				  @blur="handleChangeValue"
+			    />
 			</template>
 			<template #action1="{ column, record, index, text }">
 				<a-tooltip v-if="state.edit.index === index" placement="bottom" trigger="hover">
@@ -212,7 +219,7 @@
 		 	:record="state.filterRecords[state.edit.index]"
 			:allDomain="state.filterValuesMap?.allDomain || []"
 		 	@success="() => {state.edit.modal = false; getData()}"
-			@close="state.edit.modal = false"
+			@close="() => {state.edit.modal = false; state.edit.index = -1;}"
 		 />
 	</div>
 </template>
@@ -259,6 +266,8 @@ import { pushProject } from "@/api/industry";
 import BatchEditModal from "./components/BatchEditModal.vue"
 import { getTextByCode } from "@/utils/areaDataUtil"
 import EditFieldModal from "./components/EditFieldModal.vue"
+import { useRouter } from "vue-router";
+const router = useRouter();
 
 const props = defineProps({
     fromWhichComponent: {
@@ -401,7 +410,7 @@ const getPageRecord = () => {
 }
 
 const handleFilterChange = async () => {
-	
+	state.edit.index = -1;
 	state.selectedRowKeys = []
 	const tempAllRecords = await getProjectsFilter({
 		data: [...state.allRecords], 
@@ -443,6 +452,12 @@ const handleExport = async () => {
 
 const handleAdd = () => {
 	console.log('handleAdd')
+	router.push({
+		name: "project_detail-@id",
+		params: {
+			name: "newnew",
+		}
+	})
 }
 
 const handleToggleMerge = () => {
@@ -471,7 +486,7 @@ const handleEdit = (index, field, title) => {
 	} else if (['provinceMap', 'cityMap', 'regionMap'].includes(field)) {
 		modal = true
 		title = '选择地区';
-	} else if (!['foundationDate'].includes(field) && !state.filterValuesMap[field]?.length) {
+	} else if (!['foundationDate', 'thirdLink'].includes(field) && !state.filterValuesMap[field]?.length) {
 		modal = true;
 	}
 	

@@ -489,6 +489,7 @@ a:focus-visible {
 	}
 	.ant-select-selection-item {
 		font-size: 13px;
+		color: #555;
 	}
 }
 .ant-select-dropdown {
@@ -500,6 +501,37 @@ a:focus-visible {
 		color: #555;
 		font-size: 13px;
 		font-weight: 400;
+	}
+}
+.ant-form {
+	.ant-form-item {
+		.ant-form-item-label >label {
+			font-size: 13px;
+			color: #555;
+		}
+	}
+}
+.ant-picker {
+	border-radius: 2px;
+	font-size: 13px;
+	color: #555;
+	.ant-picker-input >input {
+		font-size: 13px;
+		color: #555;
+	}
+}
+
+.ant-dropdown {
+	.custom-menu {
+		&.ant-dropdown-menu {
+			.ant-dropdown-menu-item, .ant-dropdown-menu-item, .ant-dropdown-menu-submenu .ant-dropdown-menu .ant-dropdown-menu-submenu-title {
+				font-size: 13px;
+				color: #555;
+				&:hover {
+					color: rgba(0, 0, 0, 0.88);
+				}
+			}
+		}
 	}
 }
 .w-full {

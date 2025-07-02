@@ -78,8 +78,20 @@ export const dynamicRoutes = [{
 				title: '项目中心',
 				icon: () => h(FundViewOutlined)
 			}
-		},
+		}
 	]
+},
+{
+	path: "/project-detail",
+	name: "project_detail",
+	redirect: "/project-detail/new",
+	component: Layout,
+	hidden: true,
+	children: [{
+		path: "/project-detail/:name",
+		name: "project_detail-@id",
+		component: () => import("@/views/project/detail.vue"),
+	}]
 },
 {
 	path: "/mid",

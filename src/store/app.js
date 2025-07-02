@@ -80,9 +80,18 @@ export const useApp = defineStore("app", {
 				setHistoryRoutes(this.historyRoutes);
 				return true;
 			}
+			switch(route.name) {
+				case 'project_detail-@id':
+					if (route.params.name) {
+						route.meta.title = 'newnew' === route.params.name ? '新项目' : route.params.name;
+					}
+					break;
+			}
+			
 			if (['/login', '/404', '/'].includes(route.path) || !route.meta?.title) {
 				return false;	
 			}
+			
 			const check = this.historyRoutes.find(item => item.path === route.path);
 			// console.log("setHistoryRoutes :", check, route)
 			if (!check) {

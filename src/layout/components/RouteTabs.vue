@@ -7,7 +7,7 @@
 	  @tabClick="handleTabClick"
 	  @edit="handleDelClick"
     >
-      <a-tab-pane v-for="item in historyRoutes" :key="item.name"  >
+      <a-tab-pane v-for="item in historyRoutes" :key="item.path"  >
 		<template #tab>
 			<ContainerOutlined />
 			<span class="title">{{ item.meta.title }}</span>
@@ -39,22 +39,22 @@ const state = reactive({
 	activeKey: ''
 });
 
-watch(() => curRoute.name, (newVal) => {
+watch(() => curRoute.path, (newVal) => {
 	state.activeKey = newVal;
 }, {immediate: true})
 
 const handleTabClick = (val) => {
-	router.push({ name: val });
+	router.push({ path: val });
 }
 
 const handleDelClick = (targetKey) => {
-	const targetIndex = historyRoutes.value.findIndex((item) => item.name === targetKey);
-	const routes = historyRoutes.value.filter((item) => item.name !== targetKey);
+	const targetIndex = historyRoutes.value.findIndex((item) => item.path === targetKey);
+	const routes = historyRoutes.value.filter((item) => item.path !== targetKey);
 	appStore.setHistoryRoutes(routes);
 
 	if (state.activeKey === targetKey) {
-		const nextKey = routes[targetIndex - 1]?.name || routes[targetIndex]?.name || 'home';
-		router.push({ name: nextKey })
+		const nextKey = routes[targetIndex - 1]?.path || routes[targetIndex]?.path || '/';
+		router.push({ path: nextKey })
 	}
 }
 </script>

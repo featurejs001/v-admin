@@ -8,7 +8,7 @@
 				<ImportOutlined />
 			</a-tooltip>
 			<template #overlay>
-				<a-menu @click="onImportClick">
+				<a-menu class="custom-menu" @click="onImportClick">
 			        <a-menu-item v-for="(title, index) in state.menuMaps" :key="index">{{ title }}</a-menu-item>
 			    </a-menu>
 			</template>

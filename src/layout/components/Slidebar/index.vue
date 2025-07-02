@@ -84,6 +84,7 @@ const routes = computed(() => {
 			children
 		}
 	});
+	// console.log("menus :", menus)
 	
 	return menus;
 })

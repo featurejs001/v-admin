@@ -1,0 +1,441 @@
+<template>
+	<div class="detail-wrap">
+		<a-affix :offset-top="20" :style="{ position: 'fixed', right: '0px', top: '80px', zIndex: 1000 }">
+	      <a-button type="primary" @click="handleSave" class="save-button">
+	        <SaveOutlined />
+	      </a-button>
+	    </a-affix>
+		<a-form
+			    :model="state.form"
+			    name="basic"
+				ref="formRef"
+			    :label-col="{ flex: '100px' }"
+			    :wrapper-col="{ flex: '1 1 calc(100% - 100px)' }"
+				:wrap="false"
+				:colon="false"
+				:rules="state.rules"
+			    autocomplete="off"
+				class="form"
+			>
+			<a-card :bordered="false" class="table-card">
+				<div class="title-container">
+		          <div class="group_6"></div>
+		          <span> 基本信息 </span>
+		        </div>
+				<a-row :gutter="state.rowGutter">
+					<a-col :span="state.colSpan">
+						<a-form-item
+							label="项目名称"
+							name="name"
+						>
+							<a-input v-model:value="state.form.name" placeholder="请输入项目名称" allowClear />
+						</a-form-item>
+					</a-col>
+					<a-col :span="state.colSpan">
+						<a-form-item
+							label="项目别名"
+							name="alias"
+						>
+							<a-input v-model:value="state.form.alias" placeholder="请输入项目别名，用半角逗号分开" allowClear />
+						</a-form-item>
+					</a-col>
+					<a-col :span="state.colSpan">
+						<a-form-item
+							label="项目主体"
+							name="fullName"
+						>
+							<a-input v-model:value="state.form.fullName" placeholder="请输入项目主体" allowClear />
+						</a-form-item>
+					</a-col>
+				</a-row>
+				<a-row :gutter="state.rowGutter">
+					<a-col :span="state.colSpan">
+						<a-form-item
+							label="成立时间"
+							name="foundationDate"
+						>
+							<a-date-picker
+							 v-model:value="state.form.foundationDate" 
+							 valueFormat="YYYY-MM-DD"
+							 class="w-full" 
+							 placeholder="请选择成立时间"
+							 allowClear
+							 />
+					 	</a-form-item>
+					</a-col>
+					<a-col :span="state.colSpan">
+						<a-form-item
+							label="省/市/区"
+							name="code"
+						>
+							<a-cascader
+							  v-model:value="state.form.code" 
+							  :options="regionData" 
+							  placeholder="请选择省/市/区" 
+							  allowClear
+							  class="mx"
+							  />
+						</a-form-item>
+					</a-col>
+					<a-col :span="state.colSpan">
+						<a-form-item
+							label="项目官网"
+							name="website"
+						>
+							<a-input v-model:value="state.form.website" placeholder="请输入：https:// 或 http://，可双击跳转" allowClear />
+						</a-form-item>
+					</a-col>
+				</a-row>
+				<a-row>
+					<a-col :span="21">
+						<a-form-item
+							label="项目简介"
+							name="briefIntroduction"
+						>
+							<!-- <a-textarea v-model:value="state.form.briefIntroduction" placeholder="请输入项目简介" allowClear /> -->
+							<QuillEditor 
+							 v-model:content="state.form.briefIntroduction" 
+							 :options="state.editorOptions"
+							 contentType="html"
+							 />
+						</a-form-item>
+					</a-col>
+				</a-row>
+				<a-row>
+					<a-col :span="21">
+						<a-form-item
+							label="第三方链接"
+							name="thirdLink"
+						>
+							<a-input v-model:value="state.form.thirdLink" placeholder="请输入：https:// 或 http://，可双击跳转" allowClear />
+						</a-form-item>
+					</a-col>
+				</a-row>
+				<div class="title-container">
+		          <div class="group_6"></div>
+		          <span> 跟进信息 </span>
+		        </div>
+				<a-row :gutter="state.rowGutter">
+					<a-col :span="state.colSpan">
+						<a-form-item
+							label="项目阶段"
+							name="stage"
+						>
+							<a-select v-model:value="state.form.stage" placeholder="请选择项目阶段" allowClear >
+								<a-select-option v-for="item in stageFilter" :key="item" :value="item">{{ item }}</a-select-option>
+							</a-select>
+						</a-form-item>
+					</a-col>
+					<a-col :span="state.colSpan">
+						<a-form-item
+							label="跟进阶段"
+							name="followStage"
+						>
+							<a-select v-model:value="state.form.followStage" placeholder="请选择跟进阶段" allowClear >
+								<a-select-option v-for="item in followStageFilter" :key="item" :value="item">{{ item }}</a-select-option>
+							</a-select>
+						</a-form-item>
+					</a-col>
+					<a-col :span="state.colSpan">
+						<a-form-item
+							label="融资窗口"
+							name="financeTag"
+						>
+							<a-range-picker v-model:value="state.form.financeTag" picker="month" valueFormat="YYYY-MM" />
+						</a-form-item>
+					</a-col>
+				</a-row>
+				<a-row :gutter="state.rowGutter" v-for="(domain, index) in state.form.domains" :key="index">
+					<a-col :span="state.colSpan">
+						<a-form-item
+						    label="一级赛道"
+						    :name="['domains', index, 'domain1']"
+						    :rules="[{ required: true, message: '请选择一级赛道' }]"
+						>
+						    <a-select v-model:value="domain.domain1" placeholder="请选择一级赛道" @change="handleChangeDomain1(index)" allowClear>
+								<a-select-option v-for="item in domain1Options" :key="item" :value="item">{{ item }}</a-select-option>
+							</a-select>
+						</a-form-item>
+					</a-col>
+					<a-col :span="state.colSpan">
+						<a-form-item
+						    label="二级赛道"
+						    :name="['domains', index, 'domain2']"
+						    :rules="[{ required: true, message: '请选择二级赛道' }]"
+						>
+						    <a-select v-model:value="domain.domain2" placeholder="请选择二级赛道" @change="handleChangeDomain2(index)" allowClear>
+								<a-select-option v-for="item in domain2Options(domain.domain1)" :key="item" :value="item">{{ item }}</a-select-option>
+							</a-select>
+						</a-form-item>
+					</a-col>
+					<a-col :span="state.colSpan">
+						<a-form-item
+						    label="三级赛道"
+						    :name="['domains', index, 'domain3']"
+						    :rules="[{ required: true, message: '请选择三级赛道' }]"
+						>
+						    <a-select v-model:value="domain.domain3" placeholder="请选择三级赛道" allowClear>
+								<a-select-option v-for="item in domain3Options(domain.domain1, domain.domain2)" :key="item" :value="item">{{ item }}</a-select-option>
+							</a-select>
+						</a-form-item>
+					</a-col>
+					<a-col :span="24 - state.colSpan * 3">
+						<a-button class="btn" type="primary" ghost v-if="Number(index) === 0" @click="handleAdd">+</a-button>
+						<a-button class="btn" danger v-else @click="handleDel(index)">-</a-button>
+					</a-col>
+				</a-row>
+				<a-row :gutter="state.rowGutter">
+					<a-col :span="state.colSpan">
+						<a-form-item
+							label="标签"
+							name="tags"
+						>
+							<a-select v-model:value="state.form.tags" placeholder="请选择标签" mode="multiple" allowClear ></a-select>
+						</a-form-item>
+					</a-col>
+				</a-row>
+				<div class="title-container">
+		          <div class="group_6"></div>
+		          <span> 投资信息 </span>
+		        </div>
+				<a-row>
+					<a-col :span="21">
+						<Table
+							:tableProps="{
+								scrollToFirstRowOnChange: true,
+								loading: state.loading,
+								pagination: false,
+								dataSource: state.records,
+								columns: state.columns,
+								bordered: true,
+							}"
+							:isFixedMaxHeight="false"
+							:isShowColumnSetting="false"
+						>
+						</Table>
+					</a-col>
+				</a-row>
+			</a-card>
+		</a-form>
+	</div>
+</template>
+<script setup>
+import { useRoute } from "vue-router";
+import { reactive, onMounted, watch, computed, ref } from "vue";
+import { SaveOutlined } from "@ant-design/icons-vue";
+import {
+    regionData
+  } from '@/utils/areaDataUtil';
+import { QuillEditor } from '@vueup/vue-quill'
+import '@vueup/vue-quill/dist/vue-quill.snow.css';
+import { stageFilter, followStageFilter } from "@/utils/projectHelper";
+import { getCategoryList } from "@/api/industry";
+import Table from "@/components/Table/index.vue"
+
+const route = useRoute();
+
+const formRef = ref();
+const state = reactive({
+	loading: false,
+	rowGutter: 20,
+	colSpan: 7,
+	form: {
+	    name: null,
+		alias: null,
+		fullName: null,
+		foundationDate: null,
+		code: [],
+		website: null,
+		briefIntroduction: null,
+		thirdLink: null,
+		stage: null,
+		followStage: null,
+		financeTag: null,
+		domains: [{
+			domain1: null,
+			domain2: null,
+			domain3: null
+		}],
+		tags: []
+	},
+	rules: {
+		name: [{ required: true, message: '请输入项目名称' }],
+		stage: [{ required: true, message: '请选择项目阶段' }],
+		followStage: [{ required: true, message: '请输入跟进阶段' }],
+	},
+	editorOptions: {
+		theme: "snow",
+		placeholder: "请输入",
+		modules: {
+			toolbar: [
+				['bold', 'italic', 'underline', 'strike'],        // toggled buttons
+				  ['blockquote', 'code-block'],
+				  ['link', 'image', 'formula'], // video
+
+				  [{ 'header': 1 }, { 'header': 2 }],               // custom button values
+				  [{ 'list': 'ordered'}, { 'list': 'bullet' }, { 'list': 'check' }],
+				  [{ 'script': 'sub'}, { 'script': 'super' }],      // superscript/subscript
+				  [{ 'indent': '-1'}, { 'indent': '+1' }],          // outdent/indent
+				  [{ 'direction': 'rtl' }],                         // text direction
+
+				//   [{ 'size': ['small', false, 'large', 'huge'] }],  // custom dropdown
+				  [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+
+				  [{ 'color': [] }, { 'background': [] }],          // dropdown with defaults from theme
+				//   [{ 'font': [] }],
+				  [{ 'align': [] }],
+
+				  ['clean']        // remove formatting button
+			]
+		}
+	},
+	allDomain: [],
+	columns: [
+		{
+			title: '投资时间',
+		    align: 'center',
+		    dataIndex: 'invest_date',
+		    customRender: ({ text }) => {
+		      return !text ? '' : text.length > 10 ? text.substr(0, 10) : text;
+		    },
+		    resizable: true,
+		    width: 100,
+		},
+		{
+			title: '轮次',
+		    align: 'center',
+		    dataIndex: 'turn',
+		    resizable: true,
+		    width: 100,
+		},
+		{
+			title: '金额',
+		    align: 'center',
+		    dataIndex: 'amount',
+		    resizable: true,
+		    width: 100,
+		},
+		{
+			title: '投资方',
+		    align: 'center',
+		    dataIndex: 'investor',
+		    resizable: true,
+		    width: 400,
+		}
+	],
+	records: []
+});
+
+watch(() => route.params.name, (newVal) => {
+  console.log(newVal);
+})
+
+const handleAdd = () => {
+	state.form.domains.push({
+		domain1: null,
+		domain2: null,
+		domain3: null
+	})
+}
+
+const domain1Options = computed(() => {
+	const arr = state.allDomain.map(item => item.domain1);
+	return Array.from(new Set(arr));
+})
+
+const domain2Options = computed(() => {
+	return (domain1) => {
+		if (!domain1) {
+			return []
+		}
+		const arr = state.allDomain.filter(item => item.domain1 === domain1).map(item => item.domain2);
+		return Array.from(new Set(arr));
+	}
+})
+
+const domain3Options = computed(() => {
+	return (domain1, domain2) => {
+		if (!domain1 || !domain2) {
+			return []
+		}
+		const arr = state.allDomain.filter(item => item.domain1 === domain1 && item.domain2 === domain2).map(item => item.domain3);
+		return Array.from(new Set(arr));	
+	}
+})
+
+const handleDel = (index) => {
+	state.form.domains.splice(index, 1)
+}
+
+const handleChangeDomain1 = (index) => {
+	state.form.domains[index].domain2 = null
+	state.form.domains[index].domain3 = null
+}
+
+const handleChangeDomain2 = (index) => {
+	state.form.domains[index].domain3 = null
+}
+
+const handleSave = () => {
+  console.log("保存");
+  formRef.value.validate().then(() => {
+    console.log("验证通过");
+  }).catch((error) => {
+    console.log("验证失败", error);
+  })
+}
+
+onMounted(() => {
+    getCategoryList({
+		pageNo: 1,
+		pageSize: 100000
+	}).then(res => {
+		state.allDomain = res?.result?.records || [];
+	})
+})
+</script>
+<style lang="less" scoped>
+.detail-wrap {
+	.save-button {
+	    width: 40px; /* 设置宽度和高度相等 */
+	    height: 40px;
+	    display: flex;
+	    font-size: 17px; /* 设置按钮的字体大小 */
+	    align-items: center;
+	    justify-content: center;
+	    border-radius: 20% 0 0 10%; /* 设置圆角，左上和左下为圆角 */
+	}
+
+	.table-card {
+	    padding: 0;
+		:deep(.ant-card-body) {
+			padding: 0px;
+		}
+		.title-container {
+		    display: flex;
+		    align-items: center; /* 垂直居中对齐 */
+			min-height: 56px;
+		    font-size: 13.5px;
+		    font-weight: 400;
+		    font-family: 'PingFangSC-Medium', 'segoe ui', sans-serif !important;
+		    color: rgba(0, 0, 0, 0.7);
+			.group_6 {
+			    background-color: #c4dcff;
+			    border-radius: 4px;
+			    width: 4px;
+			    height: 14px;
+			    margin-top: 0px;
+			    border: none;
+			    margin-left: 6px;
+			    margin-right: 8px;
+			    /* padding-left: 10px;*/
+			}
+		}
+
+		.btn {
+			width: 32px;
+			padding: 0px;
+		}
+	}
+}
+</style>

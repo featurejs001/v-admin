@@ -110,6 +110,7 @@ export const useUser = defineStore("user", {
 					this.gUserRoles = gUserRoles;
 
 					const asyncRoutes = filterAsyncRoutes( dynamicRoutes, systemPermission.menu)
+					console.log("ayncRoutes", asyncRoutes)
 					
 					this.permissionRoutes = [...constantRoutes, ...asyncRoutes]
 					resolve(asyncRoutes)

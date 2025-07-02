@@ -3,6 +3,7 @@
 		<div class="header" v-if="!$props.isHideLeft">
 			<slot name="header-left"></slot>
 			<a-popconfirm
+			 v-if="$props.isShowColumnSetting"
 			 ok-text="保存" 
 			 cancel-text="重置" 
 			 @cancel="handleSettingReset"
@@ -41,7 +42,7 @@
 				</template>
 				<template #description>
 					<VueDraggable ref="el" class="list" v-model="state.sorter.columns" handle=".dragHandle" @end="onSorterEnd">
-						<div class="list-item" v-for="item in state.sorter.columns" :key="item.dataIndex" v-show="!item.isHide">
+						<div class="list-item" v-for="item in state.sorter.columns" :key="item.dataIndex" v-show="!isHideColumn(item.dataIndex)">
 							<div class="dragHandle">
 								<MenuOutlined  style="margin-right: 5px;" />
 							</div>
@@ -133,6 +134,10 @@ const props = defineProps({
 	isHideLeft: {
 		type: Boolean,
 		default: false
+	},
+	isShowColumnSetting: {
+	    type: Boolean,
+		default: true
 	}
 })
 // console.log("props:", props)
@@ -187,6 +192,12 @@ const tableColumns = computed(() => {
 	return fields;
 })
 
+const isHideColumn = computed(() => {
+	return (dataIndex) => {
+		return tableProps.value.columns.find(item => item.dataIndex === dataIndex)?.isHide || false;
+	}
+})
+
 const handleSettingSave = () => {
 	console.log('save')
 }
@@ -196,7 +207,6 @@ const handleSettingReset = () => {
 	state.sorter.columns = tableProps.value.columns.map((item) => {
 		return {
 			dataIndex: item.dataIndex,
-			isHide: item.isHide,
 			title: item.title
 		}
 	})
