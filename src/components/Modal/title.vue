@@ -56,7 +56,7 @@ const handleClose = () => {
 	display: flex;
 	justify-content: space-between;
 	.title {
-		color: rgba(0, 0, 0, 0.88);
+		color: #555;
 		font-size: 13.5px;
 		font-weight: 500;
 	}

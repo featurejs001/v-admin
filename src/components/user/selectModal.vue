@@ -212,6 +212,8 @@ defineExpose({
 			flex-shrink: 0;
 			flex-grow: 0;
 			padding: 0px 10px;
+			font-size: 13.5px;
+			color: #555;
 		}
 		:deep(.ant-input-affix-wrapper) {
 			width: 160px;

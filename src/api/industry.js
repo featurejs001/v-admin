@@ -163,10 +163,61 @@ export function editProject(data) {
 	})
 }
 
+// 新增项目
+export function addProject(data) {
+	return request({
+		url: '/gy-core/gy.gy/vProjectAllInfo/add',
+		method: 'post',
+		data
+	})
+}
+
 // 
 export function getExtraInfoByName(params) {
 	return request({
 		url: '/gy-core/gy.gy/vProjectAllInfo/getExtraInfoByName',
+		method: 'get',
+		params
+	})
+}
+
+// 投资信息
+export function getInvestmentInfo(params) {
+	return request({
+		url: '/gy-core/gy.gy/vIndustryAllInfo/getResult/investments_alias_fffe',
+		method: 'get',
+		params
+	})
+}
+
+// 项目阶段
+export function getProjectStage() {
+	return request({
+		url: '/gy-core/sys/dict/getDictItems/project_stage',
+		method: 'get',
+	})
+}
+
+// 跟进阶段
+export function getFollowStage() {
+	return request({
+		url: '/gy-core/sys/dict/getDictItems/follow_stage',
+		method: 'get',
+	})
+}
+
+// 项目名称
+export function getProjectName() {
+	return request({
+		url: '/gy-core/sys/dict/loadDict/gy_projects,name,name',
+		method: 'get',
+	})
+}
+
+// 更新项目
+export function getProjectDetail(params) {
+	return request({
+		url: '/gy-core/gy.gy/vProjectAllInfo/getProjectDetail',
 		method: 'get',
 		params
 	})

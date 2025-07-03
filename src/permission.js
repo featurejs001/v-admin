@@ -6,6 +6,7 @@ import NProgress from "nprogress"; // progress bar
 import "nprogress/nprogress.css"; // progress bar style
 import logo from "@/assets/img/loading-logo.png";
 import { useApp } from "@/store/app";
+import { isSameRoute } from "@/utils/helper";
 
 NProgress.configure({ 
 	// parent: "#app",
@@ -72,23 +73,23 @@ router.beforeEach(async (to, from, next) => {
 					if (!router.hasRoute(route.name)) {
 						router.addRoute(route)
 					}
-					if (route.path === to.path) {
+					if (isSameRoute(route.path, to.path)) {
 						routeName = route.name
 					} else if (route.children && route.children.length) {
 						route.children.forEach((child) => {
-							if (child.path === to.path) {
+							if (isSameRoute(child.path, to.path)) {
 								routeName = child.name
 							}
 						})
 					}
 				})
 				await nextTick();
-				// console.log("hasRoute", router.hasRoute(routeName), to, to.path)
+				// console.log("hasRoute", router.hasRoute(routeName), routeName, JSON.stringify(to), to.path)
 				
 				if (router.hasRoute(routeName)) {
 					next({
-						name: routeName,
-						replace: to.name ? false : true
+						path: to.path,
+						replace: to.path ? false : true
 					})
 				} else if (dynamicRoutes.length) {
 					next({

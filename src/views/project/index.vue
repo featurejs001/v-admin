@@ -80,10 +80,10 @@
 					<template #title>
 						<div v-html="text"></div>
 					</template>
-					<div :class="[column.ellipsis ? 'overflow-ellipsis' : '']" v-html="text" @click="handleEdit(index, column.dataIndex, column.title)">
+					<div :class="['custor-pointer', column.ellipsis ? 'overflow-ellipsis' : '']" v-html="text" @click="handleEdit(index, column.dataIndex, column.title)">
 					</div>
 				</a-tooltip>
-				<div v-else-if="state.edit.field !== column.dataIndex || state.edit.isModal" :class="['edit-span', column.ellipsis ? 'overflow-ellipsis' : '']" @click="handleEdit(index, column.dataIndex, column.title)"  v-html="text">
+				<div v-else-if="state.edit.field !== column.dataIndex || state.edit.isModal" :class="['custor-pointer','edit-span', column.ellipsis ? 'overflow-ellipsis' : '']" @click="handleEdit(index, column.dataIndex, column.title)"  v-html="text">
 				</div>
 				<a-select
 			      v-else-if="editSelectOptions.length"
@@ -640,7 +640,14 @@ const handleChangeValue = () => {
 
 
 // 
-const handleToRow = () => {}
+const handleToRow = (record) => {
+	router.push({
+		name: "project_detail-@id",
+		params: {
+			name: record.name,
+		}
+	})
+}
 
 onMounted(() => {
 	getData()

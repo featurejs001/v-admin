@@ -10,3 +10,15 @@ export function getToolHint(tooltip, module_name, key_name) {
   // 如果找到了匹配的对象，则返回其 value 属性，否则返回 null 或者自定义的默认值
   return result ? result.value : key_name;
 }
+
+
+// 判断路由
+export function isSameRoute(comparePath, toPath) {
+	const index = comparePath.indexOf(":");
+	if (-1 === index) {
+		return comparePath === toPath;
+	} else {
+		const path = comparePath.substring(0, index);
+		return toPath.indexOf(path) === 0;
+	}
+}

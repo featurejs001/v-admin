@@ -1,7 +1,7 @@
 <template>
 	<div class="detail-wrap">
 		<a-affix :offset-top="20" :style="{ position: 'fixed', right: '0px', top: '80px', zIndex: 1000 }">
-	      <a-button type="primary" @click="handleSave" class="save-button">
+	      <a-button type="primary" @click="handleSave" class="save-button" :loading="state.loading">
 	        <SaveOutlined />
 	      </a-button>
 	    </a-affix>
@@ -14,6 +14,7 @@
 				:wrap="false"
 				:colon="false"
 				:rules="state.rules"
+				:disabled="state.loading"
 			    autocomplete="off"
 				class="form"
 			>
@@ -28,7 +29,19 @@
 							label="项目名称"
 							name="name"
 						>
-							<a-input v-model:value="state.form.name" placeholder="请输入项目名称" allowClear />
+							<a-input v-if="state.form.projectId" v-model:value="state.form.name" placeholder="请输入项目名称" allowClear />
+							<a-select
+							 v-else 
+							 v-model:value="state.form.name" 
+							 placeholder="请选择项目名称" 
+							 :options="state.projectList"
+							 :filter-option="filterOption"
+							 @select="getDetail"
+							 allowClear>
+							</a-select>
+							<template v-if="!state.form.projectId && state.form.name && !state.loading" #extra>
+								<span style="font-size: 13px; color: #a0093c;">{{ !state.form.projectId ? '这是一个新项目' : '' }}</span>
+							</template>
 						</a-form-item>
 					</a-col>
 					<a-col :span="state.colSpan">
@@ -122,7 +135,7 @@
 							name="stage"
 						>
 							<a-select v-model:value="state.form.stage" placeholder="请选择项目阶段" allowClear >
-								<a-select-option v-for="item in stageFilter" :key="item" :value="item">{{ item }}</a-select-option>
+								<a-select-option v-for="item in state.stageList" :key="item.value" :value="item.value">{{ item.label }}</a-select-option>
 							</a-select>
 						</a-form-item>
 					</a-col>
@@ -132,7 +145,7 @@
 							name="followStage"
 						>
 							<a-select v-model:value="state.form.followStage" placeholder="请选择跟进阶段" allowClear >
-								<a-select-option v-for="item in followStageFilter" :key="item" :value="item">{{ item }}</a-select-option>
+								<a-select-option v-for="item in state.followStageList" :key="item.value" :value="item.value">{{ item.label }}</a-select-option>
 							</a-select>
 						</a-form-item>
 					</a-col>
@@ -145,11 +158,11 @@
 						</a-form-item>
 					</a-col>
 				</a-row>
-				<a-row :gutter="state.rowGutter" v-for="(domain, index) in state.form.domains" :key="index">
+				<a-row :gutter="state.rowGutter" v-for="(domain, index) in state.form.industryInfo" :key="index">
 					<a-col :span="state.colSpan">
 						<a-form-item
 						    label="一级赛道"
-						    :name="['domains', index, 'domain1']"
+						    :name="['industryInfo', index, 'domain1']"
 						    :rules="[{ required: true, message: '请选择一级赛道' }]"
 						>
 						    <a-select v-model:value="domain.domain1" placeholder="请选择一级赛道" @change="handleChangeDomain1(index)" allowClear>
@@ -160,7 +173,7 @@
 					<a-col :span="state.colSpan">
 						<a-form-item
 						    label="二级赛道"
-						    :name="['domains', index, 'domain2']"
+						    :name="['industryInfo', index, 'domain2']"
 						    :rules="[{ required: true, message: '请选择二级赛道' }]"
 						>
 						    <a-select v-model:value="domain.domain2" placeholder="请选择二级赛道" @change="handleChangeDomain2(index)" allowClear>
@@ -171,7 +184,7 @@
 					<a-col :span="state.colSpan">
 						<a-form-item
 						    label="三级赛道"
-						    :name="['domains', index, 'domain3']"
+						    :name="['industryInfo', index, 'domain3']"
 						    :rules="[{ required: true, message: '请选择三级赛道' }]"
 						>
 						    <a-select v-model:value="domain.domain3" placeholder="请选择三级赛道" allowClear>
@@ -208,6 +221,7 @@
 								dataSource: state.records,
 								columns: state.columns,
 								bordered: true,
+								scroll: { x: '100%'}
 							}"
 							:isFixedMaxHeight="false"
 							:isShowColumnSetting="false"
@@ -229,17 +243,27 @@ import {
 import { QuillEditor } from '@vueup/vue-quill'
 import '@vueup/vue-quill/dist/vue-quill.snow.css';
 import { stageFilter, followStageFilter } from "@/utils/projectHelper";
-import { getCategoryList } from "@/api/industry";
+import { 
+	getCategoryList, 
+	getInvestmentInfo, 
+	getDomainNth, 
+	getProjectStage, 
+	getFollowStage, 
+	getProjectName,
+	getProjectDetail,
+	getExtraInfoByName,
+	addProject,
+	editProject
+} from "@/api/industry";
 import Table from "@/components/Table/index.vue"
+import dayjs from "dayjs";
+import { message } from "ant-design-vue";
 
 const route = useRoute();
 
 const formRef = ref();
-const state = reactive({
-	loading: false,
-	rowGutter: 20,
-	colSpan: 7,
-	form: {
+const initForm = () => {
+	return {
 	    name: null,
 		alias: null,
 		fullName: null,
@@ -251,13 +275,19 @@ const state = reactive({
 		stage: null,
 		followStage: null,
 		financeTag: null,
-		domains: [{
+		industryInfo: [{
 			domain1: null,
 			domain2: null,
 			domain3: null
 		}],
 		tags: []
-	},
+	}
+}
+const state = reactive({
+	loading: false,
+	rowGutter: 20,
+	colSpan: 7,
+	form: initForm(),
 	rules: {
 		name: [{ required: true, message: '请输入项目名称' }],
 		stage: [{ required: true, message: '请选择项目阶段' }],
@@ -298,49 +328,180 @@ const state = reactive({
 		    customRender: ({ text }) => {
 		      return !text ? '' : text.length > 10 ? text.substr(0, 10) : text;
 		    },
-		    resizable: true,
-		    width: 100,
 		},
 		{
 			title: '轮次',
 		    align: 'center',
 		    dataIndex: 'turn',
-		    resizable: true,
-		    width: 100,
 		},
 		{
 			title: '金额',
 		    align: 'center',
 		    dataIndex: 'amount',
-		    resizable: true,
-		    width: 100,
 		},
 		{
 			title: '投资方',
 		    align: 'center',
 		    dataIndex: 'investor',
 		    resizable: true,
-		    width: 400,
+			width: 400
 		}
 	],
-	records: []
+	records: [],
+	orderMap: {},
+	stageList: [],
+	followStageList: [],
+	projectList: [],
+	isNew: false,
 });
+
+const filterOption = (input, option) => {
+  return option.value.toLowerCase().indexOf(input.toLowerCase()) >= 0;
+};
+
+const getDetail = () => {
+	// return new Promise((resolve) => {
+		if (!state.form.name) {
+			state.form.name = route.params.name;
+		}
+
+		const promiseAll = []
+		let promiseIndex = 0;
+		promiseAll[promiseIndex++] = getInvestmentInfo({
+			params: state.form.name
+		}).then(res => {
+			state.records = res?.result || [];
+		}).finally(() => {
+			return Promise.resolve([])
+		})
+
+		promiseAll[promiseIndex++] = getExtraInfoByName({
+		    projName: state.form.name
+		}).then(res => {
+			if (res.result?.industryInfo?.length) {
+				state.form.industryInfo = res.result.industryInfo.map(item => {
+					return {
+						domain1: item.domain1,
+						domain2: item.domain2,
+						domain3: item.domain3
+					}
+				})
+			}
+		}).finally(() => {
+			return Promise.resolve([])
+		})
+
+		promiseAll[promiseIndex++] = getProjectDetail({
+			name: state.form.name
+		}).then(res => {
+			const detail = res?.result || {};
+			state.form.projectId = detail.projectId;
+			for (const key in state.form) {
+				if (['industryInfo'].includes(key)) {
+					continue
+				}
+				if ('financeTag' === key) {
+					let financeTag = []
+					if (detail.financingWindowStartTime && detail.financingWindowEndTime) {
+						financeTag = [dayjs(detail.financingWindowStartTime, 'YYYY-MM'), dayjs(detail.financingWindowEndTime, 'YYYY-MM')];
+					}
+					state.form.financeTag = financeTag;
+				} else if ("undefined" !== detail[key]) {
+					state.form[key] = ['code', 'tags'].includes(key) ? (detail[key] ? detail[key].split(',') : []) : detail[key];
+				}
+			}
+		}).finally(() => {
+			return Promise.resolve([])
+		})
+
+		Promise.all(promiseAll).then((res) => {}).finally(() => {
+			return Promise.resolve(true)
+		})
+	// })
+}
+
+const getData = () => {
+	state.loading = true;
+	const promiseAll = [];
+	let promiseIndex = 0;
+	promiseAll[promiseIndex++] = getCategoryList({
+		pageNo: 1,
+		pageSize: 100000
+	}).then(res => {
+		state.allDomain = res?.result?.records || [];
+	}).finally(() => {
+		return Promise.resolve()
+	})
+
+	promiseAll[promiseIndex++] = getDomainNth().then(res => {
+		let orderMap = {}
+		const nthList = res?.result || [];
+		nthList.forEach(item => {
+			orderMap[item.name] = {
+				...item,
+				nth: item.nth === 0 || item.name === '未分类I' ? 100000 : item.nth,
+			}
+		})
+		state.orderMap = orderMap;
+	}).finally(() => {
+		return Promise.resolve()
+	})
+
+	promiseAll[promiseIndex++] = getProjectStage().then(res => {
+		state.stageList = res?.result || [];
+	}).finally(() => {
+		return Promise.resolve()
+	})
+
+	promiseAll[promiseIndex++] = getFollowStage().then(res => {
+		state.followStageList = res?.result || [];
+	})
+
+	if (route.params.name && route.params.name !== 'newnew') {
+		state.isNew = false;
+		promiseAll[promiseIndex++] = getDetail();
+	} else {
+		state.isNew = true;
+		promiseAll[promiseIndex++] = getProjectName().then(res => {
+			state.projectList = res?.result || [];
+		})
+	}
+
+	Promise.all(promiseAll).then((res) => {
+		state.loading = false;
+	}).catch(() => {
+		state.loading = false;
+	})
+	
+}
 
 watch(() => route.params.name, (newVal) => {
   console.log(newVal);
-})
+  state.records = []
+  state.form = initForm();
+
+  getData();
+}, {immediate: true});
 
 const handleAdd = () => {
-	state.form.domains.push({
+	state.form.industryInfo.push({
 		domain1: null,
 		domain2: null,
 		domain3: null
 	})
 }
 
+function sortDomainTags(domainTags) {
+	return domainTags?.sort((a, b) => {
+	  let orderA = state.orderMap[a] ? state.orderMap[a].nth : Infinity;
+	  let orderB = state.orderMap[b] ? state.orderMap[b].nth : Infinity;
+	  return orderA - orderB;
+	});
+}
+
 const domain1Options = computed(() => {
 	const arr = state.allDomain.map(item => item.domain1);
-	return Array.from(new Set(arr));
+	return sortDomainTags(Array.from(new Set(arr)));
 })
 
 const domain2Options = computed(() => {
@@ -349,7 +510,7 @@ const domain2Options = computed(() => {
 			return []
 		}
 		const arr = state.allDomain.filter(item => item.domain1 === domain1).map(item => item.domain2);
-		return Array.from(new Set(arr));
+		return sortDomainTags(Array.from(new Set(arr)));
 	}
 })
 
@@ -359,39 +520,76 @@ const domain3Options = computed(() => {
 			return []
 		}
 		const arr = state.allDomain.filter(item => item.domain1 === domain1 && item.domain2 === domain2).map(item => item.domain3);
-		return Array.from(new Set(arr));	
+		return sortDomainTags(Array.from(new Set(arr)));	
 	}
 })
 
 const handleDel = (index) => {
-	state.form.domains.splice(index, 1)
+	state.form.industryInfo.splice(index, 1)
 }
 
 const handleChangeDomain1 = (index) => {
-	state.form.domains[index].domain2 = null
-	state.form.domains[index].domain3 = null
+	state.form.industryInfo[index].domain2 = null
+	state.form.industryInfo[index].domain3 = null
 }
 
 const handleChangeDomain2 = (index) => {
-	state.form.domains[index].domain3 = null
+	state.form.industryInfo[index].domain3 = null
 }
+
 
 const handleSave = () => {
   console.log("保存");
   formRef.value.validate().then(() => {
-    console.log("验证通过");
+    
+	let obj = {
+		...state.form,
+	}
+	if (state.form.financeTag.length === 2) {
+		obj.financeTag = state.form.financeTag.join(",");
+		obj.financingWindowEndTime = state.form.financeTag[0];
+		obj.financingWindowStartTime = state.form.financeTag[1];
+	} else {
+		obj.financeTag = null;
+		obj.financingWindowStartTime = null;
+		obj.financingWindowEndTime = null;
+	}
+	if (state.form.code.length === 3) {
+		obj.code = state.form.code.join(',')
+	} else {
+		obj.code = null;
+	}
+	if (state.form.tags.length) {
+		obj.tags = state.form.tags.join(',')
+	} else {
+		obj.tags = null;
+	}
+
+	let func = null
+	if (state.form.projectId) {
+		func = editProject;
+	} else {
+		func = addProject;
+	}
+	state.loading = true;
+	func(obj).then((res) => {
+		message.success(res.message || '保存成功');
+		router.push({
+			path: "/project-detail/" + state.form.name,
+			replace: true
+		})
+		state.loading = false;
+	}).catch((e) => {
+		state.loading = false;
+	})
+	console.log("验证通过", obj);
   }).catch((error) => {
     console.log("验证失败", error);
   })
 }
 
 onMounted(() => {
-    getCategoryList({
-		pageNo: 1,
-		pageSize: 100000
-	}).then(res => {
-		state.allDomain = res?.result?.records || [];
-	})
+	console.log('detail route :', route)
 })
 </script>
 <style lang="less" scoped>

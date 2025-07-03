@@ -562,7 +562,7 @@ export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}, records
 	}].map(item => {
 		const newItem = {
 			...item,
-			ellipsis: ['thirdLink'].includes(item.dataIndex) ? false : true,
+			ellipsis: true, // ['thirdLink'].includes(item.dataIndex) ? false : 
 			width: 'editCommon' !== item.slot ? item.width : 150, // 单元格默认展示10个字，超出省略号
 		}
 		if (selectedOption === '项目列表' && ['op_1','op_2','op_time','op_status', 'pushStatus','delTime','delByUsername', 'importTime','rejectTime', 'blockTime', 'importByUsername','rejectByUsername'].includes(item.dataIndex)) {

@@ -8,7 +8,7 @@
 			 cancel-text="重置" 
 			 @cancel="handleSettingReset"
 			 @confirm="handleSettingSave"
-			 overlayClassName="popover-colum" 
+			 overlayClassName="custom-popconfirm" 
 			 placement="bottomRight" 
 			 trigger="click">
 			 	<template #default>
@@ -97,6 +97,9 @@
 import { SettingOutlined, FilterOutlined, FilterFilled, MenuOutlined } from '@ant-design/icons-vue'
 import { defineProps, toRefs, ref, onMounted, reactive, onBeforeUnmount, computed, watch } from "vue"
 import { VueDraggable } from 'vue-draggable-plus'
+import { useRoute } from "vue-router";
+
+const route = useRoute();
 
 const emits = defineEmits(["change", "pageChange"])
 const props = defineProps({
@@ -200,6 +203,13 @@ const isHideColumn = computed(() => {
 
 const handleSettingSave = () => {
 	console.log('save')
+	const cacheData = state.sorter.columns.map((item) => {
+	    return {
+			...item,
+			selected: state.sorter.selectedColumns.includes(item.dataIndex)
+		}
+	})
+	localStorage.setItem('columnSettings-' + route.name, JSON.stringify(cacheData));
 }
 
 const handleSettingReset = () => {
@@ -211,7 +221,8 @@ const handleSettingReset = () => {
 		}
 	})
 	state.sorter.selectedColumns = tableProps.value.columns.map((item) => item.dataIndex)
-	state.sorter.checkAll = state.sorter.selectedColumns.length === tableProps.value.columns.length  
+	state.sorter.checkAll = state.sorter.selectedColumns.length === tableProps.value.columns.length
+	localStorage.removeItem('columnSettings-' + route.name);
 }
 
 const handleTableChange = (pagination, filters, sorter) => {
@@ -273,15 +284,36 @@ onMounted(() => {
 	handleResize()
 	window.addEventListener('resize', handleResize)
 
-	state.sorter.columns = tableProps.value.columns.map((item) => {
+	let cacheData = []
+	if (props.isShowColumnSetting) {
+		const str = localStorage.getItem('columnSettings-' + route.name);
+		try {
+			cacheData = JSON.parse(str);
+			if (!Array.isArray(cacheData) || !cacheData) {
+				cacheData = []
+			}
+		} catch(e) {
+		}
+	}
+
+	const columns = tableProps.value.columns.map((item) => {
+		const selected = cacheData.find(v => v.dataIndex === item.dataIndex)?.selected === false ? false : true;
 		return {
 			dataIndex: item.dataIndex,
-			isHide: item.isHide,
-			title: item.title
+			title: item.title,
+			selected
 		}
 	})
-	state.sorter.selectedColumns = tableProps.value.columns.map((item) => item.dataIndex)
-	state.sorter.checkAll = state.sorter.selectedColumns.length === tableProps.value.columns.length  
+
+	columns.sort((a, b) => {
+		const indexA = cacheData.findIndex(v => v.dataIndex === a.dataIndex);
+		const indexB = cacheData.findIndex(v => v.dataIndex === b.dataIndex);
+		return indexA - indexB;
+	})
+	
+	state.sorter.columns = columns;
+	state.sorter.selectedColumns = columns.filter(v => v.selected).map((item) => item.dataIndex)
+	state.sorter.checkAll = state.sorter.selectedColumns.length === columns.length  
 })
 
 onBeforeUnmount(() => {
