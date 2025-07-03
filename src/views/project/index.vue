@@ -49,7 +49,7 @@
 					</a-popconfirm>
 					<a-select
 				      v-model:value="state.selectedOption"
-				      style="width: 120px"
+				      style="width: 120px; height: 36px;"
 				      @change="handleSelectChange"
 				    >
 				      <a-select-option value="项目列表">项目列表</a-select-option>
