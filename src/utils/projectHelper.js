@@ -156,14 +156,15 @@ const getRowSpan1 = (index, field, data) => {
 };
 
 /**
- * filterMaps: { field: [] } 已选择得过滤体哦阿健
+ * filterMaps: { field: [] } 已选择得过滤条件
  * filterValuesMap: { field: [value1, value2] }  // 过滤条件可选值
  * records: 数据 
  * recordType: merge: 合并(每个项目一条数据) | single: 单行(根据项目合并单元格)
  * selectedOption: 项目列表 | 推送列表 | 删除列表  根据选择不通显示不通得列
+ * isMergeSingle 展开状态下是否合并单元格
  * @returns
  */
-export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}, records ,recordType, selectedOption) => { 
+export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}, records ,recordType, selectedOption, isMergeSingle = true) => { 
 	return [{
 		title: '选择',
 		align: 'center',
@@ -584,7 +585,10 @@ export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}, records
 			}) || [];
 			newItem.filteredValue = filterMaps?.[newItem.dataIndex] || [];
 		}
-		if (recordType === 'single' && mergeColumnList.includes(newItem.dataIndex)) {
+
+		if (recordType === 'single' && !isMergeSingle) {
+			// 不合并单元格
+		} else if (recordType === 'single' && mergeColumnList.includes(newItem.dataIndex)) {
 			newItem.customCell = (_, rowIndex, column) => {
 				const checks = records.filter(record => record.name === records[rowIndex].name);
 				const firstIndex = records.findIndex(record => record.name === records[rowIndex].name);

@@ -14,7 +14,7 @@
 			loading: state.loading,
 			pagination: false,
 			dataSource: state.filterRecords,
-			columns: getProjectColumns(state.params.filters, state.filterValuesMap, state.filterRecords, state.recordType, state.selectedOption),
+			columns: getProjectColumns(state.params.filters, state.filterValuesMap, state.filterRecords, state.recordType, state.selectedOption, state.params.isMergeSingle),
 			bordered: true,
 			
 		 }"
@@ -289,6 +289,7 @@ const state = reactive({
 	   sorts: [], // 排序条件
 	   filters: {}, // 过滤条件
 	   searchKey: '', // 搜索关键字
+	   isMergeSingle: true, // 展开状态下是否合并单元格
 	},
 	total: 0,
 	recordType: 'merge',
@@ -389,22 +390,34 @@ const handleSearch = () => {
 
 const getPageRecord = () => {
 	if (state.recordType === 'merge') {
+		state.params.isMergeSingle = false;
 		const pages = getProjectsPages([...state.filterAllRecords], state.params.pageNo, state.params.pageSize);
 		// console.log("...stateleng :", pages)
 		state.params.total = pages.total;
 		state.filterRecords = pages.items;
 	} else {
-		const names = Array.from(new Set(state.filterAllRecords.map(item => item.name)));
-		state.params.total = names.length;
-		const pages = getProjectsPages([...names], state.params.pageNo, state.params.pageSize);
-		console.log("...stateleng :", pages)
-		const tempList = []
-		pages.items.forEach((name) => {
-			const temp = state.filterAllRecords.filter(item => item.name === name)
-			tempList.push(...temp);
-		});
-		console.log("filter lllll :", tempList.length)
-		state.filterRecords = [...tempList]
+		// 检查是否最近融资、轮次、金额、投资方、赛道排序，是的话拆分多条
+		const check = state.params.sorts.filter(item => ['investDate', 'turn2', 'amount', 'investor', 'domain1', 'domain2', 'domain3'].includes(item.field));
+		if (check.length) {
+			state.params.isMergeSingle = false;
+			const pages = getProjectsPages([...state.filterAllRecords], state.params.pageNo, state.params.pageSize);
+			state.params.total = pages.total;
+			state.filterRecords = pages.items;
+		} else {
+			state.params.isMergeSingle = true;
+		    const names = Array.from(new Set(state.filterAllRecords.map(item => item.name)));
+			state.params.total = names.length;
+			const pages = getProjectsPages([...names], state.params.pageNo, state.params.pageSize);
+			console.log("...stateleng :", pages)
+			const tempList = []
+			pages.items.forEach((name) => {
+				const temp = state.filterAllRecords.filter(item => item.name === name)
+				tempList.push(...temp);
+			});
+			console.log("filter lllll :", tempList.length)
+			state.filterRecords = [...tempList];
+		}
+		
 	}
 	
 }
