@@ -243,7 +243,8 @@ import {
 	getProjectsPages, 
 	getProjectCountMap, 
 	exportToExcel,
-	getProjectColumns 
+	getProjectColumns,
+	getRecordsByRowSpan 
 } from "@/utils/projectHelper";
 import Table from "@/components/Table/index.vue"
 import { 
@@ -412,10 +413,10 @@ const getPageRecord = () => {
 			const tempList = []
 			pages.items.forEach((name) => {
 				const temp = state.filterAllRecords.filter(item => item.name === name)
-				tempList.push(...temp);
+				tempList.push(...JSON.parse(JSON.stringify(temp)));
 			});
 			console.log("filter lllll :", tempList.length)
-			state.filterRecords = [...tempList];
+			state.filterRecords = getRecordsByRowSpan(tempList);
 		}
 		
 	}
@@ -429,7 +430,8 @@ const handleFilterChange = async () => {
 		data: [...state.allRecords], 
 		filters: state.params.filters,
 		searchKey: state.params.searchKey,
-		sorts: state.params.sorts
+		sorts: state.params.sorts,
+		recordType: state.recordType
 	})
 	state.params.pageNo = 1;
 	

@@ -155,6 +155,92 @@ const getRowSpan1 = (index, field, data) => {
     return count;
 };
 
+// 展开状态，无融资排序及赛道排序的，赛道单元格均分显示
+export const getRecordsByRowSpan = (originRecords) => {
+	const records = JSON.parse(JSON.stringify(originRecords))
+	const cacheData = {};
+	for (let rowIndex = 0; rowIndex < records.length; rowIndex++) {
+		if (cacheData[records[rowIndex].name]) {
+			continue;
+		}
+		cacheData[records[rowIndex].name] = true;
+
+		let len = 0; // 同项目总行数
+		let domainLen = 0; // 同项目赛道不为空的总行数
+		const domains = [];
+		
+		for (let index = rowIndex; index < records.length; index++) {
+			if (records[index].name === records[rowIndex].name) {
+				
+				records[index].domainRowSpan = 0; // 单元格都设置为0
+				len++;
+				if (records[index].domain1) {
+					domainLen++;
+					domains.push({
+						domain1: records[index].domain1,
+						domain2: records[index].domain2,
+						domain3: records[index].domain3,
+					})
+				}
+			} else {
+				break;
+			}
+		}
+
+		records[rowIndex].mergeRowSpan = len;
+		// 计算最大可分配的单元格数
+		// console.log('before', records[rowIndex].name, rowIndex, len, domainLen)
+		const base = 0 === domainLen ? 0 : Math.floor(len / domainLen); // 每行最少可以分的行数
+		let remainder = 0 === domainLen ? 0 : len % domainLen; // 剩余的行数
+		
+		if (domainLen === 0) { // 如果当前项目下没有赛道，将项目第一条数据直接合并单元格
+			records[rowIndex].domainRowSpan === len;
+		} else {
+			// 计算每个赛道可合并的单元格
+			// console.log('after', records[rowIndex].name, domains)
+			let nextIndex = rowIndex;
+			for (const item of domains) { 
+				const domainRowSpan = base + (remainder > 0 ? 1 : 0);
+				remainder--;
+				// 重新设置记录的赛道数据
+				records[nextIndex].domainRowSpan = domainRowSpan;
+				records[nextIndex].domain1 = item.domain1;
+				records[nextIndex].domain2 = item.domain2;
+				records[nextIndex].domain3 = item.domain3;
+				nextIndex += domainRowSpan;
+			}
+			// console.log("afff :", records[rowIndex].name, nextIndex)
+		}
+
+			
+
+		/*for (let index = rowIndex; index < rowIndex + len; index++) {
+
+			/*if (records[index].domain1) {
+				records[index].domainRowSpan = base + (remainder > 0 ? 1 : 0);
+				remainder--;
+			} else if (rowIndex === index && domainLen === 0) {
+				// 当前项目下没有赛道
+				records[index].domainRowSpan = len;
+			} else {
+				records[index].domainRowSpan = 0;
+			}
+
+			if (records[index].domainRowSpan > 0) {
+				const temp = domains.length ? domains.shift() : {};
+				records[index].domain1 = temp?.domain1 || "";
+				records[index].domain2 = temp?.domain2 || "";
+				records[index].domain3 = temp?.domain3 || "";
+			}
+			
+			console.log(records[index].name, index, base, records[index].domainRowSpan, records[index].domain1)
+		}*/
+
+	}
+	
+	return records;
+} 
+
 /**
  * filterMaps: { field: [] } 已选择得过滤条件
  * filterValuesMap: { field: [value1, value2] }  // 过滤条件可选值
@@ -165,6 +251,7 @@ const getRowSpan1 = (index, field, data) => {
  * @returns
  */
 export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}, records ,recordType, selectedOption, isMergeSingle = true) => { 
+	
 	return [{
 		title: '选择',
 		align: 'center',
@@ -590,23 +677,23 @@ export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}, records
 			// 不合并单元格
 		} else if (recordType === 'single' && mergeColumnList.includes(newItem.dataIndex)) {
 			newItem.customCell = (_, rowIndex, column) => {
-				const checks = records.filter(record => record.name === records[rowIndex].name);
-				const firstIndex = records.findIndex(record => record.name === records[rowIndex].name);
-				if (firstIndex === rowIndex) {
+				// const checks = records.filter(record => record.name === records[rowIndex].name);
+				// const firstIndex = records.findIndex(record => record.name === records[rowIndex].name);
+				// if (firstIndex === rowIndex) {
 					return {
-						rowSpan: checks.length,
+						rowSpan: _.mergeRowSpan ? _.mergeRowSpan : 0,
 						style: { verticalAlign: 'top' },
 					}
-				}
-				return {
-					rowSpan: 0, // getRowSpan1(index, 'name', records),
-              		style: { verticalAlign: 'top' },
-				}
+				// }
+				// return {
+				// 	rowSpan: 0, // getRowSpan1(index, 'name', records),
+              	// 	style: { verticalAlign: 'top' },
+				// }
 			}
 		} else if (recordType === 'single' && newItem.dataIndex.includes('domain')) {
 			// 赛道只有一条有数据，合并单元格
 			newItem.customCell = (_, rowIndex, column) => {
-				const checks = records.filter(record => record.name === records[rowIndex].name);
+				/*const checks = records.filter(record => record.name === records[rowIndex].name);
 				const firstIndex = records.findIndex(record => record.name === records[rowIndex].name);
 				const len = checks.filter(v => v.domain1 && v.domain2 && v.domain3)?.length || 0;
 				// console.log('00000', records[rowIndex].name, rowIndex, len, firstIndex)
@@ -626,6 +713,10 @@ export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}, records
 						rowSpan: 1,
 						style: { verticalAlign: 'top' }
 					}
+				}*/
+				return {
+					rowSpan: undefined === _.domainRowSpan ? 0 : _.domainRowSpan,
+					style: { verticalAlign: 'top' }
 				}
 			}
 		}
@@ -778,7 +869,7 @@ export function getProjectsPages(data = [], page = 1, pageSize = 10) {
 }
 
 // 过滤项目数据
-export async function getProjectsFilter({ data = [], sorts = [], filters = {}, searchKey = '' }) {
+export async function getProjectsFilter({ data = [], sorts = [], filters = {}, searchKey = '', recordType = '' }) {
     try {
       console.log('开始查询，排序参数:', sorts, '筛选参数:', filters, '搜索关键字:', searchKey);
       let query = data.map(item => {
@@ -841,8 +932,50 @@ export async function getProjectsFilter({ data = [], sorts = [], filters = {}, s
       // 定义特殊处理的多值字段
       const multiValueFields = ['main', 'assistant', 'other'];
 
+	  const isDomainSort = sorts.filter(item => ['domain1', 'domain2', 'domain3'].includes(item.field))?.length ? true : false;
+	  const isInvest = sorts.filter(item => ['investDate', 'turn2', 'amount', 'investor'].includes(item.field))?.length ? true : false;
+	  const cacheData = {};
+
       // 应用筛选
       query = query.filter((item) => {
+		if (recordType !== 'merge' && isDomainSort) {
+			// 展开状态下，如果是赛道排序，过滤空数据
+			if (!item.domain1) {
+				return false;
+			}
+			// 查询到最新一条数据，将最近融资、轮次、金额、投资方更新到数据中
+			 if (!cacheData[item.name]) {
+				const temp = query.filter(record => record.name === item.name).sort((a, b) => {
+					return new Date(b.investDate) - new Date(a.investDate);
+				})[0];
+				cacheData[item.name] = {
+					...temp
+				};
+			}
+			
+			item.investDate = cacheData[item.name].investDate;
+			item.turn = cacheData[item.name].turn;
+			item.turn2 = cacheData[item.name].turn2;
+			item.amount = cacheData[item.name].amount;
+			item.investor = cacheData[item.name].investor;
+		} else if (recordType !== 'merge' && isInvest) {
+			// 展开状态下，如果是投资排序, 赛道数据合并显示
+			if (!cacheData[item.name]) {
+				const temp = query.filter(record => record.name === item.name && record.domain1);
+				
+				cacheData[item.name] = {
+					...item,
+					domain1: temp.map(record => record.domain1).join('/'),
+					domain2: temp.map(record => record.domain2).join('/'),
+					domain3: temp.map(record => record.domain3).join('/'),
+				};
+			}
+			
+			item.domain1 = cacheData[item.name].domain1;
+			item.domain2 = cacheData[item.name].domain2;
+			item.domain3 = cacheData[item.name].domain3;
+		}
+
         // 检查每个字段组的筛选条件
         for (const [field, values] of Object.entries(filters)) {
           if (!values || !Array.isArray(values) || values.length === 0) {
@@ -983,6 +1116,7 @@ export async function getProjectsFilter({ data = [], sorts = [], filters = {}, s
           return 0;
         });
       }
+
 	  return [...query]
 
       // 分页
