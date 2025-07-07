@@ -1,6 +1,6 @@
 <template>
 	<a-modal
-	 :class="['sys-modal', state.isFullscreeen?'full-modal':'']" 
+	 :class="['sys-modal', state.isFullscreeen?'full-modal':'', $props.border ? 'border' : '']" 
 	 v-model:open="state.open"
 	 :confirmLoading="loading"
 	 :closable="false"
@@ -36,6 +36,10 @@ const props = defineProps({
 		default: false
 	},
 	isShowFullcreen: {
+		type: Boolean,
+		default: true
+	},
+	border: {
 		type: Boolean,
 		default: true
 	}

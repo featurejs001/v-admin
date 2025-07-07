@@ -222,3 +222,11 @@ export function getProjectDetail(params) {
 		params
 	})
 }
+
+export function getIndustryAssignerDeef(params) {
+	return request({
+		url: "/gy-core/gy.gy/vIndustryAllInfo/getResult/industry_assigner_deef",
+		method: "get",
+		params
+	})
+}

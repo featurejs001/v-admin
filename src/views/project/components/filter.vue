@@ -655,11 +655,8 @@ const initData = () => {
 		return Promise.resolve({})
 	})
 
-	promiseAll[promiseIndex++] = getSystemUsers({
-	    pageNo: 1,
-		pageSize: 100000
-	}).then(res => {
-		const users = res?.result?.records?.filter?.(item => !['管理员rootroot', '毛振华', '孙婷'].includes(item.realname))?.map?.(item => item.realname) || []
+	promiseAll[promiseIndex++] = userStore.getUserList().then(records => {
+		const users = records.filter?.(item => !['管理员rootroot', '毛振华', '孙婷'].includes(item.realname))?.map?.(item => item.realname) || []
 		const mainIndex = state.leverList.findIndex(item => item.key === 'main')
 		state.leverList[mainIndex].tags = [...users]
 

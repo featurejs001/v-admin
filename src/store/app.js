@@ -74,7 +74,7 @@ export const useApp = defineStore("app", {
 		setDomFullScreen(value) {
 			this.isDomFullscreen = value;
 		},
-		setHistoryRoutes(route, replaceName = null) {
+		setHistoryRoutes(route) {
 			if (Array.isArray(route)) {
 				this.historyRoutes = route;
 				setHistoryRoutes(this.historyRoutes);

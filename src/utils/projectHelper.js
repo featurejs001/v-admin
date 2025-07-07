@@ -11,7 +11,7 @@ const headers = [
     { label: '更新时间', key: 'updateTime' },
     { label: '全名', key: 'fullName' },
     { label: '阶段', key: 'stage' },
-    { label: '跟进阶段', key: 'followStage' },
+    { label: '跟进状态', key: 'followStage' },
     { label: '融资窗口开始时间', key: 'financingWindowStartTime' },
     { label: '融资窗口结束时间', key: 'financingWindowEndTime' },
     { label: '一级赛道', key: 'domain1' },
@@ -268,7 +268,7 @@ export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}, records
 	    resizable: true,
 	    sorter: true,
 		// defaultSortOrder: recordType === 'merge' ? undefined : 'ascend',
-	    width: 90,
+	    width: 120,
 	 }, {
 	    title: '行业等级',
 	    align: 'center',
@@ -287,7 +287,7 @@ export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}, records
 	    filters: [],
 	    width: 120,
 	}, {
-		title: '跟进阶段',
+		title: '跟进状态',
 	    align: 'center',
 	    dataIndex: 'followStage',
 		slot: 'editCommon',
@@ -330,7 +330,7 @@ export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}, records
 	    dataIndex: 'turn2',
 	    resizable: true,
 	    sorter: true,
-	    width: 90,
+	    width: 120,
 	    filters: [],
 	},   {
 	    title: '金额',
@@ -644,14 +644,21 @@ export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}, records
 	},{
 		title: '操作',
 	    dataIndex: 'action1',
+		columnSettingHide: true,
 		slot: 'action1',
 	    fixed: 'right',
 	    width: 120,
 	}].map(item => {
+		let width = item.width;
+		if (['priority', 'stage', 'followStage'].includes(item.dataIndex)) {
+			width = 115;
+		} else if ('editCommon' === item.slot) {
+			width = 150; // 单元格默认展示10个字，超出省略号
+		}
 		const newItem = {
 			...item,
 			ellipsis: true, // ['thirdLink'].includes(item.dataIndex) ? false : 
-			width: 'editCommon' !== item.slot ? item.width : 150, // 单元格默认展示10个字，超出省略号
+			width 
 		}
 		if (selectedOption === '项目列表' && ['op_1','op_2','op_time','op_status', 'pushStatus','delTime','delByUsername', 'importTime','rejectTime', 'blockTime', 'importByUsername','rejectByUsername'].includes(item.dataIndex)) {
 			newItem.isHide = true;

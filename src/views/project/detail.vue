@@ -1,7 +1,7 @@
 <template>
 	<div class="detail-wrap">
 		<a-affix :offset-top="20" :style="{ position: 'fixed', right: '0px', top: '80px', zIndex: 1000 }">
-	      <a-button type="primary" @click="handleSave" class="save-button" :loading="state.loading">
+	      <a-button type="primary" @click="handleSave" class="save-button" :disabled="state.loading">
 	        <SaveOutlined />
 	      </a-button>
 	    </a-affix>
@@ -141,10 +141,10 @@
 					</a-col>
 					<a-col :span="state.colSpan">
 						<a-form-item
-							label="跟进阶段"
+							label="跟进状态"
 							name="followStage"
 						>
-							<a-select v-model:value="state.form.followStage" placeholder="请选择跟进阶段" allowClear >
+							<a-select v-model:value="state.form.followStage" placeholder="请选择跟进状态" allowClear >
 								<a-select-option v-for="item in state.followStageList" :key="item.value" :value="item.value">{{ item.label }}</a-select-option>
 							</a-select>
 						</a-form-item>
@@ -154,7 +154,7 @@
 							label="融资窗口"
 							name="financeTag"
 						>
-							<a-range-picker v-model:value="state.form.financeTag" picker="month" valueFormat="YYYY-MM" />
+							<a-range-picker v-model:value="state.form.financeTag" picker="month" />
 						</a-form-item>
 					</a-col>
 				</a-row>
@@ -207,6 +207,24 @@
 						</a-form-item>
 					</a-col>
 				</a-row>
+				<a-row :gutter="state.rowGutter" v-for="(memoInfo, index) in state.form.memoInfo" :key="index">
+					<a-col :span="13">
+						<a-form-item
+							:label="memoInfo.memo_create_by"
+							:name="['memoInfo', index, 'feishu_link']"
+						>
+							<a-input v-model:value="memoInfo.feishu_link" placeholder="请输入飞书链接" allowClear />
+						</a-form-item>
+					</a-col>
+					<a-col :span="8">
+						<a-form-item
+							label=""
+							:name="['memoInfo', index, 'memo']"
+						>
+							<a-input v-model:value="memoInfo.memo" placeholder="请输入备注" allowClear />
+						</a-form-item>
+					</a-col>
+				</a-row>
 				<div class="title-container">
 		          <div class="group_6"></div>
 		          <span> 投资信息 </span>
@@ -234,7 +252,7 @@
 	</div>
 </template>
 <script setup>
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { reactive, onMounted, watch, computed, ref } from "vue";
 import { SaveOutlined } from "@ant-design/icons-vue";
 import {
@@ -252,14 +270,22 @@ import {
 	getProjectName,
 	getProjectDetail,
 	getExtraInfoByName,
+	getIndustryAssignerDeef,
 	addProject,
 	editProject
 } from "@/api/industry";
 import Table from "@/components/Table/index.vue"
 import dayjs from "dayjs";
 import { message } from "ant-design-vue";
+import { useUser } from "@/store/user";
+import { useApp } from "@/store/app";
+
+const userStore = useUser();
+
+const appStore = useApp();
 
 const route = useRoute();
+const router = useRouter();
 
 const formRef = ref();
 const initForm = () => {
@@ -280,6 +306,7 @@ const initForm = () => {
 			domain2: null,
 			domain3: null
 		}],
+		memoInfo: [],
 		tags: []
 	}
 }
@@ -291,7 +318,7 @@ const state = reactive({
 	rules: {
 		name: [{ required: true, message: '请输入项目名称' }],
 		stage: [{ required: true, message: '请选择项目阶段' }],
-		followStage: [{ required: true, message: '请输入跟进阶段' }],
+		followStage: [{ required: true, message: '请输入跟进状态' }],
 	},
 	editorOptions: {
 		theme: "snow",
@@ -353,22 +380,76 @@ const state = reactive({
 	followStageList: [],
 	projectList: [],
 	isNew: false,
+	oldRow: {}
 });
 
 const filterOption = (input, option) => {
   return option.value.toLowerCase().indexOf(input.toLowerCase()) >= 0;
 };
 
+const getAssignerDeef = (memoInfo = []) => {
+	const domain3List = state.form.industryInfo.filter(item => item.domain3).map(item => item.domain3);
+	getIndustryAssignerDeef({
+		params: domain3List.join(',')
+	}).then(res => {
+		if (!res?.result?.length) {
+			return;
+		}
+		let assigners = res.result[0].assigner.split(',');
+
+		if (['毛振华', '笑容'].includes(userStore.userInfo.realname)) {
+			const tempInfo = [];
+			for (const assigner of assigners) {
+				if (['毛振华', '笑容'].includes(assigner)) {
+					continue;
+				}
+				const memoItem = memoInfo.find(item => item.memo_create_by === assigner);
+				if (!memoItem) {
+					tempInfo.push({
+						memo: '',
+						memo_create_by: assigner,
+						feishu_link: '',
+					})
+				} else {
+					tempInfo.push({
+						memo: "",
+						feishu_link: "",
+						...memoItem
+					})
+				}
+			}
+			state.form.memoInfo = tempInfo;
+		} else {
+			// 只能修改自己的备注
+			const index = memoInfo.findIndex((item) => item.memo_create_by === userStore.userInfo.realname);
+			if (-1 === index) {
+				state.form.memoInfo = [{
+					memo: "",
+					memo_create_by: userStore.userInfo.realname,
+					feishu_link: "",
+				}]
+			} else {
+				state.form.memoInfo = [{
+				    memo: memoInfo[index].memo || "",
+					memo_create_by: userStore.userInfo.realname,
+					feishu_link: memoInfo[index].feishu_lin || ""
+				}]
+			}
+		}
+		// console.log(state.form.memoInfo)
+	})
+}
+
 const getDetail = () => {
 	// return new Promise((resolve) => {
-		if (!state.form.name) {
-			state.form.name = route.params.name;
-		}
+		// if (!state.form.name) {
+		// 	state.form.name = route.params.name;
+		// }
 
 		const promiseAll = []
 		let promiseIndex = 0;
 		promiseAll[promiseIndex++] = getInvestmentInfo({
-			params: state.form.name
+			params: route.params.name
 		}).then(res => {
 			state.records = res?.result || [];
 		}).finally(() => {
@@ -376,7 +457,7 @@ const getDetail = () => {
 		})
 
 		promiseAll[promiseIndex++] = getExtraInfoByName({
-		    projName: state.form.name
+		    projName: route.params.name
 		}).then(res => {
 			if (res.result?.industryInfo?.length) {
 				state.form.industryInfo = res.result.industryInfo.map(item => {
@@ -386,15 +467,19 @@ const getDetail = () => {
 						domain3: item.domain3
 					}
 				})
+				
 			}
+
+			getAssignerDeef(res?.result?.memoInfo || [])
 		}).finally(() => {
 			return Promise.resolve([])
 		})
 
 		promiseAll[promiseIndex++] = getProjectDetail({
-			name: state.form.name
+			name: route.params.name
 		}).then(res => {
 			const detail = res?.result || {};
+			state.oldRow = {...detail};
 			state.form.projectId = detail.projectId;
 			for (const key in state.form) {
 				if (['industryInfo'].includes(key)) {
@@ -413,6 +498,8 @@ const getDetail = () => {
 		}).finally(() => {
 			return Promise.resolve([])
 		})
+
+		promiseAll[promiseIndex++] = userStore.getUserList()
 
 		Promise.all(promiseAll).then((res) => {}).finally(() => {
 			return Promise.resolve(true)
@@ -478,6 +565,7 @@ const getData = () => {
 watch(() => route.params.name, (newVal) => {
   console.log(newVal);
   state.records = []
+  state.oldRow = {};
   state.form = initForm();
 
   getData();
@@ -544,16 +632,19 @@ const handleSave = () => {
     
 	let obj = {
 		...state.form,
-	}
+	};
+	console.log(obj);
 	if (state.form.financeTag.length === 2) {
+		// console.log(state.form.financeTag[0].$d.toGMTString())
 		obj.financeTag = state.form.financeTag.join(",");
-		obj.financingWindowEndTime = state.form.financeTag[0];
-		obj.financingWindowStartTime = state.form.financeTag[1];
+		obj.financingWindowEndTime = dayjs(state.form.financeTag[0]).format("YYYY-MM-DD");
+		obj.financingWindowStartTime = dayjs(state.form.financeTag[1]).format("YYYY-MM-DD");
 	} else {
 		obj.financeTag = null;
 		obj.financingWindowStartTime = null;
 		obj.financingWindowEndTime = null;
 	}
+
 	if (state.form.code.length === 3) {
 		obj.code = state.form.code.join(',')
 	} else {
@@ -563,6 +654,16 @@ const handleSave = () => {
 		obj.tags = state.form.tags.join(',')
 	} else {
 		obj.tags = null;
+	}
+	if (state.form.memoInfo.length) {
+		obj.memoInfo = state.form.memoInfo.map(item => {
+			const user = userStore.userList.find(v => v.realname === item.memo_create_by)
+			return {
+				...item,
+				memo_create_by: user?.username,
+				create_time: new Date(),
+			}
+		})
 	}
 
 	let func = null
@@ -574,10 +675,37 @@ const handleSave = () => {
 	state.loading = true;
 	func(obj).then((res) => {
 		message.success(res.message || '保存成功');
-		router.push({
-			path: "/project-detail/" + state.form.name,
-			replace: true
-		})
+		if (route.params.name === 'newnew') {
+			route.push({
+				path: "/project-detail/" + encodeURIComponent(state.form.name),
+			})
+		} else if (route.params.name !== 'newnew' && route.params.name !== state.form.name) {
+			// 查询当前路由，更新路由信息
+			const tempRoutes = [...appStore.historyRoutes];
+			const routeIndex = tempRoutes.findIndex(item => item.path === route.path);
+			if (routeIndex !== -1) {
+				tempRoutes.splice(routeIndex, 1, {
+					path: "/project-detail/" + encodeURIComponent(state.form.name),
+					name: "project_detail-@id",
+					meta: {
+						title: state.form.name,
+					},
+					params: {
+						name: state.form.name,
+					}
+				})
+			}
+			console.log(tempRoutes);
+			appStore.setHistoryRoutes(tempRoutes);
+
+			router.replace({
+				name: "project_detail-@id",
+				params: {
+					name: state.form.name
+				},
+			})
+		}
+		
 		state.loading = false;
 	}).catch((e) => {
 		state.loading = false;

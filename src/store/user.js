@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { Login, getUserInfo, queryAllDictItems, logout, getUserPermissionByToken, getCurrentUserRoles } from "@/api/user";
+import { Login, getUserInfo, queryAllDictItems, logout, getUserPermissionByToken, getCurrentUserRoles, getSystemUsers } from "@/api/user";
 import { getToken, setToken, removeToken } from "@/utils/auth";
 import { constantRoutes, dynamicRoutes} from "@/router";
 import { filterAsyncRoutes } from "@/utils/permission";
@@ -20,6 +20,7 @@ const getDefaultState = () => {
 		premissionCodeList: [],
 		sysSafeMode: false,
 		gUserRoles: [], // 
+		userList: [], // 系统用户列表
 	};
 };
 
@@ -126,6 +127,23 @@ export const useUser = defineStore("user", {
 					resolve(res.result || [])
 				}).catch((e) => {
 					resolve([])
+				})
+			})
+		},
+		getUserList() {
+			return new Promise((resolve, reject) => {
+				if (this.userList.length) {
+					resolve(this.userList)
+					return
+				}
+				getSystemUsers({
+				    pageNo: 1,
+					pageSize: 100000
+				}).then(res => {
+					this.userList = res?.result?.records || []
+					resolve([...this.userList])
+				}).catch(e => {
+					reject(e)
 				})
 			})
 		}

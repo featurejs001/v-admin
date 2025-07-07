@@ -3,6 +3,7 @@
 	 v-model="state.open" 
 	 :title="$props.title" 
 	 :loading="state.loading" 
+	 :border="['briefIntroduction'].includes($props.field) ? false : true"
 	 :width="$props.field.includes('domain') ? '1000px' : ['briefIntroduction'].includes($props.field) ? '800px' : '520px'" @close="handleClose" @submit="handleOk">
 	 	<div :class="['modal-container', ['provinceMap', 'cityMap', 'regionMap', 'briefIntroduction'].includes($props.field) ? 'min-height' : '']">
 			 <a-cascader
@@ -213,6 +214,7 @@ const handleValueChange = (value) => {
 </script>
 <style lang="less" scoped>
 .modal-container {
+	padding: 0px 16px;
 	&.min-height {
 		min-height: 200px;
 	}

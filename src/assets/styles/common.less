@@ -312,7 +312,8 @@ button:focus-visible {
 			padding: 0px;
 			.ant-modal-header {
 				padding: 16px;
-				border-bottom: 1px solid rgba(5, 5, 5, 0.06);
+				// border-bottom: 1px solid rgba(5, 5, 5, 0.06);
+				margin-bottom: 0px;
 			}
 
 			.ant-modal-body {
@@ -322,6 +323,14 @@ button:focus-visible {
 			.ant-modal-footer {
 				padding: 8px 16px;
 				border-top: 1px solid rgba(5, 5, 5, 0.06);
+			}
+		}
+		&.border {
+			.ant-modal-content {
+				.ant-modal-header {
+					border-bottom: 1px solid rgba(5, 5, 5, 0.06);
+					margin-bottom: 8px;
+				}
 			}
 		}
 	}
@@ -553,4 +562,29 @@ a:focus-visible {
 
 .custor-pointer {
 	cursor: pointer;
+}
+
+.ant-tooltip {
+	.ant-tooltip-arrow {
+		&:before {
+			background-color: #e1f0f9;
+		}
+	}
+	.ant-tooltip-inner {
+		background-color: #e1f0f9;
+		color: #555;
+		font-size: 13px;
+	}
+}
+
+.ql-toolbar {
+	&.ql-snow {
+		.ql-stroke {
+			stroke-width: 1;
+			stroke: #555;
+		}
+		.ql-fill, .ql-stroke.ql-fill {
+			fill: #555;
+		}
+	}
 }

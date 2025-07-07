@@ -197,7 +197,8 @@ const tableColumns = computed(() => {
 
 const isHideColumn = computed(() => {
 	return (dataIndex) => {
-		return tableProps.value.columns.find(item => item.dataIndex === dataIndex)?.isHide || false;
+		const item = tableProps.value.columns.find(item => item.dataIndex === dataIndex);
+		return item?.isHide || item?.columnSettingHide || false;
 	}
 })
 
