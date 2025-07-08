@@ -34,13 +34,14 @@
 							 v-else 
 							 v-model:value="state.form.name" 
 							 placeholder="请选择项目名称" 
-							 :options="state.projectList"
-							 :filter-option="filterOption"
+							 :options="state.filterProjects"
+							 @search="searchProject"
 							 @select="handleSelectName"
+							 showSearch
 							 allowClear>
 							</a-select>
-							<template v-if="!state.form.projectId && state.form.name && !state.loading" #extra>
-								<span style="font-size: 13px; color: #a0093c;">{{ !state.form.projectId ? '这是一个新项目' : '' }}</span>
+							<template v-if="!state.form.projectId && state.form.name && state.isNew" #extra>
+								<span style="font-size: 13px; color: #a0093c;">{{ state.isNew && !state.form.projectId ? '这是一个新项目' : '' }}</span>
 							</template>
 						</a-form-item>
 					</a-col>
@@ -383,8 +384,27 @@ const state = reactive({
 	followStageList: [],
 	projectList: [],
 	isNew: false,
-	oldRow: {}
+	oldRow: {},
+	searchKey: "",
+	filterProjects: [],
 });
+
+const searchProject = (value) => {
+	// console.log("serachPppp", value)
+	if (!value) {
+		state.filterProjects = [...state.projectList];
+		return;
+	}
+	const filterList = state.projectList.filter(item => item.value.includes(value));
+
+	const item = filterList.find(item => item.value === value);
+	
+	if (item?.value) {
+		state.filterProjects = [...filterList]
+		return;
+	}
+	state.filterProjects = [...filterList, { value, label: value }] 
+}
 
 const filterOption = (input, option) => {
   return option.value.toLowerCase().indexOf(input.toLowerCase()) >= 0;
@@ -513,7 +533,13 @@ const getDetail = () => {
 
 const handleSelectName = async () => {
 	state.loading = true;
-	await getDetail();
+	const item = state.projectList.find(item => item.value === state.form.name);
+	if (item?.value) {
+		state.isNew = false;
+		await getDetail();
+	} else {
+		state.isNew = true;
+	}
 	state.loading = false;
 }
 const getData = () => {
@@ -554,12 +580,10 @@ const getData = () => {
 	})
 
 	if (route.params.name && route.params.name !== 'newnew') {
-		state.isNew = false;
 		promiseAll[promiseIndex++] = getDetail();
 	} else {
-		state.isNew = true;
 		promiseAll[promiseIndex++] = getProjectName().then(res => {
-			state.projectList = res?.result || [];
+			state.projectList = res?.result?.filter?.(item => item.value) || [];
 		})
 	}
 
