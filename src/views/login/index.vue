@@ -147,7 +147,7 @@ const handleLogin = () => {
 			}
 
 			:deep(.ant-input),:deep(.anticon) {
-				color: #888888;
+				color: #555;
 			}
 
 			:deep(.ant-checkbox-wrapper) {

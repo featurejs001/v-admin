@@ -78,7 +78,7 @@ export default {
       font-weight: 600;
       line-height: 50px;
       font-size: 12px;
-      font-family: Avenir, Helvetica Neue, Arial, Helvetica, sans-serif;
+      font-family: 'PingFangSC-Medium', 'segoe ui', sans-serif!important;
       vertical-align: middle;
     }
   }
