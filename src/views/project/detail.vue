@@ -725,6 +725,10 @@ onMounted(() => {
 </script>
 <style lang="less" scoped>
 .detail-wrap {
+	:deep(.ant-input) {
+		color: #555!important;
+		font-size: 13px;
+	}
 	.save-button {
 	    width: 40px; /* 设置宽度和高度相等 */
 	    height: 40px;
