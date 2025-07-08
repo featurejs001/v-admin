@@ -214,6 +214,13 @@ const handleResize = async () => {
 }
 
 const handleClickAll = (key) => {
+	if (key === '') {
+		for (const item of state.leverList) {
+			item.selectedTags = []
+		}
+		getFilterItems()
+		return;
+	}
 	const index = state.leverList.findIndex(item => item.key === key)
 	if (index === -1) {
 		return

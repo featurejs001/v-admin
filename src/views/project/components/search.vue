@@ -59,7 +59,7 @@ const onSearch = (value) => {
 
 const clearSearch = () => {
 	state.value = '';
-	emits('search', '');
+	emits('clearSearch');
 }
 
 const handleSuccess = () => {

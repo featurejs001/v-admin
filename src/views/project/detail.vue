@@ -36,7 +36,7 @@
 							 placeholder="请选择项目名称" 
 							 :options="state.projectList"
 							 :filter-option="filterOption"
-							 @select="getDetail"
+							 @select="handleSelectName"
 							 allowClear>
 							</a-select>
 							<template v-if="!state.form.projectId && state.form.name && !state.loading" #extra>
@@ -445,11 +445,12 @@ const getDetail = () => {
 		// if (!state.form.name) {
 		// 	state.form.name = route.params.name;
 		// }
+		const projectName = state.form.name || route.params.name;
 
 		const promiseAll = []
 		let promiseIndex = 0;
 		promiseAll[promiseIndex++] = getInvestmentInfo({
-			params: route.params.name
+			params: projectName
 		}).then(res => {
 			state.records = res?.result || [];
 		}).finally(() => {
@@ -457,7 +458,7 @@ const getDetail = () => {
 		})
 
 		promiseAll[promiseIndex++] = getExtraInfoByName({
-		    projName: route.params.name
+		    projName: projectName
 		}).then(res => {
 			if (res.result?.industryInfo?.length) {
 				state.form.industryInfo = res.result.industryInfo.map(item => {
@@ -476,7 +477,7 @@ const getDetail = () => {
 		})
 
 		promiseAll[promiseIndex++] = getProjectDetail({
-			name: route.params.name
+			name: projectName
 		}).then(res => {
 			const detail = res?.result || {};
 			state.oldRow = {...detail};
@@ -507,6 +508,11 @@ const getDetail = () => {
 	// })
 }
 
+const handleSelectName = async () => {
+	state.loading = true;
+	await getDetail();
+	state.loading = false;
+}
 const getData = () => {
 	state.loading = true;
 	const promiseAll = [];

@@ -1,7 +1,7 @@
 <template>
 	<div class="project-wrap">
 		<div class="filter-container">
-			<Search @search="updateSearchKey" @success="handleSearch" @export="handleExport" />
+			<Search @search="updateSearchKey" @clearSearch="clearSearch" @success="handleSearch" @export="handleExport" />
 			<Filter ref="filterRef" :statsMap="state.statsMap" @filterChange="updateFilters" />
 			<!-- 接口返回total：{{ state.total }}<br />
 			过滤后总记录数：{{ state.filterAllRecords.length }}<br />
@@ -21,8 +21,9 @@
 		 :pagination="{
 			total: state.params.total,
 			current: state.params.pageNo,
-			defaultPageSize: state.params.pageSize,
+			pageSize: state.params.pageSize,
 			showTotal: (total) => `共 ${total} 条数据`,
+			showSizeChanger: true,
 			showQuickJumper: true,
 		  }"
 		 :isFixedMaxHeight="true"
@@ -80,7 +81,7 @@
 					<template #title>
 						<div v-html="text"></div>
 					</template>
-					<div :class="['custor-pointer', column.ellipsis ? 'overflow-ellipsis' : '']" v-html="text" @click="handleEdit(index, column.dataIndex, column.title)">
+					<div :class="['custor-pointer', 'edit-row', column.ellipsis ? 'overflow-ellipsis' : '']" v-html="text" @click="handleEdit(index, column.dataIndex, column.title)">
 					</div>
 				</a-tooltip>
 				<div v-else-if="state.edit.field !== column.dataIndex || state.edit.isModal" :class="['custor-pointer','edit-span', column.ellipsis ? 'overflow-ellipsis' : '']" @click="handleEdit(index, column.dataIndex, column.title)"  v-html="text">
@@ -420,6 +421,7 @@ const getPageRecord = () => {
 		}
 		
 	}
+	console.log("total :", state.params.total)
 	
 }
 
@@ -452,6 +454,11 @@ const handleFilterChange = async () => {
 const updateSearchKey = (key) => {
 	state.params.searchKey = key;
 	handleFilterChange()
+}
+
+const clearSearch = () => {
+	state.params.searchKey = ''
+	filterRef.value?.handleClickAll('')
 }
 
 const updateFilters = (data) => {
@@ -493,7 +500,7 @@ const handleBatchPush = (id) => {
 
 const handleEdit = (index, field, title) => {
 	const record = {...state.filterRecords[index]};
-	let value = record[field];
+	let value = ['stage'].includes(field) ? '' : record[field];
 	let modal = false;
 	if (['domain1', 'domain2', 'domain3'].includes(field)) {
 		modal = true;
@@ -728,6 +735,11 @@ onMounted(() => {
 
 	.edit-span {
 		background-color: rgba(24, 144, 255, 0.1);
+		width: 100%;
+		min-height: 13px;
+		cursor: pointer;
+	}
+	.edit-row {
 		width: 100%;
 		min-height: 13px;
 		cursor: pointer;

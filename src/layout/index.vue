@@ -51,6 +51,7 @@ const { isSidebarOpened, isDomFullscreen } = storeToRefs(appStore);
 		background: #FFF;
 		> div {
 			padding: 12px;
+			height: 100%;
 			overflow-y: auto;
 		}
 	}

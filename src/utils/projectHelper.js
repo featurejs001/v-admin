@@ -275,7 +275,7 @@ export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}, records
 	    dataIndex: 'priority',
 	    resizable: true,
 	    sorter: true,
-		width: 120,
+		width: 115,
 	    filters: [],
 	}, {
 		title: '项目阶段',
@@ -285,7 +285,7 @@ export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}, records
 	    resizable: true,
 	    sorter: true,
 	    filters: [],
-	    width: 120,
+	    width: 115,
 	}, {
 		title: '跟进状态',
 	    align: 'center',
@@ -294,7 +294,7 @@ export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}, records
 	    resizable: true,
 	    sorter: true,
 	    filters: [],
-	    width: 120,
+	    width: 115,
 	}, {
 		title: '融资开始',
 	    align: 'center',
@@ -347,7 +347,7 @@ export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}, records
 		resizable: true,
 		align: 'left',
 		sorter: true,
-		width: 90,
+		width: 150,
 	},
 	{
 		title: '一级赛道',
@@ -357,7 +357,7 @@ export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}, records
 		resizable: true,
 		sorter: true,
 		// filters: domain1Filter,
-		width: 110,
+		width: 150,
 	},
 	{
 		title: '二级赛道',
@@ -366,7 +366,7 @@ export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}, records
 		slot: 'editCommon',
 		resizable: true,
 		sorter: true,
-		width: 110,
+		width: 150,
 		// filters: domain2Filter,
 	},
 	{
@@ -376,7 +376,7 @@ export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}, records
 		slot: 'editCommon',
 		resizable: true,
 		sorter: true,
-		width: 110,
+		width: 150,
 		// filters: domain3Filter,
 	}, {
 		title: '简介',
@@ -386,7 +386,7 @@ export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}, records
 	    resizable: true,
 	    align: 'left',
 	    sorter: true,
-	    width: 110,
+	    width: 150,
 	}, {
 		title: '成立时间',
 	    // align: 'center',
@@ -395,7 +395,7 @@ export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}, records
 	    resizable: true,
 	    align: 'left',
 	    sorter: true,
-	    width: 120,
+	    width: 100,
 	}, {
 		title: '第三方链接',
 	    // align: 'center',
@@ -404,15 +404,16 @@ export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}, records
 	    resizable: true,
 	    align: 'left',
 	    sorter: true,
-	    width: 110,
+	    width: 150,
 	}, {
 		title: '官网',
 	    // align: 'center',
 	    dataIndex: 'website',
+		slot: 'editCommon',
 	    resizable: true,
 	    align: 'left',
 	    sorter: true,
-	    width: 110,
+	    width: 150,
 	}, {
 		align: 'center',
 	    // customRender: ({text}) => {
@@ -425,7 +426,7 @@ export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}, records
 	    title: '省',
 	    filteredValue: [],
 	    filters: [],
-	    width: 100,
+	    width: 80,
 	}, {
 		title: '市',
 	    // align: 'center',
@@ -439,7 +440,7 @@ export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}, records
 	    // },
 	    filteredValue: [],
 	    filters: [],
-	    width: 100,
+	    width: 80,
 	}, {
 		 title: '区',
 	    // align: 'center',
@@ -453,7 +454,7 @@ export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}, records
 	    // },
 	    filteredValue: [],
 	    filters: [],
-	    width: 100,
+	    width: 80,
 	}, {
 		title: '标签',
 	    align: 'left',
@@ -525,7 +526,7 @@ export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}, records
 	    resizable: true,
 	    align: 'left',
 	    sorter: true,
-	    width: 120,
+	    width: 150,
 	}, {
 		title: '项目别名',
 	    // align: 'center',
@@ -633,14 +634,14 @@ export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}, records
 	    dataIndex: 'createBy',
 	    resizable: true,
 	    sorter: true,
-	    width: 120,
+	    width: 80,
 	}, {
 		title: '更新人',
 	    align: 'left',
 	    dataIndex: 'updateBy',
 	    resizable: true,
 	    sorter: true,
-	    width: 120,
+	    width: 80,
 	},{
 		title: '操作',
 	    dataIndex: 'action1',
@@ -649,16 +650,9 @@ export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}, records
 	    fixed: 'right',
 	    width: 120,
 	}].map(item => {
-		let width = item.width;
-		if (['priority', 'stage', 'followStage'].includes(item.dataIndex)) {
-			width = 115;
-		} else if ('editCommon' === item.slot) {
-			width = 150; // 单元格默认展示10个字，超出省略号
-		}
 		const newItem = {
 			...item,
 			ellipsis: true, // ['thirdLink'].includes(item.dataIndex) ? false : 
-			width 
 		}
 		if (selectedOption === '项目列表' && ['op_1','op_2','op_time','op_status', 'pushStatus','delTime','delByUsername', 'importTime','rejectTime', 'blockTime', 'importByUsername','rejectByUsername'].includes(item.dataIndex)) {
 			newItem.isHide = true;
@@ -939,49 +933,8 @@ export async function getProjectsFilter({ data = [], sorts = [], filters = {}, s
       // 定义特殊处理的多值字段
       const multiValueFields = ['main', 'assistant', 'other'];
 
-	  const isDomainSort = sorts.filter(item => ['domain1', 'domain2', 'domain3'].includes(item.field))?.length ? true : false;
-	  const isInvest = sorts.filter(item => ['investDate', 'turn2', 'amount', 'investor'].includes(item.field))?.length ? true : false;
-	  const cacheData = {};
-
       // 应用筛选
       query = query.filter((item) => {
-		if (recordType !== 'merge' && isDomainSort) {
-			// 展开状态下，如果是赛道排序，过滤空数据
-			if (!item.domain1) {
-				return false;
-			}
-			// 查询到最新一条数据，将最近融资、轮次、金额、投资方更新到数据中
-			 if (!cacheData[item.name]) {
-				const temp = query.filter(record => record.name === item.name).sort((a, b) => {
-					return new Date(b.investDate) - new Date(a.investDate);
-				})[0];
-				cacheData[item.name] = {
-					...temp
-				};
-			}
-			
-			item.investDate = cacheData[item.name].investDate;
-			item.turn = cacheData[item.name].turn;
-			item.turn2 = cacheData[item.name].turn2;
-			item.amount = cacheData[item.name].amount;
-			item.investor = cacheData[item.name].investor;
-		} else if (recordType !== 'merge' && isInvest) {
-			// 展开状态下，如果是投资排序, 赛道数据合并显示
-			if (!cacheData[item.name]) {
-				const temp = query.filter(record => record.name === item.name && record.domain1);
-				
-				cacheData[item.name] = {
-					...item,
-					domain1: temp.map(record => record.domain1).join('/'),
-					domain2: temp.map(record => record.domain2).join('/'),
-					domain3: temp.map(record => record.domain3).join('/'),
-				};
-			}
-			
-			item.domain1 = cacheData[item.name].domain1;
-			item.domain2 = cacheData[item.name].domain2;
-			item.domain3 = cacheData[item.name].domain3;
-		}
 
         // 检查每个字段组的筛选条件
         for (const [field, values] of Object.entries(filters)) {
@@ -1053,6 +1006,51 @@ export async function getProjectsFilter({ data = [], sorts = [], filters = {}, s
         // 所有字段都匹配才返回 true（不同字段间是交集关系 AND）
         return true;
       });
+
+	  // 参数合并
+	  const isDomainSort = sorts.filter(item => ['domain1', 'domain2', 'domain3'].includes(item.field))?.length ? true : false;
+	  const isInvest = sorts.filter(item => ['investDate', 'turn2', 'amount', 'investor'].includes(item.field))?.length ? true : false;
+	  const cacheData = {};
+
+	  if (recordType !== 'merge' && isDomainSort) {
+		query.filter(item => item.domain1).forEach(item => {
+			// 展开状态下，如果是赛道排序，过滤空数据
+
+			// 查询到最新一条数据，将最近融资、轮次、金额、投资方更新到数据中
+			 if (!cacheData[item.name]) {
+				const temp = query.filter(record => record.name === item.name).sort((a, b) => {
+					return new Date(b.investDate) - new Date(a.investDate);
+				})[0];
+				cacheData[item.name] = {
+					...temp
+				};
+			}
+			
+			item.investDate = cacheData[item.name].investDate;
+			item.turn = cacheData[item.name].turn;
+			item.turn2 = cacheData[item.name].turn2;
+			item.amount = cacheData[item.name].amount;
+			item.investor = cacheData[item.name].investor;
+		})
+	  }else if (recordType !== 'merge' && isInvest) {
+		query.forEach(item => {
+			// 展开状态下，如果是投资排序, 赛道数据合并显示
+			if (!cacheData[item.name]) {
+				const temp = query.filter(record => record.name === item.name && record.domain1);
+				
+				cacheData[item.name] = {
+					...item,
+					domain1: temp.map(record => record.domain1).join('/'),
+					domain2: temp.map(record => record.domain2).join('/'),
+					domain3: temp.map(record => record.domain3).join('/'),
+				};
+			}
+			
+			item.domain1 = cacheData[item.name].domain1;
+			item.domain2 = cacheData[item.name].domain2;
+			item.domain3 = cacheData[item.name].domain3;
+		})
+	  }
 
       console.log('筛选后的记录数:', query.length);
 
