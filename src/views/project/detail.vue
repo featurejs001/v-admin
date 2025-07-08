@@ -351,6 +351,7 @@ const state = reactive({
 		{
 			title: '投资时间',
 		    align: 'center',
+			width: 120,
 		    dataIndex: 'invest_date',
 		    customRender: ({ text }) => {
 		      return !text ? '' : text.length > 10 ? text.substr(0, 10) : text;
@@ -358,17 +359,19 @@ const state = reactive({
 		},
 		{
 			title: '轮次',
+			width: 160,
 		    align: 'center',
 		    dataIndex: 'turn',
 		},
 		{
 			title: '金额',
+			width: 120,
 		    align: 'center',
 		    dataIndex: 'amount',
 		},
 		{
 			title: '投资方',
-		    align: 'center',
+		    align: 'left',
 		    dataIndex: 'investor',
 		    resizable: true,
 			width: 400
@@ -432,7 +435,7 @@ const getAssignerDeef = (memoInfo = []) => {
 				state.form.memoInfo = [{
 				    memo: memoInfo[index].memo || "",
 					memo_create_by: userStore.userInfo.realname,
-					feishu_link: memoInfo[index].feishu_lin || ""
+					feishu_link: memoInfo[index].feishu_link || ""
 				}]
 			}
 		}
@@ -728,6 +731,10 @@ onMounted(() => {
 </script>
 <style lang="less" scoped>
 .detail-wrap {
+	:deep(.ant-input) {
+		color: #555!important;
+		font-size: 13px;
+	}
 	.save-button {
 	    width: 40px; /* 设置宽度和高度相等 */
 	    height: 40px;

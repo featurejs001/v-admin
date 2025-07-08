@@ -1,7 +1,7 @@
 @import "@/assets/styles/variables.less";
 
 :root {
-  font-family: 'PingFangSC-Medium', 'segoe ui', sans-serif;
+  font-family: 'PingFangSC-Medium', 'segoe ui', sans-serif!important;
   line-height: 1.5;
   font-weight: 400;
   // color-scheme: light dark;
@@ -30,7 +30,7 @@ html, body {
 	color: var(--text-color);
 }
 html, body * {
-	font-family: 'PingFangSC-Medium', 'segoe ui', sans-serif;
+	font-family: 'PingFangSC-Medium', 'segoe ui', sans-serif!important;
     box-sizing: border-box;
 }
 body {
@@ -244,9 +244,10 @@ button:focus-visible {
 }
 
 .default-input {
+  height: 44px!important;
 	padding: 10px;
 	border-width: 1px;
-    border-style: solid;
+  border-style: solid;
 	border-color: var(--input-border);
 	border-radius: 4px;
 	box-shadow: none;
