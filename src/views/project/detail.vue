@@ -435,7 +435,7 @@ const getAssignerDeef = (memoInfo = []) => {
 				state.form.memoInfo = [{
 				    memo: memoInfo[index].memo || "",
 					memo_create_by: userStore.userInfo.realname,
-					feishu_link: memoInfo[index].feishu_lin || ""
+					feishu_link: memoInfo[index].feishu_link || ""
 				}]
 			}
 		}
