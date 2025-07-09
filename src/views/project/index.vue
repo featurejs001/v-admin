@@ -269,6 +269,9 @@ import BatchEditModal from "./components/BatchEditModal.vue"
 import { getTextByCode } from "@/utils/areaDataUtil"
 import EditFieldModal from "./components/EditFieldModal.vue"
 import { useRouter } from "vue-router";
+import dayjs from "dayjs";
+import 'dayjs/locale/zh-cn';
+dayjs.locale('zh-cn');
 const router = useRouter();
 
 const props = defineProps({

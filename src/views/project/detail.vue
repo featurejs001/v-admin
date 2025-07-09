@@ -35,6 +35,7 @@
 							 v-model:value="state.form.name" 
 							 placeholder="请选择项目名称" 
 							 :options="state.filterProjects"
+							 :popupClassName="state.searchKey ? '' : 'is_hide'"
 							 @search="searchProject"
 							 @select="handleSelectName"
 							 showSearch
@@ -108,7 +109,7 @@
 						>
 							<!-- <a-textarea v-model:value="state.form.briefIntroduction" placeholder="请输入项目简介" allowClear /> -->
 							<QuillEditor 
-							 v-model:content="state.form.briefIntroduction" 
+							 v-model="state.form.briefIntroduction" 
 							 :options="state.editorOptions"
 							 contentType="html"
 							 />
@@ -166,7 +167,7 @@
 						    :name="['industryInfo', index, 'domain1']"
 						    :rules="[{ required: true, message: '请选择一级赛道' }]"
 						>
-						    <a-select v-model:value="domain.domain1" placeholder="请选择一级赛道" @change="handleChangeDomain1(index)" allowClear>
+						    <a-select v-model:value="domain.domain1" :disabled="domain.disabled" placeholder="请选择一级赛道" @change="handleChangeDomain1(index)" allowClear>
 								<a-select-option v-for="item in domain1Options" :key="item" :value="item">{{ item }}</a-select-option>
 							</a-select>
 						</a-form-item>
@@ -177,7 +178,7 @@
 						    :name="['industryInfo', index, 'domain2']"
 						    :rules="[{ required: true, message: '请选择二级赛道' }]"
 						>
-						    <a-select v-model:value="domain.domain2" placeholder="请选择二级赛道" @change="handleChangeDomain2(index)" allowClear>
+						    <a-select v-model:value="domain.domain2" :disabled="domain.disabled" placeholder="请选择二级赛道" @change="handleChangeDomain2(index)" allowClear>
 								<a-select-option v-for="item in domain2Options(domain.domain1)" :key="item" :value="item">{{ item }}</a-select-option>
 							</a-select>
 						</a-form-item>
@@ -188,14 +189,14 @@
 						    :name="['industryInfo', index, 'domain3']"
 						    :rules="[{ required: true, message: '请选择三级赛道' }]"
 						>
-						    <a-select v-model:value="domain.domain3" placeholder="请选择三级赛道" allowClear>
+						    <a-select v-model:value="domain.domain3" :disabled="domain.disabled" placeholder="请选择三级赛道" allowClear>
 								<a-select-option v-for="item in domain3Options(domain.domain1, domain.domain2)" :key="item" :value="item">{{ item }}</a-select-option>
 							</a-select>
 						</a-form-item>
 					</a-col>
 					<a-col :span="24 - state.colSpan * 3">
 						<a-button class="btn" type="primary" ghost v-if="Number(index) === 0" @click="handleAdd">+</a-button>
-						<a-button class="btn" danger v-else @click="handleDel(index)">-</a-button>
+						<a-button class="btn" danger :disabled="domain.disabled" v-else @click="handleDel(index)">-</a-button>
 					</a-col>
 				</a-row>
 				<a-row :gutter="state.rowGutter">
@@ -277,10 +278,11 @@ import {
 } from "@/api/industry";
 import Table from "@/components/Table/index.vue"
 import dayjs from "dayjs";
+import 'dayjs/locale/zh-cn';
 import { message } from "ant-design-vue";
 import { useUser } from "@/store/user";
 import { useApp } from "@/store/app";
-
+dayjs.locale('zh-cn');
 const userStore = useUser();
 
 const appStore = useApp();
@@ -297,7 +299,7 @@ const initForm = () => {
 		foundationDate: null,
 		code: [],
 		website: null,
-		briefIntroduction: null,
+		briefIntroduction: '',
 		thirdLink: null,
 		stage: null,
 		followStage: null,
@@ -308,7 +310,7 @@ const initForm = () => {
 			domain3: null
 		}],
 		memoInfo: [],
-		tags: []
+		tags: [],
 	}
 }
 const state = reactive({
@@ -317,7 +319,20 @@ const state = reactive({
 	colSpan: 7,
 	form: initForm(),
 	rules: {
-		name: [{ required: true, message: '请输入项目名称' }],
+		name: [
+			{ required: true, message: '请输入项目名称' },
+			{ validator: (rule, value) => {
+			    if (value && state.oldRow.name !== value) {
+					const check = state.projectList.find(item => item.value === value);
+					if (check) {
+						return Promise.reject('项目名称重复');
+					} else {
+						return Promise.resolve();
+					}
+				}
+				return Promise.resolve();
+			}, trigger: 'blur'}
+		],
 		stage: [{ required: true, message: '请选择项目阶段' }],
 		followStage: [{ required: true, message: '请输入跟进状态' }],
 	},
@@ -390,9 +405,10 @@ const state = reactive({
 });
 
 const searchProject = (value) => {
+	state.searchKey = value;
 	// console.log("serachPppp", value)
 	if (!value) {
-		state.filterProjects = [...state.projectList];
+		state.filterProjects = []; // [...state.projectList];
 		return;
 	}
 	const filterList = state.projectList.filter(item => item.value.includes(value));
@@ -403,7 +419,7 @@ const searchProject = (value) => {
 		state.filterProjects = [...filterList]
 		return;
 	}
-	state.filterProjects = [...filterList, { value, label: value }] 
+	state.filterProjects = [...filterList, { value, label: value + "(新项目)" }] 
 }
 
 const filterOption = (input, option) => {
@@ -469,6 +485,9 @@ const getDetail = () => {
 		// 	state.form.name = route.params.name;
 		// }
 		const projectName = state.form.name || route.params.name;
+		if (projectName === 'newnew') {
+			return Promise.resolve([]);
+		}
 
 		const promiseAll = []
 		let promiseIndex = 0;
@@ -485,10 +504,13 @@ const getDetail = () => {
 		}).then(res => {
 			if (res.result?.industryInfo?.length) {
 				state.form.industryInfo = res.result.industryInfo.map(item => {
+					const main = item.main ? item.main.split(",") : [];
+					const assistant = item.assistant ? item.assistant.split(",") : [];
 					return {
 						domain1: item.domain1,
 						domain2: item.domain2,
-						domain3: item.domain3
+						domain3: item.domain3,
+						disabled: main.includes(userStore.userInfo.realname) || assistant.includes(userStore.userInfo.realname) ? false : true, // 是否可编辑
 					}
 				})
 				
@@ -525,10 +547,44 @@ const getDetail = () => {
 
 		promiseAll[promiseIndex++] = userStore.getUserList()
 
-		Promise.all(promiseAll).then((res) => {}).finally(() => {
-			return Promise.resolve(true)
-		})
+		return Promise.all(promiseAll)
 	// })
+}
+
+const updateHistoryRoute = () => {
+	// 查询当前路由，更新路由信息
+	const tempRoutes = [...appStore.historyRoutes];
+	const newPath = "/project-detail/" + encodeURIComponent(state.form.name)
+	const routeIndex = tempRoutes.findIndex(item => item.path === newPath);
+	const currentIndex = route.params.name === 'newnew' ? -1 : tempRoutes.findIndex(item => item.path === route.path);
+	if (-1 === routeIndex && -1 !== currentIndex) {
+		// 替换路由
+		tempRoutes.splice(currentIndex, 1, {
+			path: newPath,
+			name: "project_detail-@id",
+			meta: {
+				title: state.form.name,
+			},
+			params: {
+				name: state.form.name,
+			}
+		})
+		console.log(tempRoutes);
+		appStore.setHistoryRoutes(tempRoutes);
+		router.replace({
+			name: "project_detail-@id",
+			params: {
+				name: state.form.name
+			},
+		})
+	} else {
+		// 更新路由信息
+		router.push({
+			path: newPath,
+		})
+
+	}
+	
 }
 
 const handleSelectName = async () => {
@@ -536,7 +592,8 @@ const handleSelectName = async () => {
 	const item = state.projectList.find(item => item.value === state.form.name);
 	if (item?.value) {
 		state.isNew = false;
-		await getDetail();
+		updateHistoryRoute();
+		// await getDetail();
 	} else {
 		state.isNew = true;
 	}
@@ -581,11 +638,10 @@ const getData = () => {
 
 	if (route.params.name && route.params.name !== 'newnew') {
 		promiseAll[promiseIndex++] = getDetail();
-	} else {
-		promiseAll[promiseIndex++] = getProjectName().then(res => {
-			state.projectList = res?.result?.filter?.(item => item.value) || [];
-		})
 	}
+	promiseAll[promiseIndex++] = getProjectName().then(res => {
+		state.projectList = res?.result?.filter?.(item => item.value) || [];
+	})
 
 	Promise.all(promiseAll).then((res) => {
 		state.loading = false;
@@ -597,11 +653,16 @@ const getData = () => {
 
 watch(() => route.params.name, (newVal) => {
   console.log(newVal);
+  formRef.value?.resetFields?.();
+  state.loading = true;
   state.records = []
   state.oldRow = {};
+  state.searchKey = '';
   state.form = initForm();
 
-  getData();
+  getDetail().finally(() => {
+	state.loading = false;
+  })
 }, {immediate: true});
 
 const handleAdd = () => {
@@ -665,6 +726,13 @@ const handleSave = () => {
     
 	let obj = {
 		...state.form,
+		industryInfo: state.form.industryInfo.map(item => {
+			return {
+				domain1: item.domain1,
+				domain2: item.domain2,
+				domain3: item.domain3,
+			}
+		})
 	};
 	console.log(obj);
 	if (state.form.financeTag.length === 2) {
@@ -709,34 +777,14 @@ const handleSave = () => {
 	func(obj).then((res) => {
 		message.success(res.message || '保存成功');
 		if (route.params.name === 'newnew') {
-			route.push({
-				path: "/project-detail/" + encodeURIComponent(state.form.name),
-			})
+			// route.push({
+			// 	path: "/project-detail/" + encodeURIComponent(state.form.name),
+			// })
+			updateHistoryRoute();
 		} else if (route.params.name !== 'newnew' && route.params.name !== state.form.name) {
 			// 查询当前路由，更新路由信息
-			const tempRoutes = [...appStore.historyRoutes];
-			const routeIndex = tempRoutes.findIndex(item => item.path === route.path);
-			if (routeIndex !== -1) {
-				tempRoutes.splice(routeIndex, 1, {
-					path: "/project-detail/" + encodeURIComponent(state.form.name),
-					name: "project_detail-@id",
-					meta: {
-						title: state.form.name,
-					},
-					params: {
-						name: state.form.name,
-					}
-				})
-			}
-			console.log(tempRoutes);
-			appStore.setHistoryRoutes(tempRoutes);
 
-			router.replace({
-				name: "project_detail-@id",
-				params: {
-					name: state.form.name
-				},
-			})
+			updateHistoryRoute();
 		}
 		
 		state.loading = false;
@@ -751,6 +799,7 @@ const handleSave = () => {
 
 onMounted(() => {
 	console.log('detail route :', route)
+	getData();
 })
 </script>
 <style lang="less" scoped>
