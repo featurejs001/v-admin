@@ -780,7 +780,12 @@ const handleSave = () => {
 			// route.push({
 			// 	path: "/project-detail/" + encodeURIComponent(state.form.name),
 			// })
-			updateHistoryRoute();
+			getProjectName().then(res => {
+				state.projectList = res?.result?.filter?.(item => item.value) || [];
+			}).finally(() => {
+				updateHistoryRoute();
+			})
+			
 		} else if (route.params.name !== 'newnew' && route.params.name !== state.form.name) {
 			// 查询当前路由，更新路由信息
 
