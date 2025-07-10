@@ -3,7 +3,7 @@
       :activeKey="state.activeKey"
       :tab-position="tabPosition"
 	  type="editable-card"
-	  class="tabs"
+	  :class="['tabs', isSidebarOpened ? 'inline' : 'vertical']"
 	  @tabClick="handleTabClick"
 	  @edit="handleDelClick"
     >
@@ -26,7 +26,7 @@ const router = useRouter();
 const curRoute = useRoute();
 
 const appStore = useApp();
-const { historyRoutes } = storeToRefs(appStore);
+const { isSidebarOpened, historyRoutes } = storeToRefs(appStore);
 
 const props = defineProps({
     tabPosition: {
@@ -113,11 +113,13 @@ const handleDelClick = (targetKey) => {
 		margin-top: 10px;
 		padding-top: 10px;
 		flex: 1;
+		overflow: hidden;
 	    :deep(.ant-tabs-nav) {
 			width: 100%;
 			color: rgba(255, 255, 255, 0.65);
 			.ant-tabs-tab {
 				padding: 0px 16px;
+				border-radius: 0px;
 				display: flex;
 				justify-content: space-between;
 				.ant-tabs-tab-btn, .ant-tabs-tab-remove {
@@ -136,7 +138,39 @@ const handleDelClick = (targetKey) => {
 					}
 				}
 			}
+			.ant-tabs-content-holder {
+				display: none;
+			}
+		}
+		&.vertical {
+			:deep(.ant-tabs-nav) {
+				.ant-tabs-tab {
+					height: 48px;
+					padding: 6px 0px;
+					display: flex;
+					justify-content: center;
+					position: relative;
+					.ant-tabs-tab-btn {
+						display: flex;
+						flex-direction: column;
+						align-items: center;
+						justify-content: space-around;
+						.title {
+							margin-inline-start: 0px;
+							line-height: 1;
+							margin: 0.25rem 0px 0px;
+						}
+					}
+					.ant-tabs-tab-remove {
+						position: absolute;
+						    right: 8px;
+						    z-index: 1;
+						    top: 0px;
+					}
+				}
+			}
 		}
 	}
 }
+
 </style>

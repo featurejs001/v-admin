@@ -158,6 +158,9 @@ const handleMenuClick = (item) => {
 	}
 
 	&.ant-menu-vertical {
+		.ant-menu-item, .ant-menu-submenu.ant-menu-submenu-vertical .ant-menu-submenu-title {
+			height: 52px;
+		}
 		.ant-menu-item, .ant-menu-submenu-title {
 			display: flex;
 			flex-direction: column;
