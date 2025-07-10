@@ -735,7 +735,7 @@ const handleSave = () => {
 		})
 	};
 	console.log(obj);
-	if (state.form.financeTag.length === 2) {
+	if (Array.isArray(state.form.financeTag) && state.form.financeTag?.length === 2) {
 		// console.log(state.form.financeTag[0].$d.toGMTString())
 		obj.financeTag = state.form.financeTag.join(",");
 		obj.financingWindowEndTime = dayjs(state.form.financeTag[0]).format("YYYY-MM-DD");
