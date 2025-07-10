@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
 import Cookies from 'js-cookie';
 import { getHistoryRoutes, setHistoryRoutes } from '@/utils/auth';	
+import { PermissionModeEnum } from "@/enums/appEnum"
 
 const getDefaultState = () => {
 	return {
@@ -14,6 +15,10 @@ const getDefaultState = () => {
 		isFullscreen: false,
 		isDomFullscreen: false,
 		historyRoutes: getHistoryRoutes() || [],
+		projectSetting: {
+			permissionMode: PermissionModeEnum.BACK,
+		}
+		
 	};
 };
 
@@ -97,6 +102,12 @@ export const useApp = defineStore("app", {
 			if (!check) {
 			    this.historyRoutes.push(route);
 				setHistoryRoutes(this.historyRoutes);
+			}
+		},
+		setProjectConfig(value) {
+			state.projectSetting = {
+				...state.projectSetting,
+				...value
 			}
 		}
 	}

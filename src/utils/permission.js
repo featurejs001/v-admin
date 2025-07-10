@@ -1,6 +1,3 @@
-
-
-
 export function hasPermission(route, menus) {
 	if (!menus?.length) {
 		return false;

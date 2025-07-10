@@ -230,3 +230,11 @@ export function getIndustryAssignerDeef(params) {
 		params
 	})
 }
+
+export function reportFilterBarChart(params) {
+	return request({
+		url: "/gy-core/query-domain-combinations",
+		method: "get",
+		params
+	})
+}

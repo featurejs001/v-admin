@@ -17,18 +17,7 @@
 				</template>
 				<ExportOutlined @click="handleExport" />
 			</a-tooltip>
-			<a-tooltip placement="top" v-if="!isDomFullscreen">
-        		<template #title>
-					<span>最大化</span>
-				</template>
-				<FullscreenOutlined @click="handleFullscreen" />
-			</a-tooltip>
-			<a-tooltip placement="top" v-else>
-        		<template #title>
-					<span>最小化</span>
-				</template>
-				<FullscreenExitOutlined  @click="handleFullscreen" />
-			</a-tooltip>
+			<FullScreen />
 		</div>
 	</div>
 </template>
@@ -36,21 +25,14 @@
 import { h, reactive, defineEmits } from 'vue';
 import { ExportOutlined, RedoOutlined, ImportOutlined, FullscreenOutlined, FullscreenExitOutlined } from '@ant-design/icons-vue';
 import { useApp } from "@/store/app";
-import { storeToRefs } from "pinia";
 import Import from "./import.vue";
+import FullScreen from "@/components/common/fullScreen.vue";
 
 const emits = defineEmits(['search', 'success', 'export']);
-
-const appStore = useApp();
-const { isDomFullscreen } = storeToRefs(appStore);
 
 const state = reactive({
 	value: ''   
 })
-
-const handleFullscreen = () => {
-	appStore.setDomFullScreen(!isDomFullscreen.value);
-}
 
 const onSearch = (value) => {
 	console.log(value);
