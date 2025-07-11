@@ -78,10 +78,11 @@ export function getDomainNth() {
 	})
 }
 
-export function getIndustrFieldValues(path) {
+export function getIndustrFieldValues(path, params) {
     return request({
         url: '/gy-core/gy.gy/vIndustryAllInfo/getResult/' + path,
         method: 'get',
+		params
     })
 }
 

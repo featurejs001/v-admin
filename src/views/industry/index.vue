@@ -123,6 +123,7 @@
 		            <template #title="{ key: treeKey, data, title }">
 		              <span @click="handleTagClick(data)" @dblclick="handleNodeDblClick(data)">
 		                <a-dropdown :trigger="['contextmenu']">
+						  
 		                  <span>
 		                    <span v-if="!data.editing">
 		                      <span>
@@ -171,7 +172,7 @@
 		                      <a-menu-item key="delete">删除节点</a-menu-item>
 		                    </a-menu>
 		                  </template>
-		                  <template v-if="hasPermission('industry_tree:manage') && data.level === 4" #overlay>
+		                  <template v-else-if="hasPermission('industry_tree:manage') && data.level === 4" #overlay>
 		                    <a-menu @click="({ key: menuKey }) => onContextMenuClick(treeKey, menuKey, data)">
 		                      <a-menu-item key="addSibling">新增本级节点</a-menu-item>
 		                      <a-menu-item key="edit">编辑节点名称</a-menu-item>
@@ -179,7 +180,7 @@
 		                      <a-menu-item key="delete">删除节点</a-menu-item>
 		                    </a-menu>
 		                  </template>
-		                  <template v-if="hasPermission('industry_tree:manage') && data.level === 1" #overlay>
+		                  <template v-else-if="hasPermission('industry_tree:manage') && data.level === 1" #overlay>
 		                    <a-menu @click="({ key: menuKey }) => onContextMenuClick(treeKey, menuKey, data)">
 		                      <a-menu-item key="addChild">新增下级节点</a-menu-item>
 		                    </a-menu>
@@ -190,7 +191,14 @@
 		        </a-tree>
         </div>
 			</div>
-			<div class="right-half"></div>
+			<div class="right-half">
+				<BarChart 
+					:key="barKey"
+					:dataProvided="onDataProvided()"
+            		:nodeData="state.selected_node_title"
+					:tags="barTags"
+				/>
+			</div>
 		</div>
 	</div>
 </template>
@@ -205,18 +213,21 @@ import {
 	UsergroupAddOutlined,
 	NodeCollapseOutlined
 } from '@ant-design/icons-vue';
-import { h, reactive, onMounted, ref } from "vue";
+import { h, reactive, onMounted, ref, computed } from "vue";
 import { getToolHint } from "@/utils/helper"
 import { getToolTip, getIndustrFieldValues, reportFilterBarChart } from '@/api/industry'
 import { PeopleOrder, prioritiesOrder } from "@/utils/util1";
 import { usePermission } from "@/utils/usePermission.ts";
 import FullScreen from "@/components/common/fullScreen.vue";
 import { useRouter } from "vue-router";
+import BarChart from "./components/BarChart.vue"; 
 
 const router = useRouter();
 
 const { hasPermission } = usePermission();
 
+let selectItem = null;
+let selected_node = null;
 const inputRefs = ref({});
 const state = reactive({
 	tooltips: [],
@@ -224,7 +235,7 @@ const state = reactive({
 	selectedPriorityTags: ['跟进'],
 	peopleTags: Object.keys(PeopleOrder),
 	selectedPeopleTags: [],
-	globalMode: '',
+	globalMode: 'filter',
 	searchValue: '',
 	selected_node_title: '',
 	orderMap: {},
@@ -238,17 +249,25 @@ const state = reactive({
 	allKeys: []
 })
 
+const barTags = computed(() => {
+	return [...state.selectedPriorityTags, ...state.selectedPeopleTags, state.selected_node_title].filter(v => v)
+})
+
+const barKey = computed(() => {
+	return barTags.value.join(',')
+})
+
 function setMode(mode) {
     state.globalMode = mode;
     if (mode === 'click') {
-      // selected_node_title.value = random(100000);
+      // state.selected_node_title = random(100000);
       // state.selectedPriorityTags = [];
       // state.selectedPeopleTags = [];
     }
     if (mode === 'search') {
       state.selectedPriorityTags = [];
       state.selectedPeopleTags = [];
-      // selected_node_title.value = random(100000);
+      // state.selected_node_title = random(100000);
     }
     if (mode === 'filter') {
       state.searchValue = '';
@@ -447,10 +466,10 @@ const handleClick = (_, info) => {
 	// Usage
     const selectedNodes = findSelectedNodes(state.gData[0]);
     const selectedNodeTitles = selectedNodes.map((node) => node.title).join(',');
-    selected_node_title.value = selectedNodeTitles;
+    state.selected_node_title = selectedNodeTitles;
 
-    // selected_node_title.value = info.title;
-    if (globalMode.value === 'edit') {
+    // state.selected_node_title = info.title;
+    if (state.globalMode === 'edit') {
       return; // ignore
     }
     setMode('click');
@@ -508,7 +527,7 @@ const onSelect = () => {}
 
 function handleTagClick(data) {
     data.selected = !data.selected; // allow multi-selection // TODO
-    if (globalMode.value === 'edit') {
+    if (state.globalMode === 'edit') {
       return; // ignore
     }
     // toggleSelectByTitle(state.gData, data.title);
@@ -771,6 +790,48 @@ const getData = async () => {
 
 const onSearch = () => {}
 
+function getTitlesFromKeys(treeData, keysToFind) {
+    const titles = [];
+
+    function traverse(nodes) {
+      nodes.forEach((node) => {
+        if (keysToFind.includes(node.key)) {
+          titles.push(node.title);
+        }
+        if (node.children) {
+          traverse(node.children);
+        }
+      });
+    }
+
+    traverse(treeData);
+    return titles;
+}
+
+function onDataProvided() {
+	
+    if (state.globalMode === 'click') {
+      return null;
+    }
+    if (state.globalMode === 'search') {
+      return {
+		titles: getTitlesFromKeys(gData.value, expandedKeys.value).join(',')
+	  };
+    }
+    if (state.globalMode === 'filter') {
+      if (state.selectedPriorityTags.length > 0 || state.selectedPeopleTags.length > 0) {
+        let req = {
+			assigner: state.selectedPeopleTags.join(','),
+			priority: state.selectedPriorityTags.join(',')
+		};
+        // await handleTreeResult(req);
+        return req;
+      } else {
+        return null;
+      }
+    }
+}
+
 onMounted(() => {
 	getToolTip().then(res => {
 		state.tooltips = res.result || []
@@ -921,12 +982,107 @@ onMounted(() => {
 				height: 100%;
 				flex: 1;
 			    overflow-y: auto;
+				:deep(.ant-tree-switcher-noop) {
+					display: none;
+				}
+
+				.tab-text-col, .tab-text-col-guanzhu-tree {
+				    font-weight: 400;
+				    color: #555;
+				}
+
+				.text-wrapper_101[data-v-1842a936] {
+				    display: inline-flex;
+				    flex-direction: row;
+				    border-radius: 4px;
+				    height: 22px;
+				    min-width: 60px;
+				    padding: 0 8px 0 0px;
+				    margin-left: 6px;
+				    align-items: center;
+				    white-space: nowrap;
+				    background-color: rgba(255, 255, 255, 1);
+				}
+
+				.text-wrapper_18 {
+					display: inline-flex;
+				    flex-direction: row;
+				    background-color: #ffe6da;
+				    border-radius: 4px;
+				    height: 26px;
+				    min-width: 60px;
+				    padding: 0 8px 0 0px;
+				    margin-left: 6px;
+				    align-items: center;
+				    white-space: nowrap;
+				}
+				
+				.text-wrapper_19 {
+					display: inline-flex;
+				    flex-direction: row;
+				    background-color: #E1F0F9;
+				    border-radius: 4px;
+				    height: 26px;
+				    min-width: 60px;
+				    padding: 0 8px 0 0px;
+				    margin-left: 6px;
+				    align-items: center;
+				    white-space: nowrap;
+				}
+
+				.touhou_item_tree_node {
+					background-color: rgba(220, 229, 250, .7);
+				    color: #555;
+				    height: 22px;
+				}
+
+				.text_30 {
+					height: 22px;
+				    overflow-wrap: break-word;
+				    color: rgba(34, 34, 34, 1);
+				    font-size: 13px;
+				    font-weight: 400;
+				    text-align: left;
+				    white-space: nowrap;
+				    line-height: 20px;
+				}
+
+				.text_32 {
+					height: 22px;
+				    overflow-wrap: break-word;
+				    color: rgba(34, 34, 34, 1);
+				    font-size: 13px;
+				    font-weight: 400;
+				    text-align: left;
+				    white-space: nowrap;
+				    line-height: 20px;
+				}
+
+				.text_36 {
+					overflow-wrap: break-word;
+					font-size: 13px;
+				    font-weight: 400;
+				    text-align: left;
+				    white-space: nowrap;
+				    line-height: 20px;
+				}
 			}
 		}
 		.right-half {
 			width: 100%;
 			height: 100%;
     		padding-top: 3px;
+		}
+	}
+}
+:deep(.ant-tree) {
+	.ant-tree-node-content-wrapper {
+		&:hover {
+			background-color: transparent;
+		}
+		&.ant-tree-node-selected {
+			background-color: transparent;
+			color: var(--active-color);
 		}
 	}
 }
