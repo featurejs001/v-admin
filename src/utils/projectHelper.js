@@ -1,6 +1,7 @@
 import pinyin from 'pinyin';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
+import { h } from 'vue';
 
 export // 定义表头和字段映射
 const headers = [
@@ -250,7 +251,7 @@ export const getRecordsByRowSpan = (originRecords) => {
  * isMergeSingle 展开状态下是否合并单元格
  * @returns
  */
-export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}, records ,recordType, selectedOption, isMergeSingle = true) => { 
+export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}, records ,recordType, selectedOption, isMergeSingle = true, rawProjectRows = []) => { 
 	
 	return [{
 		title: '选择',
@@ -467,16 +468,32 @@ export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}, records
 		title: '主理人',
 	    align: 'left',
 	    dataIndex: 'main',
+	    // slot: 'mainSlot',
 	    resizable: true,
 	    sorter: true,
 	    width: 100,
+	    customRender: ({ record, text }) => {
+	      if (recordType === 'merge' && Array.isArray(rawProjectRows) && rawProjectRows.length > 0) {
+	        const projectRows = rawProjectRows.filter(r => r.name === record.name && r.domain3);
+	        return projectRows.map(r => r.main && r.main.trim() ? r.main.trim() : '').join('、');
+	      }
+	      return text;
+	    }
 	}, {
 		title: '协理人',
 	    align: 'left',
 	    dataIndex: 'assistant',
+	    // slot: 'assistantSlot',
 	    resizable: true,
 	    sorter: true,
 	    width: 100,
+	    customRender: ({ record, text }) => {
+	      if (recordType === 'merge' && Array.isArray(rawProjectRows) && rawProjectRows.length > 0) {
+	        const projectRows = rawProjectRows.filter(r => r.name === record.name && r.domain3);
+	        return projectRows.map(r => (r.assistant && r.assistant.trim()) ? r.assistant.trim() : '无').join('、');
+	      }
+	      return text;
+	    }
 	}, {
 		title: '其他人',
 	    align: 'left',

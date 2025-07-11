@@ -14,7 +14,7 @@
 			loading: state.loading,
 			pagination: false,
 			dataSource: state.filterRecords,
-			columns: getProjectColumns(state.params.filters, state.filterValuesMap, state.filterRecords, state.recordType, state.selectedOption, state.params.isMergeSingle),
+			columns: getProjectColumns(state.params.filters, state.filterValuesMap, state.filterRecords, state.recordType, state.selectedOption, state.params.isMergeSingle, state.rawProjectRows),
 			bordered: true,
 			
 		 }"
@@ -76,6 +76,22 @@
 			        </a>
 				</a-tooltip>
 		    </template>
+			<template #mainSlot="{ text }">
+				<a-tooltip placement="top" :trigger="String(text).length > 8 ? 'hover' : 'none'">
+					<template #title>
+						<div>{{ text }}</div>
+					</template>
+					<span class="overflow-ellipsis" style="cursor:pointer;">{{ text }}</span>
+				</a-tooltip>
+			</template>
+			<template #assistantSlot="{ text }">
+				<a-tooltip placement="top" :trigger="String(text).length > 8 ? 'hover' : 'none'">
+					<template #title>
+						<div>{{ text }}</div>
+					</template>
+					<span class="overflow-ellipsis" style="cursor:pointer;">{{ text }}</span>
+				</a-tooltip>
+			</template>
 			<template #editCommon="{ column, record, index, text }">
 				<a-tooltip placement="top" v-if="state.edit.index !== index" :trigger="column.ellipsis && String(text).length > 10 ? 'hover' : 'none'">
 					<template #title>
@@ -311,7 +327,8 @@ const state = reactive({
 		value: '',
 		modal: false,
 		showStageSelect: false
-	}
+	},
+	rawProjectRows: [] // 新增，保留原始未合并的赛道数据
 })
 
 const editSelectOptions = computed(() => {
@@ -441,16 +458,15 @@ const handleFilterChange = async () => {
 		recordType: state.recordType
 	})
 	state.params.pageNo = 1;
-	
 	if (state.recordType === 'merge') {
 		// 合并数据
 		state.filterAllRecords = mergeRecordsByName(tempAllRecords);
+		state.rawProjectRows = [...tempAllRecords]; // 新增，保留原始未合并的赛道数据
 	} else {
 		state.filterAllRecords = [...tempAllRecords]
+		state.rawProjectRows = [];
 	}
-	
 	getPageRecord()
-
 	// 每个标签数量统计
 	state.statsMap = getProjectCountMap([...tempAllRecords]);
 	// console.log("statsMap :", state.statsMap)
