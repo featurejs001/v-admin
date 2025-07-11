@@ -419,7 +419,7 @@ const searchProject = (value) => {
 		state.filterProjects = [...filterList]
 		return;
 	}
-	state.filterProjects = [...filterList, { value, label: value + "(新项目)" }] 
+	state.filterProjects = [{ value, label: value + "(新项目)" }, ...filterList] 
 }
 
 const filterOption = (input, option) => {

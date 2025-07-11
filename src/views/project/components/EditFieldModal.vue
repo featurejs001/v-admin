@@ -4,7 +4,7 @@
 	 :title="$props.title" 
 	 :loading="state.loading" 
 	 :border="['briefIntroduction'].includes($props.field) ? false : true"
-	 :width="$props.field.includes('domain') ? '1000px' : ['briefIntroduction'].includes($props.field) ? '800px' : '520px'" @close="handleClose" @submit="handleOk">
+	 :width="$props.field.includes('domain') ? '1000px' : ['briefIntroduction'].includes($props.field) ? '800px' : '720px'" @close="handleClose" @submit="handleOk">
 	 	<div :class="['modal-container', ['provinceMap', 'cityMap', 'regionMap', 'briefIntroduction'].includes($props.field) ? 'min-height' : '']">
 			 <a-cascader
 			  v-if="['provinceMap', 'cityMap', 'regionMap'].includes($props.field)"

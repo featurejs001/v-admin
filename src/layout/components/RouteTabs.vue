@@ -76,7 +76,7 @@ const handleDelClick = (targetKey) => {
 			border: none;
 			height: 26px;
 			.ant-tabs-tab-btn {
-				font-size: 12.5px;
+				font-size: 12px;
 				line-height: 26px;
 				color: rgba(0,0,0,0.88);
 			}
@@ -100,7 +100,7 @@ const handleDelClick = (targetKey) => {
 				}
 				.ant-tabs-tab-btn {
 					color: #FFF;
-					font-size: 13px;
+					font-size: 12px;
 				}
 			}
 		}

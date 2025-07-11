@@ -84,7 +84,7 @@
 					<div :class="['custor-pointer', 'edit-row', column.ellipsis ? 'overflow-ellipsis' : '']" v-html="text" @click="handleEdit(index, column.dataIndex, column.title)">
 					</div>
 				</a-tooltip>
-				<div v-else-if="state.edit.field !== column.dataIndex || state.edit.isModal" :class="['custor-pointer','edit-span', column.ellipsis ? 'overflow-ellipsis' : '']" @click="handleEdit(index, column.dataIndex, column.title)"  v-html="text">
+				<div v-else-if="state.edit.field !== column.dataIndex || state.edit.isModal || (column.dataIndex === 'stage' && !state.edit.showStageSelect)" :class="['custor-pointer','edit-span', column.ellipsis ? 'overflow-ellipsis' : '']" @click="handleEdit(index, column.dataIndex, column.title)"  v-html="text">
 				</div>
 				<a-select
 			      v-else-if="editSelectOptions.length"
@@ -309,7 +309,8 @@ const state = reactive({
 		index: -1,
 		field: '',
 		value: '',
-		modal: false
+		modal: false,
+		showStageSelect: false
 	}
 })
 
@@ -430,6 +431,7 @@ const getPageRecord = () => {
 
 const handleFilterChange = async () => {
 	state.edit.index = -1;
+	state.edit.showStageSelect = false;
 	state.selectedRowKeys = []
 	const tempAllRecords = await getProjectsFilter({
 		data: [...state.allRecords], 
@@ -503,15 +505,22 @@ const handleBatchPush = (id) => {
 
 const handleEdit = (index, field, title) => {
 	const record = {...state.filterRecords[index]};
-	let value = ['stage'].includes(field) ? '' : record[field];
+	let value = record[field];
 	let modal = false;
+	let showStageSelect = false;
+	
+	// 如果当前正在编辑stage字段，且点击的是同一个字段，则显示下拉框
+	if (field === 'stage' && state.edit.index === index && state.edit.field === 'stage') {
+		showStageSelect = true;
+	}
+	
 	if (['domain1', 'domain2', 'domain3'].includes(field)) {
 		modal = true;
 		title = '赛道编辑'
 	} else if (['provinceMap', 'cityMap', 'regionMap'].includes(field)) {
 		modal = true
 		title = '选择地区';
-	} else if (!['foundationDate', 'thirdLink'].includes(field) && !state.filterValuesMap[field]?.length) {
+	} else if (!['foundationDate', 'thirdLink', 'website'].includes(field) && !state.filterValuesMap[field]?.length) {
 		modal = true;
 	}
 	
@@ -522,6 +531,7 @@ const handleEdit = (index, field, title) => {
 		modal,
 		title,
 		isModal: modal, // 是否弹框修改
+		showStageSelect
 	})
 	console.log('handleEdit', state.edit)
 }
@@ -659,6 +669,7 @@ const handleChangeValue = () => {
 
 	editProject(obj).then(res => {
 		message.success("修改成功")
+		state.edit.showStageSelect = false;
 		getData()
 	})
 }

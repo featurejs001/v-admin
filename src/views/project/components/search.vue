@@ -7,7 +7,7 @@
 		      style="width: 300px"
 		      @search="onSearch"
 		    />
-			<a-button type="primary" class="ml-2" :icon="h(RedoOutlined)" @click="clearSearch">重新搜索</a-button>
+			<a-button type="primary" class="ml-2" :icon="h(RedoOutlined)" @click="clearSearch">重置搜索</a-button>
 		</div>
 		<div class="right">
 			<Import @success="handleSuccess" />

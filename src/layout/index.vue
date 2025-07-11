@@ -4,10 +4,10 @@
       	<Sliderbar  />
 	  </a-layout-sider>
       <a-layout class="container">
-        <a-layout-header class="header" :class="[isDomFullscreen, 'full', '']" >
+        <!-- <a-layout-header class="header" :class="[isDomFullscreen, 'full', '']" >
 			<Navbar v-if="!isDomFullscreen" />
-			<!-- <RouteTabs /> -->
-		</a-layout-header>
+			<RouteTabs />
+		</a-layout-header> -->
         <a-layout-content class="main">
 			<router-view />
 		</a-layout-content>
@@ -44,7 +44,7 @@ const { isSidebarOpened, isDomFullscreen } = storeToRefs(appStore);
 	.aside {
 		background: var(--sideBarBg);
 		color: rgba(255, 255, 255, 0.7);
-		padding: 10px 0;
+		padding: 2px 0px 10px 0;
 	}
 	.main {
 		// padding: 12px;
