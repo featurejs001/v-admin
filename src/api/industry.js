@@ -239,3 +239,43 @@ export function reportFilterBarChart(params) {
 		params
 	})
 }
+
+export function moveTreeNode(data) {
+	return request({
+		url: '/gy-core/gy.gy/vIndustryAllInfo/moveTreeNode',
+		method: "post",
+		data
+	})
+}
+
+export function mergeTreeNode(data) {
+	return request({
+		url: "/gy-core/gy.gy/vIndustryAllInfo/mergeTreeNode",
+		method: "post",
+		data
+	})
+}
+
+export function updateTreeNodeName(data) {
+	return request({
+		url: "/gy-core/gy.gy/vIndustryAllInfo/updateTreeNodeName",
+		method: "put",
+		data
+	})
+}
+
+export function addTreeNode(data) {
+	return request({
+		url: "/gy-core/gy.gy/vIndustryAllInfo/addTreeNode",
+		method: "post",
+		data
+	})
+}
+
+export function deleteTreeNode(data) {
+	return request({
+		url: "/gy-core/gy.gy/vIndustryAllInfo/deleteTreeNode",
+		method: "delete",
+		data
+	})
+}

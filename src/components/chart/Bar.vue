@@ -32,6 +32,12 @@
       const chartRef = ref(null);
       
       const option = reactive({
+		textStyle: {
+          fontColor: '#888888',
+          fontSize: '8px',
+          fontFamily: 'PingFangSC-Medium, segoe ui, sans-serif',
+          fontWeight: '100',
+        },
         tooltip: {
           trigger: 'axis',
           axisPointer: {
@@ -246,24 +252,18 @@
 
         // 只显示非占位符的图例
         const visibleItems = props.chartData.filter((item) => !item.name.startsWith('hidden_placeholder_'));
-        option.legend.data = visibleItems.map((item) => item.name + '(' + item.value + ')');
+        // option.legend.data = visibleItems.map((item) => item.name + '(' + item.value + ')');
 
-        option.textStyle = {
-          fontColor: '#888888',
-          fontSize: '8px',
-          fontFamily: 'PingFangSC-Medium, segoe ui, sans-serif',
-          fontWeight: '100',
-        };
-
-		if (!chartObj && chartRef.value) {
-			console.log('chartRef', chartRef.value, props.chartData)
+		console.log("Bar :", props.chartData, option)
+		if (chartRef.value) {
 			chartObj = echarts.init(chartRef.value)
 		}
 		
 		if (chartObj) {
-	 		chartObj.clear()
+			console.log("更新数据")
+	 		// chartObj.clear()
 			chartObj.setOption(option)
-			chartObj.resize(); 
+			// chartObj.resize(); 
 		}
       }
 	  

@@ -32,7 +32,7 @@ const props = defineProps({
       required: true,
     },
     dataProvided: {
-      type: Object,
+      type: [Object, null],
       required: true,
 	},
 	tags: {
@@ -74,8 +74,9 @@ onMounted(async () => {
       if (props?.dataProvided) {
         response = await reportFilterBarChart(props?.dataProvided);
       } else if (props?.tags.length > 0) {
+		const tags = props.tags.filter(tag => !['关注', '跟进', '其他'].includes(tag))
         response = await reportFilterBarChart({
-			titles: props.tags.join(",")
+			titles: tags.join(",")
 		});
       } else {
         response = await reportFilterBarChart(props?.dataProvided);

@@ -154,7 +154,7 @@
           fontWeight: '400',
         };
 
-        if (!chartObj && chartRef.value) {
+        if (chartRef.value) {
 			console.log('chartRef', chartRef.value, props.chartData)
 			chartObj = echarts.init(chartRef.value)
 		}
