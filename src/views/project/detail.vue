@@ -510,7 +510,7 @@ const getDetail = () => {
 						domain1: item.domain1,
 						domain2: item.domain2,
 						domain3: item.domain3,
-						disabled: main.includes(userStore.userInfo.realname) || assistant.includes(userStore.userInfo.realname) ? false : true, // 是否可编辑
+						disabled: main.includes(userStore.userInfo.realname) || assistant.includes(userStore.userInfo.realname) || ['毛振华', '笑容'] ? false : true, // 是否可编辑
 					}
 				})
 				

@@ -156,7 +156,7 @@ const getRowSpan1 = (index, field, data) => {
     return count;
 };
 
-// 展开状态，无融资排序及赛道排序的，赛道单元格均分显示
+// 恢复 getRecordsByRowSpan 为撤回前的版本
 export const getRecordsByRowSpan = (originRecords) => {
 	const records = JSON.parse(JSON.stringify(originRecords))
 	const cacheData = {};
@@ -169,10 +169,10 @@ export const getRecordsByRowSpan = (originRecords) => {
 		let len = 0; // 同项目总行数
 		let domainLen = 0; // 同项目赛道不为空的总行数
 		const domains = [];
-		
+		const mains = [];
+		const assistants = [];
 		for (let index = rowIndex; index < records.length; index++) {
 			if (records[index].name === records[rowIndex].name) {
-				
 				records[index].domainRowSpan = 0; // 单元格都设置为0
 				len++;
 				if (records[index].domain1) {
@@ -181,7 +181,9 @@ export const getRecordsByRowSpan = (originRecords) => {
 						domain1: records[index].domain1,
 						domain2: records[index].domain2,
 						domain3: records[index].domain3,
-					})
+					});
+					mains.push(records[index].main);
+					assistants.push(records[index].assistant);
 				}
 			} else {
 				break;
@@ -189,18 +191,14 @@ export const getRecordsByRowSpan = (originRecords) => {
 		}
 
 		records[rowIndex].mergeRowSpan = len;
-		// 计算最大可分配的单元格数
-		// console.log('before', records[rowIndex].name, rowIndex, len, domainLen)
 		const base = 0 === domainLen ? 0 : Math.floor(len / domainLen); // 每行最少可以分的行数
 		let remainder = 0 === domainLen ? 0 : len % domainLen; // 剩余的行数
-		
 		if (domainLen === 0) { // 如果当前项目下没有赛道，将项目第一条数据直接合并单元格
-			records[rowIndex].domainRowSpan === len;
+			records[rowIndex].domainRowSpan = len;
 		} else {
-			// 计算每个赛道可合并的单元格
-			// console.log('after', records[rowIndex].name, domains)
 			let nextIndex = rowIndex;
-			for (const item of domains) { 
+			for (let i = 0; i < domains.length; i++) {
+				const item = domains[i];
 				const domainRowSpan = base + (remainder > 0 ? 1 : 0);
 				remainder--;
 				// 重新设置记录的赛道数据
@@ -208,37 +206,13 @@ export const getRecordsByRowSpan = (originRecords) => {
 				records[nextIndex].domain1 = item.domain1;
 				records[nextIndex].domain2 = item.domain2;
 				records[nextIndex].domain3 = item.domain3;
+				// 新增：分配 main/assistant
+				records[nextIndex].main = mains[i];
+				records[nextIndex].assistant = assistants[i];
 				nextIndex += domainRowSpan;
 			}
-			// console.log("afff :", records[rowIndex].name, nextIndex)
 		}
-
-			
-
-		/*for (let index = rowIndex; index < rowIndex + len; index++) {
-
-			/*if (records[index].domain1) {
-				records[index].domainRowSpan = base + (remainder > 0 ? 1 : 0);
-				remainder--;
-			} else if (rowIndex === index && domainLen === 0) {
-				// 当前项目下没有赛道
-				records[index].domainRowSpan = len;
-			} else {
-				records[index].domainRowSpan = 0;
-			}
-
-			if (records[index].domainRowSpan > 0) {
-				const temp = domains.length ? domains.shift() : {};
-				records[index].domain1 = temp?.domain1 || "";
-				records[index].domain2 = temp?.domain2 || "";
-				records[index].domain3 = temp?.domain3 || "";
-			}
-			
-			console.log(records[index].name, index, base, records[index].domainRowSpan, records[index].domain1)
-		}*/
-
 	}
-	
 	return records;
 } 
 
@@ -321,8 +295,6 @@ export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}, records
 	    align: 'center',
 	    dataIndex: 'investDate',
 	    resizable: true,
-	    // defaultSortOrder: recordType === 'merge' ? 'descend' : undefined,
-	    // sortDirections: ['ascend', 'descend'],
 	    sorter: true,
 	    width: 120,
 	}, {
@@ -330,25 +302,24 @@ export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}, records
 	    align: 'center',
 	    dataIndex: 'turn2',
 	    resizable: true,
+	    filters: [],
 	    sorter: true,
 	    width: 120,
-	    filters: [],
-	},   {
-	    title: '金额',
+	}, {
+		title: '金额',
 	    align: 'center',
 	    dataIndex: 'amount',
 	    resizable: true,
 	    sorter: true,
 	    width: 90,
-	},
-	{
+	}, {
 		title: '投资方',
-		// align: 'center',
-		dataIndex: 'investor',
-		resizable: true,
-		align: 'left',
-		sorter: true,
-		width: 150,
+	    // align: 'center',
+	    dataIndex: 'investor',
+	    resizable: true,
+	    align: 'left',
+	    sorter: true,
+	    width: 150,
 	},
 	{
 		title: '一级赛道',
@@ -379,121 +350,124 @@ export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}, records
 		sorter: true,
 		width: 150,
 		// filters: domain3Filter,
-	}, {
-		title: '简介',
-	    // align: 'center',
-	    dataIndex: 'briefIntroduction',
-		slot: 'editCommon',
-	    resizable: true,
-	    align: 'left',
-	    sorter: true,
-	    width: 150,
-	}, {
-		title: '成立时间',
-	    // align: 'center',
-	    dataIndex: 'foundationDate',
-		slot: 'editCommon',
-	    resizable: true,
-	    align: 'left',
-	    sorter: true,
-	    width: 100,
-	}, {
-		title: '第三方链接',
-	    // align: 'center',
-	    dataIndex: 'thirdLink',
-		slot: 'editCommon',
-	    resizable: true,
-	    align: 'left',
-	    sorter: true,
-	    width: 150,
-	}, {
-		title: '官网',
-	    // align: 'center',
-	    dataIndex: 'website',
-		slot: 'editCommon',
-	    resizable: true,
-	    align: 'left',
-	    sorter: true,
-	    width: 150,
-	}, {
-		align: 'center',
-	    // customRender: ({text}) => {
-	    //   return getTextByCode(text);
-	    // },
-	    dataIndex: 'provinceMap',
-		slot: 'editCommon',
-	    resizable: true,
-	    sorter: true,
-	    title: '省',
-	    filteredValue: [],
-	    filters: [],
-	    width: 80,
-	}, {
-		title: '市',
-	    // align: 'center',
-	    dataIndex: 'cityMap',
-		slot: 'editCommon',
-	    resizable: true,
-	    align: 'center',
-	    sorter: true,
-	    // customRender: ({text}) => {
-	    //   return getTextByCode(text);
-	    // },
-	    filteredValue: [],
-	    filters: [],
-	    width: 80,
-	}, {
-		 title: '区',
-	    // align: 'center',
-	    dataIndex: 'regionMap',
-		slot: 'editCommon',
-	    resizable: true,
-	    align: 'center',
-	    sorter: true,
-	    // customRender: ({text}) => {
-	    //   return getTextByCode(text);
-	    // },
-	    filteredValue: [],
-	    filters: [],
-	    width: 80,
-	}, {
-		title: '标签',
-	    align: 'left',
-	    dataIndex: 'tags',
-	    ellipsis: true,
-	    resizable: true,
-	    sorter: true,
-	    width: 100,
-	}, {
+	},
+	// 主理人、协理人列移到这里
+	{
 		title: '主理人',
-	    align: 'left',
-	    dataIndex: 'main',
-	    // slot: 'mainSlot',
-	    resizable: true,
-	    sorter: true,
-	    width: 100,
-	    customRender: ({ record, text }) => {
-	      if (recordType === 'merge' && Array.isArray(rawProjectRows) && rawProjectRows.length > 0) {
-	        const projectRows = rawProjectRows.filter(r => r.name === record.name && r.domain3);
-	        return projectRows.map(r => r.main && r.main.trim() ? r.main.trim() : '').join('、');
-	      }
-	      return text;
-	    }
-	}, {
+		align: 'left',
+		dataIndex: 'main',
+		resizable: true,
+		sorter: true,
+		width: 100,
+		customRender: ({ record, text }) => {
+		  if (recordType === 'single') {
+			return record.main || '';
+		  }
+		  if (recordType === 'merge' && Array.isArray(rawProjectRows) && rawProjectRows.length > 0) {
+			const projectRows = rawProjectRows.filter(r => r.name === record.name && r.domain3);
+			return projectRows.map(r => r.main && r.main.trim() ? r.main.trim() : '').join('、');
+		  }
+		  return text;
+		},
+		customCell: (...args) => { console.log('主理人 customCell', args); return { rowSpan: 1 }; },
+	},
+	{
 		title: '协理人',
-	    align: 'left',
-	    dataIndex: 'assistant',
-	    // slot: 'assistantSlot',
-	    resizable: true,
-	    sorter: true,
-	    width: 100,
-	    customRender: ({ record, text }) => {
-	      if (recordType === 'merge' && Array.isArray(rawProjectRows) && rawProjectRows.length > 0) {
-	        const projectRows = rawProjectRows.filter(r => r.name === record.name && r.domain3);
-	        return projectRows.map(r => (r.assistant && r.assistant.trim()) ? r.assistant.trim() : '无').join('、');
-	      }
-	      return text;
-	    }
+		align: 'left',
+		dataIndex: 'assistant',
+		resizable: true,
+		sorter: true,
+		width: 100,
+		customRender: ({ record, text }) => {
+		  if (recordType === 'single') {
+			return record.assistant || '';
+		  }
+		  if (recordType === 'merge' && Array.isArray(rawProjectRows) && rawProjectRows.length > 0) {
+			const projectRows = rawProjectRows.filter(r => r.name === record.name && r.domain3);
+			return projectRows.map(r => (r.assistant && r.assistant.trim()) ? r.assistant.trim() : '无').join('、');
+		  }
+		  return text;
+		},
+		customCell: (...args) => { console.log('协理人 customCell', args); return { rowSpan: 1 }; },
+	},
+	// 恢复被删除的列
+	{
+		title: '简介',
+		dataIndex: 'briefIntroduction',
+		slot: 'editCommon',
+		align: 'left',
+		resizable: true,
+		sorter: true,
+		width: 150,
+	},
+	{
+		title: '成立时间',
+		dataIndex: 'foundationDate',
+		slot: 'editCommon',
+		align: 'left',
+		resizable: true,
+		sorter: true,
+		width: 100,
+	},
+	{
+		title: '第三方链接',
+		dataIndex: 'thirdLink',
+		slot: 'editCommon',
+		align: 'left',
+		resizable: true,
+		sorter: true,
+		width: 150,
+	},
+	{
+		title: '官网',
+		dataIndex: 'website',
+		slot: 'editCommon',
+		align: 'left',
+		resizable: true,
+		sorter: true,
+		width: 150,
+	},
+	{
+		title: '省',
+		dataIndex: 'provinceMap',
+		slot: 'editCommon',
+		align: 'center',
+		resizable: true,
+		sorter: true,
+		width: 80,
+		filteredValue: [],
+		filters: [],
+	},
+	{
+		title: '市',
+		dataIndex: 'cityMap',
+		slot: 'editCommon',
+		align: 'center',
+		resizable: true,
+		sorter: true,
+		width: 80,
+		filteredValue: [],
+		filters: [],
+	},
+	{
+		title: '区',
+		dataIndex: 'regionMap',
+		slot: 'editCommon',
+		align: 'center',
+		resizable: true,
+		sorter: true,
+		width: 80,
+		filteredValue: [],
+		filters: [],
+	},
+	{
+		title: '标签',
+		dataIndex: 'tags',
+		align: 'left',
+		ellipsis: true,
+		resizable: true,
+		sorter: true,
+		width: 100,
 	}, {
 		title: '其他人',
 	    align: 'left',
@@ -737,6 +711,10 @@ export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}, records
 					style: { verticalAlign: 'top' }
 				}
 			}
+		}
+		// 保证主理人/协理人列 customCell 不被覆盖
+		if (newItem.dataIndex === 'main' || newItem.dataIndex === 'assistant') {
+			newItem.customCell = () => ({ rowSpan: 1 });
 		}
 		// if (true === newItem.sorter) {
 		// 	newItem.sorter = (a, b) => {

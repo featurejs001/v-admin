@@ -164,16 +164,9 @@ const state = reactive({
 
 const tableColumns = computed(() => {
 	const fields = tableProps.value.columns.filter(item => {
-		if (item.isHide) {
-			return false;
-		}
-		// 过滤不显示的列
+		if (item.isHide) return false;
 		return -1 !== state.sorter.selectedColumns.indexOf(item.dataIndex)
-	}).map(item => {
-		return {
-			...item
-		}
-	})
+	});
 	fields.sort((a, b) => {
 		const indexA = state.sorter.columns.findIndex(item => item.dataIndex === a.dataIndex)
 		const indexB = state.sorter.columns.findIndex(item => item.dataIndex === b.dataIndex)
@@ -191,7 +184,6 @@ const tableColumns = computed(() => {
 			fixed: 'left'
 		})
 	}
-	// console.log("fields", fields)
 	return fields;
 })
 
