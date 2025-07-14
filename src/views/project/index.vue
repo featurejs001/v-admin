@@ -412,14 +412,13 @@ const handleSearch = () => {
 }
 
 const getPageRecord = () => {
+	console.log('[调试] getPageRecord recordType:', state.recordType);
 	if (state.recordType === 'merge') {
 		state.params.isMergeSingle = false;
 		const pages = getProjectsPages([...state.filterAllRecords], state.params.pageNo, state.params.pageSize);
-		// console.log("...stateleng :", pages)
 		state.params.total = pages.total;
 		state.filterRecords = pages.items;
 	} else {
-		// 检查是否最近融资、轮次、金额、投资方、赛道排序，是的话拆分多条
 		const check = state.params.sorts.filter(item => ['investDate', 'turn2', 'amount', 'investor', 'domain1', 'domain2', 'domain3'].includes(item.field));
 		if (check.length) {
 			state.params.isMergeSingle = false;
@@ -428,22 +427,20 @@ const getPageRecord = () => {
 			state.filterRecords = pages.items;
 		} else {
 			state.params.isMergeSingle = true;
-		    const names = Array.from(new Set(state.filterAllRecords.map(item => item.name)));
+			const names = Array.from(new Set(state.filterAllRecords.map(item => item.name)));
 			state.params.total = names.length;
 			const pages = getProjectsPages([...names], state.params.pageNo, state.params.pageSize);
-			console.log("...stateleng :", pages)
+			console.log('[调试] 展开模式 names:', names);
 			const tempList = []
 			pages.items.forEach((name) => {
 				const temp = state.filterAllRecords.filter(item => item.name === name)
 				tempList.push(...JSON.parse(JSON.stringify(temp)));
 			});
-			console.log("filter lllll :", tempList.length)
+			console.log('[调试] 展开模式 tempList:', tempList);
 			state.filterRecords = getRecordsByRowSpan(tempList);
 		}
-		
 	}
-	console.log("total :", state.params.total)
-	
+	console.log('[调试] getPageRecord filterRecords:', state.filterRecords);
 }
 
 const handleFilterChange = async () => {
