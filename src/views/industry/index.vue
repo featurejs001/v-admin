@@ -1,5 +1,13 @@
 <template>
 	<div class="industry-wrap">
+		<div
+		    v-if="state.dragTooltip.visible"
+		    class="drag-tooltip"
+		    :class="`drag-tooltip-${state.dragTooltip.type}`"
+		    :style="{ left: state.dragTooltip.x + 'px', top: state.dragTooltip.y + 'px' }"
+		  >
+		    {{ state.dragTooltip.message }}
+		  </div>
 		<div class="header">
 			<div>
 				<div class="first_introduction_text">
@@ -51,7 +59,7 @@
 		        		<template #title>
 							<span>重新载入</span>
 						</template>
-						<RedoOutlined class="icon-wrapper" />
+						<Redo :customClass="'icon-wrapper'" :loading="state.loading" />
 					</a-tooltip>
 				</div>
 			</div>
@@ -108,7 +116,9 @@
 					</div>
 				</div>
 				<div class="tree-container">
+				<a-spin v-if="state.loading" />
 		        <a-tree
+					v-else
 		            ref="atree"
 		            :auto-expand-parent="state.autoExpandParent"
 		            :expanded-keys="state.expandedKeys"
@@ -221,7 +231,8 @@ import {
 	UsergroupAddOutlined,
 	NodeCollapseOutlined
 } from '@ant-design/icons-vue';
-  import { Modal, message as Message } from 'ant-design-vue';
+import { Modal, message as Message } from 'ant-design-vue';
+import Redo from "@/components/common/redo.vue"; 
 import { h, reactive, onMounted, ref, computed, nextTick } from "vue";
 import { getToolHint } from "@/utils/helper"
 import { 
@@ -249,6 +260,7 @@ let selected_node = null;
 let gDeletedNodes = [];
 const inputRefs = ref({});
 const state = reactive({
+	loading: false,
 	tooltips: [],
 	priorityTags: Object.keys(prioritiesOrder),
 	selectedPriorityTags: ['跟进'],
@@ -448,6 +460,8 @@ function getDragPosition(info) {
 
 // 允许拖放的判断函数
 const allowDrop = (info) => {
+	// console.log("allowDrop L", info?.dragNode?.level, info?.dropNode?.level)
+	return info && info.dropNode && info.dragNode && info.dragNode.level === info.dropNode.level ? true : false;
     // 在拖放过程的某些阶段，info可能不完整，我们默认允许拖放
     if (!info) {
       return true; // 如果info不存在，允许拖放，使用默认行为
@@ -569,6 +583,7 @@ const onDragStart = (info) => {
     document.addEventListener('mousemove', updateTooltipPosition);
 
     console.log('拖动开始 - 保存拖动节点信息:', '节点:', state.currentDragNode, '级别:', state.currentDragNodeLevel);
+	// 
 };
 // 判断拖拽是否有效的函数
 const isValidDrag = (dragLevel, targetLevel) => {
@@ -618,7 +633,8 @@ async function mergeTreeAction(info) {
       const { result } = await mergeTreeNode({ level: info.node.level - 1, fromDomain: info.dragNode.title, toDomain: info.node.title });
 
       if (typeof result === 'string' && result.includes('成功')) {
-        window.location.reload();
+        // window.location.reload();
+		refreshPage()
       } else {
         Message.error(typeof result === 'string' ? result : result.message || '合并失败');
       }
@@ -691,7 +707,8 @@ async function moveTreeAction(info, moveInfo, skipConfirm = false) {
 
         console.log('移动成功');
         // 刷新数据
-        window.location.reload();
+        // window.location.reload();
+		refreshPage()
       } catch (error) {
         console.error('移动节点时出错:', error);
         Message.error('移动失败: ' + (error.message || '未知错误'));
@@ -779,6 +796,15 @@ async function moveTreeAction(info, moveInfo, skipConfirm = false) {
         dragNodeDataRef
       );
 
+	//   if (dragNodeLevel !== nodeLevel) {
+	// 	console.log("非同级不允许拖拽，隐藏拖拽线")
+	// 	 // 隐藏拖拽横线
+	// 	  console.log("隐藏拖拽横线", document.querySelectorAll(".ant-tree-drop-indicator"))
+	// 	  document.querySelectorAll(".ant-tree-drop-indicator").forEach((node) => {
+	// 			node.classList.add("hidden")
+	// 	  })
+	//   }
+ 
       // 判断是否为同级节点 - 使用更可靠的级别信息
       const isSameLevel = nodeLevel !== undefined && dragNodeLevel !== undefined && nodeLevel === dragNodeLevel;
 
@@ -856,13 +882,13 @@ async function moveTreeAction(info, moveInfo, skipConfirm = false) {
           nodeElement.classList.add('drop-target-overlap');
 
           // 添加内联样式以确保颜色变化 - 使用更明显的红色
-          nodeElement.style.backgroundColor = 'rgba(255, 0, 0, 0.3)';
+        //   nodeElement.style.backgroundColor = 'rgba(255, 0, 0, 0.3)';
         //   nodeElement.style.border = '2px solid #ff4d4f';
 
           // 直接修改节点内容区域的样式 - 这是最关键的部分
           const contentWrapper = nodeElement.querySelector('.ant-tree-node-content-wrapper');
           if (contentWrapper) {
-            contentWrapper.style.backgroundColor = 'rgba(255, 0, 0, 0.3)';
+            // contentWrapper.style.backgroundColor = 'rgba(255, 0, 0, 0.3)';
             // contentWrapper.style.border = '2px solid #ff4d4f';
             contentWrapper.style.borderRadius = '4px';
             contentWrapper.style.transition = 'all 0.3s';
@@ -1021,7 +1047,7 @@ async function moveTreeAction(info, moveInfo, skipConfirm = false) {
           }
 
           // 清除内容区域的样式
-          const contentWrapper = node.querySelector('.ant-tree-node-content-wrapper');
+          const contentWrapper = node.querySelector('.ant-tree-node-content-wrapper')
           if (contentWrapper && contentWrapper.style) {
             contentWrapper.style.backgroundColor = '';
             contentWrapper.style.border = '';
@@ -1322,9 +1348,10 @@ const saveEditedNode = async (node, event) => {
           const { result } = await updateTreeNodeName(params);
           if (result && result.includes('成功')) {
             // Message.success('节点更新成功！');
-            setTimeout(() => {
-              window.location.reload();
-            }, 3000);
+			refreshPage();
+            // setTimeout(() => {
+            //   window.location.reload();
+            // }, 3000);
           } else {
             Message.error('更新失败: ' + (result || '未知错误'));
           }
@@ -1334,10 +1361,10 @@ const saveEditedNode = async (node, event) => {
         }
       } else {
         // 新建节点
-        params.domain1 = node.props.domain1;
-        params.domain2 = node.props.domain2;
-        params.domain3 = node.props.domain3;
-        params.industryId = node.props.industry_id;
+        params.domain1 = node.props?.domain1;
+        params.domain2 = node.props?.domain2;
+        params.domain3 = node.props?.domain3;
+        params.industryId = node.props?.industry_id;
         params.level = node.level - 1;
         params.toName = value;
 
@@ -1345,9 +1372,10 @@ const saveEditedNode = async (node, event) => {
           const { result } = await addTreeNode(params);
           if (result && result.includes('成功')) {
             // Message.success('节点添加成功！');
-            setTimeout(() => {
-              window.location.reload();
-            }, 3000);
+			refreshPage()
+            // setTimeout(() => {
+            //   window.location.reload();
+            // }, 3000);
           } else {
             Message.error('添加失败: ' + (result || '未知错误'));
           }
@@ -1614,7 +1642,8 @@ const deleteNode = async (node_key) => {
           console.log('节点删除成功:', result.message);
 
           // API调用成功后重新加载页面
-          window.location.reload();
+		  refreshPage()
+        //   window.location.reload();
         } else {
           console.error('节点删除失败:', result?.message || '未知错误');
         }
@@ -1848,21 +1877,26 @@ function findParentKeysWithMatchingChildren(nodes, titlesArray) {
     return result;
 }
 const getData = async () => {
-	const res = await reportFilterBarChart({
-		assigner: state.selectedPeopleTags.length ? state.selectedPeopleTags.join(",") : "",
-		priority: state.selectedPriorityTags.length ? state.selectedPriorityTags.join(",") : "",
-	});
-	if (res?.result?.domain) {
-		state.distinctNames = sumDistinctNamesByPerson(res.result.domain);
-		state.gData = convertToTreeData2(res.result.domain);
-		let parentKeys;
-	    let domain3 = res.result.domain.map((obj) => obj.domain3).filter((obj) => obj);
-	    parentKeys = findParentKeysWithMatchingChildren(state.gData, domain3);
-	    // or match domain3 with level 4 and set others level4 to be invisible?
+	state.loading = true;
+	try {
+		const res = await reportFilterBarChart({
+			assigner: state.selectedPeopleTags.length ? state.selectedPeopleTags.join(",") : "",
+			priority: state.selectedPriorityTags.length ? state.selectedPriorityTags.join(",") : "",
+		});
+		if (res?.result?.domain) {
+			state.distinctNames = sumDistinctNamesByPerson(res.result.domain);
+			state.gData = convertToTreeData2(res.result.domain);
+			let parentKeys;
+		    let domain3 = res.result.domain.map((obj) => obj.domain3).filter((obj) => obj);
+		    parentKeys = findParentKeysWithMatchingChildren(state.gData, domain3);
+		    // or match domain3 with level 4 and set others level4 to be invisible?
 
-	    state.expandedKeys = parentKeys;
-	    state.autoExpandParent = true;
+		    state.expandedKeys = parentKeys;
+		    state.autoExpandParent = true;
+		}
+	} catch(e) {
 	}
+	state.loading = false;
 }
 
 let dataList = [];
@@ -1945,11 +1979,8 @@ function onDataProvided() {
     }
 }
 
-onMounted(() => {
-	getToolTip().then(res => {
-		state.tooltips = res.result || []
-	})
-
+const refreshPage = () => {
+	
 	getIndustrFieldValues('domain_nth_xhwe').then(res => {
 		if (res?.result) {
 			const orderMap = {}
@@ -1964,6 +1995,14 @@ onMounted(() => {
 	})
 
 	getData()
+}
+
+onMounted(() => {
+	getToolTip().then(res => {
+		state.tooltips = res.result || []
+	})
+
+	refreshPage()
 })
 
 
@@ -1973,6 +2012,30 @@ onMounted(() => {
 	height: 100%;
 	display: flex;
 	flex-direction: column;
+	.drag-tooltip {
+	    position: fixed;
+	    padding: 8px 12px;
+	    border-radius: 4px;
+	    font-size: 14px;
+	    z-index: 9999;
+	    pointer-events: none;
+	    white-space: nowrap;
+	    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+	    transition: opacity 0.2s;
+	    background-color: #167FFF;
+	    color: white;
+	    border: 1px solid #096dd9;
+	  }
+
+	/* 所有类型都使用主色调蓝色 */
+	.drag-tooltip-move,
+	.drag-tooltip-merge,
+	.drag-tooltip-child,
+	.drag-tooltip-invalid {
+	    background-color: #167FFF;
+	    color: white;
+	    border: 1px solid #096dd9;
+	}
 	.header {
 		flex-shrink: 0;
 		flex-grow: 0;
@@ -2224,7 +2287,7 @@ onMounted(() => {
 		&.ant-tree-node-selected {
 			background-color: transparent;
 		}
-		
 	}
 }
+
 </style>

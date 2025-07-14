@@ -17,8 +17,8 @@ const getDefaultState = () => {
 		historyRoutes: getHistoryRoutes() || [],
 		projectSetting: {
 			permissionMode: PermissionModeEnum.BACK,
-		}
-		
+		},
+		mainKey: Date.now()
 	};
 };
 
@@ -109,6 +109,9 @@ export const useApp = defineStore("app", {
 				...state.projectSetting,
 				...value
 			}
+		},
+		setRefreshPage() {
+			this.mainKey = Date.now();
 		}
 	}
 })

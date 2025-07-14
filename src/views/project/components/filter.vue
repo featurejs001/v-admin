@@ -84,8 +84,10 @@ import {
 	getAllRegions,
 	getProvinceByName1
   } from '@/utils/areaDataUtil';
-  import { provinceOrder, pinyinSort } from "@/utils/util1";
+import { provinceOrder, pinyinSort } from "@/utils/util1";
+import { useRoute } from "vue-router";
 
+const route = useRoute();
 const emits = defineEmits(['filterChange'])
 
 const props = defineProps({
@@ -676,7 +678,7 @@ const initData = () => {
 
 	promiseAll[promiseIndex++] = getProjectFieldValues()
 
-	Promise.all(promiseAll).then((res) => {
+	return Promise.all(promiseAll).then((res) => {
 		let orderMap = {}
 		const nthList = res[2]?.result || [];
 		nthList.forEach(item => {
@@ -697,9 +699,40 @@ const initData = () => {
 		state.leverList[leverIndex].tags = tag1;
 		changeDomainTags()
 
+		// 是否有路由查询参数
+		if (route.query.level) {
+			switch(Number(route.query.level)) {
+				case 1:
+					if (route.query.domain1) {
+						state.leverList[leverIndex].isHide = true;
+						state.leverList[leverIndex].selectedTags = [route.query.domain1]
+					}
+					break;
+				case 2:
+					if (route.query.domain1 && route.query.domain2) {
+						state.leverList[leverIndex].isHide = true;
+						state.leverList[leverIndex].selectedTags = [route.query.domain1];
+						state.leverList[leverIndex+1].isHide = true;
+					    state.leverList[leverIndex+1].selectedTags = [route.query.domain2];
+					}
+					
+					break;
+				case 3:
+					if (route.query.domain1 && route.query.domain2 && route.query.domain3) {
+						state.leverList[leverIndex].isHide = true;
+						state.leverList[leverIndex].selectedTags = [route.query.domain1];
+						state.leverList[leverIndex+1].isHide = true;
+						state.leverList[leverIndex+1].selectedTags = [route.query.domain2];
+						state.leverList[leverIndex+2].isHide = true;
+						state.leverList[leverIndex+2].selectedTags = [route.query.domain3]
+					}
+					break;
+			}
+		}
 		getFilterItems()
 	}).finally(() => {
 		state.loading = false;
+		return Promise.resolve();
 	})
 }
 

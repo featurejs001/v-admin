@@ -8,7 +8,7 @@
 			<Navbar v-if="!isDomFullscreen" />
 			<RouteTabs />
 		</a-layout-header> -->
-        <a-layout-content class="main">
+        <a-layout-content class="main" :key="mainKey">
 			<router-view />
 		</a-layout-content>
       </a-layout>
@@ -22,7 +22,7 @@ import Navbar from "@/layout/components/Navbar.vue"
 import RouteTabs from "@/layout/components/RouteTabs.vue"
 
 const appStore = useApp();
-const { isSidebarOpened, isDomFullscreen } = storeToRefs(appStore);
+const { isSidebarOpened, isDomFullscreen, mainKey } = storeToRefs(appStore);
 
 </script>
 <style lang="less" scoped>
