@@ -2160,9 +2160,18 @@ onMounted(() => {
 					display: none;
 				}
 
+				.text_first_level, .text_third_level {
+					font-size: 13.5px;
+					font-weight: 400;
+					color: #555;
+				}
+
 				.tab-text-col, .tab-text-col-guanzhu-tree {
 				    font-weight: 400;
 				    color: #555;
+					span {
+						color: #555;
+					}
 				}
 
 				.text-wrapper_101 {
@@ -2284,6 +2293,7 @@ onMounted(() => {
 				    font-weight: 400;
 				    color: #167FFF;
 				}
+				
 			}
 		}
 		.right-half {
