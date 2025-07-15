@@ -233,7 +233,7 @@ import {
 } from '@ant-design/icons-vue';
 import { Modal, message as Message } from 'ant-design-vue';
 import Redo from "@/components/common/redo.vue"; 
-import { h, reactive, onMounted, ref, computed, nextTick } from "vue";
+import { h, reactive, onMounted, ref, computed, nextTick, onBeforeUnmount } from "vue";
 import { getToolHint } from "@/utils/helper"
 import { 
 	getToolTip, 
@@ -553,6 +553,79 @@ const handleClick = (_, info) => {
     setMode('click');
  };
 
+let observer = null;
+
+function handleNativeDragStart(event) {
+  // 1. 获取拖拽节点的文本，按行分割
+  const lines = event.target.innerText.split('\n');
+
+  // 2. 创建一个自定义拖影 DOM
+  const dragDiv = document.createElement('div');
+  dragDiv.style.position = 'absolute';
+  dragDiv.style.top = '-9999px'; // 屏幕外
+  dragDiv.style.left = '-9999px';
+  dragDiv.style.padding = '4px 12px';
+  dragDiv.style.background = 'transparent';
+  dragDiv.style.color = '#1677ff';
+  dragDiv.style.fontSize = '14px';
+  dragDiv.style.fontWeight = '400';
+  dragDiv.style.border = '1px solid #1677ff';
+  dragDiv.style.borderRadius = '4px';
+  // dragDiv.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
+  dragDiv.style.pointerEvents = 'none';
+  dragDiv.style.zIndex = '9999';
+
+  // 3. 拼接 HTML
+  if (lines.length > 1) {
+    // 第一行正常，后面每行用小号蓝色
+    dragDiv.innerHTML =
+      `<span>${lines[0]}</span>` +
+      lines.slice(1).map(line =>
+        `<span style="font-size:12px;color:#167FFF;">${line}</span>`
+      ).join('');
+  } else {
+    dragDiv.innerText = lines[0];
+  }
+
+  // 4. 添加到 body
+  document.body.appendChild(dragDiv);
+
+  // 5. 设置为拖影
+  event.dataTransfer.setDragImage(dragDiv, dragDiv.offsetWidth / 2, dragDiv.offsetHeight / 2);
+
+  // 6. 拖拽结束后移除
+  setTimeout(() => {
+    document.body.removeChild(dragDiv);
+  }, 0);
+}
+
+function bindAllDragStart() {
+  document.querySelectorAll('.ant-tree-node-content-wrapper[draggable="true"]').forEach(node => {
+    node.removeEventListener('dragstart', handleNativeDragStart, true);
+    node.addEventListener('dragstart', handleNativeDragStart, true);
+  });
+}
+
+onMounted(() => {
+  // 初始绑定
+  bindAllDragStart();
+  // 监听 DOM 变化
+  const tree = document.querySelector('.ant-tree');
+  if (tree) {
+    observer = new MutationObserver(() => {
+      bindAllDragStart();
+    });
+    observer.observe(tree, { childList: true, subtree: true });
+    document.addEventListener('dragstart', handleNativeDragStart, true);
+  }
+});
+onBeforeUnmount(() => {
+  if (observer) observer.disconnect();
+  document.querySelectorAll('.ant-tree-node-content-wrapper').forEach(node => {
+    node.removeEventListener('dragstart', handleNativeDragStart, true);
+  });
+  document.removeEventListener('dragstart', handleNativeDragStart, true);
+});
 // 拖动开始时的处理
 const onDragStart = (info) => {
     // 保存当前拖动的节点信息
