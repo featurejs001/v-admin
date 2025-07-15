@@ -12,6 +12,7 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  --drag-preview-opacity: 0.1;
 }
 
 a {
@@ -306,8 +307,26 @@ button:focus-visible {
 }
 
 .ant-modal {
+	.ant-modal-confirm-title {
+		color: #555;
+		font-size: 13.5px;
+	}
 	.ant-modal-content {
 		border-radius: 2px;
+		color: #555;
+		font-size: 13px;
+	}
+	&.ant-modal-confirm {
+		.ant-modal-confirm-body {
+			.ant-modal-confirm-title {
+				color: #555;
+				font-size: 13.5px;
+			}
+			.ant-modal-confirm-title +.ant-modal-confirm-content {
+				color: #555;
+				font-size: 13px;
+			}
+		}
 	}
 	&.sys-modal {
 		.ant-modal-content {
@@ -368,7 +387,7 @@ a:focus-visible {
 	outline: none;
 }
 
-.custom-checkbox {
+.custom-checkbox, .ant-checkbox-wrapper {
 	color: #555;
 	font-weight: 400;
 	font-size: 13px;
@@ -660,4 +679,12 @@ a:focus-visible {
 		}
 		
 	}
+}
+
+.ant-input-search >.ant-input-group >.ant-input-group-addon:last-child .ant-input-search-button {
+	border-radius: 0px 2px 2px 0px;
+}
+
+.mr-8 {
+	margin-right: 8px;
 }

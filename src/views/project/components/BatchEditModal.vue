@@ -1,5 +1,5 @@
 <template>
-	<Modal v-model="state.open" title="批量编辑" :loading="state.loading" width="520px" @close="handleClose" @submit="handleOk">
+	<MyModal v-model="state.open" title="批量编辑" :loading="state.loading" width="520px" @close="handleClose" @submit="handleOk">
 		<div class="body">
 			<a-tabs v-model:activeKey="state.activeTab">
 			    <a-tab-pane key="项目阶段" tab="项目阶段">
@@ -26,13 +26,13 @@
 				</a-tab-pane>
 			  </a-tabs>
 		</div>
-	</Modal>
+	</MyModal>
 </template>
 
 <script setup>
 import { reactive, ref, watch } from 'vue';
-import Modal from "@/components/Modal/index.vue";
-import { message } from 'ant-design-vue';
+import MyModal from "@/components/Modal/index.vue";
+import { Modal, message } from 'ant-design-vue';
 import { updateProjectStage } from "@/api/industry";
 
 const emits = defineEmits(['success'])
@@ -75,19 +75,29 @@ const handleOk = () => {
 		message.warning('请最少选择一个阶段');
 		return;
 	}
-	state.loading = true;
-	updateProjectStage({
-		ids: state.ids,
-		stage: state.stage,
-		followStage: state.followStage
-	}).then(res => {
-		message.success(res.message);
-		state.open = false;
-		handleClose()
-		emits('success')
-	}).finally(() => {
-		state.loading = false;
-	})
+	
+	Modal.confirm({
+        title: '确定保存',
+        content: `是否确认保存${state.ids.length}条项目信息？`,
+        onOk: () => {
+			state.loading = true;
+			updateProjectStage({
+				ids: state.ids,
+				stage: state.stage,
+				followStage: state.followStage
+			}).then(res => {
+				message.success(res.message);
+				state.open = false;
+				handleClose()
+				emits('success')
+			}).finally(() => {
+				state.loading = false;
+			})
+		},
+        onCancel: () => {
+        },
+      });
+	
 }
 
 defineExpose({

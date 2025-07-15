@@ -43,7 +43,7 @@
 				<template #description>
 					<VueDraggable ref="el" class="list" v-model="state.sorter.columns" handle=".dragHandle" @end="onSorterEnd">
 						<div class="list-item" v-for="item in state.sorter.columns" :key="item.dataIndex" v-show="!isHideColumn(item.dataIndex)">
-							<div class="dragHandle">
+							<div :class="[isColumnSettingDrag(item.dataIndex) ? 'dragHandle' : '']">
 								<MenuOutlined  style="margin-right: 5px;" />
 							</div>
 							<a-checkbox
@@ -191,6 +191,13 @@ const isHideColumn = computed(() => {
 	return (dataIndex) => {
 		const item = tableProps.value.columns.find(item => item.dataIndex === dataIndex);
 		return item?.isHide || item?.columnSettingHide || false;
+	}
+})
+
+const isColumnSettingDrag = computed(() => {
+	return (dataIndex) => {
+	    const item = tableProps.value.columns.find(item => item.dataIndex === dataIndex);
+		return false === item?.columnSettingDrag ? false : true;
 	}
 })
 
@@ -394,18 +401,28 @@ onBeforeUnmount(() => {
 			    // word-break: keep-all;
 			font-size: 13.5px;
 			color: #444;
+			line-height: 20px;
+			padding: 8px 8px;
 		}
 		.ant-table-tbody >tr >td {
 			font-size: 13px;
 			color: #555;
-			line-height: 1;
+			line-height: 20px;
+			padding: 5px 8px;
 		}
 		.ant-table-thead > tr > th, 
 		.ant-table-thead > tr > td {
 			color: #444;
 			font-weight: 400;
     		font-size: 13.5px;
-			line-height: 1;
+			line-height: 20px;
+			padding: 8px 8px;
+		}
+		.ant-table-tbody >tr.ant-table-row-selected >td {
+			background: inherit;
+		}
+		.ant-table-tbody >tr.ant-table-row-selected:hover >td {
+			background: #fafafa;
 		}
 		.ant-table-column-title {
 			overflow: hidden;

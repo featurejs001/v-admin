@@ -234,6 +234,7 @@ export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}, records
 		width: 80,
 		fixed: 'left',
 		slot: 'checkbox',
+		columnSettingDrag: false, 
 	}, {
 	    title: '项目',
 	    align: 'center',
@@ -636,7 +637,8 @@ export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}, records
 	},{
 		title: '操作',
 	    dataIndex: 'action1',
-		columnSettingHide: true,
+		// columnSettingHide: true,
+		columnSettingDrag: false, // 禁止拖拽
 		slot: 'action1',
 	    fixed: 'right',
 	    width: 120,

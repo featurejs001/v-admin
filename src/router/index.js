@@ -66,6 +66,23 @@ export const dynamicRoutes = [{
 	]
 },
 {
+	path: "/industry-config",
+	name: "industry-config",
+	redirect: "/gy/industry/config",
+	component: Layout,
+	hidden: true,
+	children: [
+		{
+			path: "/gy/industry/config",
+			name: "gy-industry-config",
+			component: () => import("@/views/industry/config.vue"),
+			meta: {
+				title: '行业配置',
+			}
+		}
+	]
+},
+{
 	path: "/projects",
 	name: "projects",
 	redirect: "/gy/projects",

@@ -28,7 +28,7 @@
 	                :class="[getClassForTag(tag), state.selectedPriorityTags.includes(tag) ? 'checked' : '', state.globalMode === 'edit' ? 'disabled' : '']"
 	                @change="(checked) => handlePriorityChange(tag, checked)"
 	              >
-	                <span>{{ tag }}</span><span v-if="Number(state.distinctNames[tag]) > 0">({{ state.distinctNames[tag] }})</span>
+	                <span>{{ tag }}</span><span>({{ state.distinctNames[tag] || 0 }})</span>
 	              </a-checkable-tag>
 
 		        </div>
@@ -63,7 +63,7 @@
 					</a-tooltip>
 				</div>
 			</div>
-			<div>
+			<div v-if="state.isMgr">
 				<div class="first_introduction_text">负责人</div>
 				<div style="display: flex; align-items: center; flex-grow: 1">
 					<a-checkable-tag
@@ -73,7 +73,7 @@
 		                :class="['text-wrapper_9 qita', state.selectedPeopleTags.includes(tag) ? 'checked' : '', state.globalMode === 'edit' ? 'disabled' : '']"
 		                @change="(checked) => handlePeopleChange(tag, checked)"
 		              >
-		                {{ tag }}
+		                <span>{{ tag }}</span><span>({{ state.distinctNames[tag] || 0 }})</span>
 	              </a-checkable-tag>
 				</div>
 			</div>
@@ -250,10 +250,13 @@ import { usePermission } from "@/utils/usePermission.ts";
 import FullScreen from "@/components/common/fullScreen.vue";
 import { useRouter } from "vue-router";
 import BarChart from "./components/BarChart.vue"; 
+import { useUser } from "@/store/user";
 
 const router = useRouter();
 
 const { hasPermission } = usePermission();
+
+const userStore = useUser();
 
 let selectItem = null;
 let selected_node = null;
@@ -261,6 +264,7 @@ let gDeletedNodes = [];
 const inputRefs = ref({});
 const state = reactive({
 	loading: false,
+	isMgr: false,
 	tooltips: [],
 	priorityTags: Object.keys(prioritiesOrder),
 	selectedPriorityTags: ['跟进'],
@@ -410,7 +414,11 @@ const getClassForTag = (tag) => {
 	}
 };
 
-const toConfig = () => {}
+const toConfig = () => {
+	router.push({
+		path: "/gy/industry/config",
+	})
+}
 
 function sumDistinctNamesByPerson(data) {
     let combinedSums = {};
@@ -457,44 +465,32 @@ function getDragPosition(info) {
 // 允许拖放的判断函数
 const allowDrop = (info) => {
 	// console.log("allowDrop L", info?.dragNode?.level, info?.dropNode?.level)
-	return info && info.dropNode && info.dragNode && info.dragNode.level === info.dropNode.level ? true : false;
+	// return info && info.dropNode && info.dragNode && info.dragNode.level === info.dropNode.level ? true : false;
     // 在拖放过程的某些阶段，info可能不完整，我们默认允许拖放
     if (!info) {
       return true; // 如果info不存在，允许拖放，使用默认行为
     }
 
     // 如果dragNode或node不存在，允许拖放，使用默认行为
-    if (!info.dragNode || !info.node) {
+    if (!info.dragNode || !info.dropNode) {
       return true;
     }
 
     // 如果level属性不存在，允许拖放，使用默认行为
-    if (typeof info.dragNode.level === 'undefined' || typeof info.node.level === 'undefined') {
+    if (typeof info.dragNode.level === 'undefined' || typeof info.dropNode.level === 'undefined') {
       return true;
     }
 
     const dragLevel = info.dragNode.level;
-    const targetLevel = info.node.level;
+    const targetLevel = info.dropNode.level;
     const isSameLevel = dragLevel === targetLevel;
 
     // 如果是同级节点，允许任何拖放模式（间隙或重叠）
     if (isSameLevel) {
       return true;
-    }
-
-    // 如果不是同级节点，检查特殊情况
-
-    // Level 3 节点可以拖放到 Level 2 节点（成为其子节点）
-    if (dragLevel === 3 && targetLevel === 2) {
-      // 强制设置为非间隙模式，表示成为子节点
-      return { dropToGap: false };
-    }
-
-    // Level 4 节点可以拖放到 Level 3 节点（成为其子节点）
-    if (dragLevel === 4 && targetLevel === 3) {
-      // 强制设置为非间隙模式，表示成为子节点
-      return { dropToGap: false };
-    }
+    } else if (dragLevel - targetLevel === 1) { // 如果不是同级节点，检查特殊情况
+		return { dropToGap: false };
+	}
 
     // 其他情况不允许拖放
     return false;
@@ -1998,6 +1994,12 @@ onMounted(() => {
 		state.tooltips = res.result || []
 	})
 
+	if (userStore.gUserRoles.includes('mgr') && userStore.gUserRoles.includes('admin')) {
+		state.isMgr = false
+	} else {
+		state.isMgr = true
+	}
+
 	refreshPage()
 })
 
@@ -2311,6 +2313,7 @@ onMounted(() => {
 		&.ant-tree-node-selected {
 			background-color: transparent;
 		}
+		
 	}
 }
 

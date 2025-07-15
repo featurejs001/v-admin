@@ -279,3 +279,11 @@ export function deleteTreeNode(data) {
 		data
 	})
 }
+
+export function domainConfigList(params) {
+	return request({
+		url: '/gy-core/gy.gy/vIndustryAllInfo/domainConfigList',
+		method: 'get',
+		params
+	})
+}
