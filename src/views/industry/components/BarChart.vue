@@ -28,7 +28,8 @@ import { followStageTagsOrder, stageTagsOrder } from '@/utils/util1';
 
 const props = defineProps({
   	nodeData: {
-      type: String,
+      type: Array,
+	  default: () => [],
       required: true,
     },
     dataProvided: {
@@ -144,8 +145,8 @@ onMounted(async () => {
       });
       state.pieData = state.pieData.sort((a, b) => followStageTagsOrder[a.name.split('(')[0]] - followStageTagsOrder[b.name.split('(')[0]]);
     } else {
-      if (props.nodeData) {
-        response = await getIndustrFieldValues('report_industry_stage_13x?params=' + props.nodeData);
+      if (props.nodeData?.length) {
+        response = await getIndustrFieldValues('report_industry_stage_13x?params=' + props.nodeData.join(","));
         const processedData = response.map((obj) => {
           return { name: obj.stage, value: obj.count };
         });
@@ -200,7 +201,7 @@ onMounted(async () => {
         }
 
         state.barData = processedData;
-        response = await getIndustrFieldValues('report_industry_follow_stage_3g4', {params: props.nodeData});
+        response = await getIndustrFieldValues('report_industry_follow_stage_3g4', {params: props.nodeData.join(",")});
         state.pieData = response.map((obj) => {
           return { name: obj.follow_stage, value: obj.count };
         });

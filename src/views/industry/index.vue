@@ -268,7 +268,7 @@ const state = reactive({
 	selectedPeopleTags: [],
 	globalMode: 'filter',
 	searchValue: '',
-	selected_node_title: '',
+	selected_node_title: [],
 	orderMap: {},
 	distinctNames: {},
 	toggleShowProjectNumber: true,
@@ -310,7 +310,7 @@ const state = reactive({
 })
 
 const barTags = computed(() => {
-	return [...state.selectedPriorityTags, ...state.selectedPeopleTags, state.selected_node_title].filter(v => v)
+	return [...state.selectedPriorityTags, ...state.selectedPeopleTags, ...state.selected_node_title].filter(v => v)
 })
 
 const barKey = computed(() => {
@@ -320,18 +320,14 @@ const barKey = computed(() => {
 function setMode(mode) {
     state.globalMode = mode;
     if (mode === 'click') {
-      // state.selected_node_title = random(100000);
-      // state.selectedPriorityTags = [];
-      // state.selectedPeopleTags = [];
     }
     if (mode === 'search') {
       state.selectedPriorityTags = [];
       state.selectedPeopleTags = [];
-      // state.selected_node_title = random(100000);
     }
     if (mode === 'filter') {
       state.searchValue = '';
-      state.selected_node_title = '';
+      state.selected_node_title = [];
     }
     if (mode === 'edit') {
     }
@@ -547,7 +543,7 @@ const handleClick = (_, info) => {
 
 	// Usage
     const selectedNodes = findSelectedNodes(state.gData[0]);
-    const selectedNodeTitles = selectedNodes.map((node) => node.title).join(',');
+    const selectedNodeTitles = selectedNodes.map((node) => node.title);
     state.selected_node_title = selectedNodeTitles;
 
     // state.selected_node_title = info.title;
@@ -2252,6 +2248,17 @@ onMounted(() => {
 					}
 				}
 
+				.text_34 {
+					font-size: 12px;
+				    font-weight: 400;
+				    text-align: left;
+				    white-space: nowrap;
+				    line-height: 12px;
+				    margin-top: 8px;
+				    margin-left: 8px;
+					overflow-wrap: break-word;
+				}
+
 				.text_36 {
 					overflow-wrap: break-word;
 					font-size: 13px;
@@ -2269,6 +2276,13 @@ onMounted(() => {
 						color: #167FFF;
 						background-color: #FFE6DA;
 					}
+				}
+				.node.checked {
+					border-radius: 4px;
+					font-size: 13.5px;
+					font-style: normal;
+				    font-weight: 400;
+				    color: #167FFF;
 				}
 			}
 		}
