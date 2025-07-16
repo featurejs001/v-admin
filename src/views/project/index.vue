@@ -243,7 +243,7 @@
 <script setup>
 import Search from './components/search.vue'
 import Filter from './components/filter.vue'
-import { h, reactive, onMounted, ref, computed } from "vue"
+import { h, reactive, onMounted, ref, computed, watch } from "vue"
 import { 
 	getProjectList,
 	getPushList,
@@ -330,7 +330,32 @@ const state = reactive({
 	rawProjectRows: [] // 新增，保留原始未合并的赛道数据
 })
 
-const reactiveColumns = reactive(getProjectColumns(state.params.filters, state.filterValuesMap, state.filterRecords, state.recordType, state.selectedOption, state.params.isMergeSingle, state.rawProjectRows))
+const reactiveColumns = ref(getProjectColumns(state.params.filters, state.filterValuesMap, state.filterRecords, state.recordType, state.selectedOption, state.params.isMergeSingle, state.rawProjectRows))
+watch(
+  [
+    () => state.params.filters,
+    () => state.filterValuesMap,
+    () => state.filterRecords,
+    () => state.recordType,
+    () => state.selectedOption,
+    () => state.params.isMergeSingle,
+    () => state.rawProjectRows
+  ],
+  () => {
+    const cols = getProjectColumns(
+      state.params.filters,
+      state.filterValuesMap,
+      state.filterRecords,
+      state.recordType,
+      state.selectedOption,
+      state.params.isMergeSingle,
+      state.rawProjectRows
+    )
+    // 防御：确保 columns 一定是数组
+    reactiveColumns.value = Array.isArray(cols) ? cols : []
+  },
+  { immediate: true }
+)
 const editSelectOptions = computed(() => {
 	/*const record = state.filterRecords[state.edit.index];
 	if (!record) return [];

@@ -60,7 +60,7 @@
 		<div class="table-content" ref="tableRef">
 			<a-table 
 			@resizeColumn="handleResizeColumn" 
-			v-bind="{...$props.tableProps, columns: tableColumns}" 
+			v-bind="{...$props.tableProps, columns: tableProps.columns}" 
 			:scroll="state.scroll" @change="handleTableChange" size="small">
 				<template #headerCell="{ column }">
 		          <span v-if="column.isCheckbox" >选择</span>
@@ -201,12 +201,12 @@ const username = userStore.userInfo.realname || 'guest'
 const { saveColumnWidths, applyColumnWidths } = useTableColumnWidth(columns, tableKey, username)
 const handleResizeColumn = (width, column) => {
 	isResizing.value = true;
-  const col = tableProps.value.columns.find(c => c.dataIndex === column.dataIndex)
-  if (col) col.width = width
-  saveColumnWidths()
-  setTimeout(() => {
-    isResizing.value = false;
-  }, 200); // 拖拽结束后短暂延迟
+	const col = tableProps.value.columns.find(c => c.dataIndex === column.dataIndex)
+	if (col) col.width = width
+	saveColumnWidths(tableProps.value.columns) // 传递最新 columns
+	setTimeout(() => {
+		isResizing.value = false;
+	}, 200)
 }
 const isHideColumn = computed(() => {
 	return (dataIndex) => {
@@ -214,7 +214,15 @@ const isHideColumn = computed(() => {
 		return item?.isHide || item?.columnSettingHide || false;
 	}
 })
-
+watch(
+  () => tableProps.value.columns,
+  (newCols) => {
+    if (Array.isArray(newCols)) {
+      applyColumnWidths(newCols)
+    }
+  },
+  { immediate: true, deep: true }
+)
 const isColumnSettingDrag = computed(() => {
 	return (dataIndex) => {
 	    const item = tableProps.value.columns.find(item => item.dataIndex === dataIndex);
@@ -306,7 +314,7 @@ const onColumnIndexChange = () => {
 }
 
 onMounted(() => {
-	applyColumnWidths()
+	applyColumnWidths(tableProps.value.columns)
 	handleResize()
 	window.addEventListener('resize', handleResize)
 
@@ -322,14 +330,14 @@ onMounted(() => {
 		}
 	}
 
-	const columns = tableProps.value.columns.map((item) => {
-		const selected = cacheData.find(v => v.dataIndex === item.dataIndex)?.selected === false ? false : true;
-		return {
-			dataIndex: item.dataIndex,
-			title: item.title,
-			selected
-		}
-	})
+	const columns = Array.isArray(tableProps.value.columns) ? tableProps.value.columns.map((item) => {
+  const selected = cacheData.find(v => v.dataIndex === item.dataIndex)?.selected === false ? false : true;
+  return {
+    dataIndex: item.dataIndex,
+    title: item.title,
+    selected
+  }
+}) : [];
 
 	columns.sort((a, b) => {
 		const indexA = cacheData.findIndex(v => v.dataIndex === a.dataIndex);
