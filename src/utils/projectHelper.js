@@ -235,6 +235,7 @@ export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}, records
 		fixed: 'left',
 		slot: 'checkbox',
 		columnSettingDrag: false, 
+		resizable: true
 	}, {
 	    title: '项目',
 	    align: 'center',

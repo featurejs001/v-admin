@@ -14,7 +14,7 @@
 			loading: state.loading,
 			pagination: false,
 			dataSource: state.filterRecords,
-			columns: getProjectColumns(state.params.filters, state.filterValuesMap, state.filterRecords, state.recordType, state.selectedOption, state.params.isMergeSingle, state.rawProjectRows),
+			columns: reactiveColumns,
 			bordered: true,
 			
 		 }"
@@ -296,7 +296,6 @@ const props = defineProps({
 		default: 'project_center'
     }
 })
-
 const userSelectModalRef = ref(null)
 const batchEditModalRef = ref(null)
 const filterRef = ref(null)
@@ -331,6 +330,7 @@ const state = reactive({
 	rawProjectRows: [] // 新增，保留原始未合并的赛道数据
 })
 
+const reactiveColumns = reactive(getProjectColumns(state.params.filters, state.filterValuesMap, state.filterRecords, state.recordType, state.selectedOption, state.params.isMergeSingle, state.rawProjectRows))
 const editSelectOptions = computed(() => {
 	/*const record = state.filterRecords[state.edit.index];
 	if (!record) return [];
