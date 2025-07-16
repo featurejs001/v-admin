@@ -58,7 +58,10 @@
 			</a-popconfirm>
 		</div>
 		<div class="table-content" ref="tableRef">
-			<a-table v-bind="{...$props.tableProps, columns: tableColumns}" :scroll="state.scroll" @change="handleTableChange" size="small">
+			<a-table 
+			@resizeColumn="handleResizeColumn" 
+			v-bind="{...$props.tableProps, columns: tableProps.columns}" 
+			:scroll="state.scroll" @change="handleTableChange" size="small">
 				<template #headerCell="{ column }">
 		          <span v-if="column.isCheckbox" >选择</span>
 		          <slot v-else-if="column.titleSlot" :name="column.titleSlot" v-bind="column">序号</slot>
@@ -98,6 +101,9 @@ import { SettingOutlined, FilterOutlined, FilterFilled, MenuOutlined } from '@an
 import { defineProps, toRefs, ref, onMounted, reactive, onBeforeUnmount, computed, watch } from "vue"
 import { VueDraggable } from 'vue-draggable-plus'
 import { useRoute } from "vue-router";
+import { useTableColumnWidth } from '@/utils/useTableColumnWidth'
+import { useUser } from "@/store/user";
+// import 'ant-design-vue/dist/antd.css'
 
 const route = useRoute();
 
@@ -161,6 +167,7 @@ const state = reactive({
 		selectedColumns: []
 	}
 })
+const isResizing = ref(false);
 
 const tableColumns = computed(() => {
 	const fields = tableProps.value.columns.filter(item => {
@@ -181,19 +188,41 @@ const tableColumns = computed(() => {
 			isCheckbox: false,
 			width: 60,
 			align: 'center',
-			fixed: 'left'
+			fixed: 'left',
+			resizable: true
 		})
 	}
 	return fields;
 })
-
+const userStore = useUser();
+const columns = ref(tableProps.value.columns) // 或者直接 tableProps.value.columns
+const tableKey = props.tableProps.dataIndex || 'defaultTable'
+const username = userStore.userInfo.realname || 'guest'
+const { saveColumnWidths, applyColumnWidths } = useTableColumnWidth(columns, tableKey, username)
+const handleResizeColumn = (width, column) => {
+	isResizing.value = true;
+	const col = tableProps.value.columns.find(c => c.dataIndex === column.dataIndex)
+	if (col) col.width = width
+	saveColumnWidths(tableProps.value.columns) // 传递最新 columns
+	setTimeout(() => {
+		isResizing.value = false;
+	}, 200)
+}
 const isHideColumn = computed(() => {
 	return (dataIndex) => {
 		const item = tableProps.value.columns.find(item => item.dataIndex === dataIndex);
 		return item?.isHide || item?.columnSettingHide || false;
 	}
 })
-
+watch(
+  () => tableProps.value.columns,
+  (newCols) => {
+    if (Array.isArray(newCols)) {
+      applyColumnWidths(newCols)
+    }
+  },
+  { immediate: true, deep: true }
+)
 const isColumnSettingDrag = computed(() => {
 	return (dataIndex) => {
 	    const item = tableProps.value.columns.find(item => item.dataIndex === dataIndex);
@@ -226,6 +255,10 @@ const handleSettingReset = () => {
 }
 
 const handleTableChange = (pagination, filters, sorter) => {
+	if (isResizing.value) {
+		// 阻止排序
+		return;
+	}
 	console.log('pagination, filters, sorter', pagination, filters, sorter)
 	emits("change", { pagination, filters, sorter })
 }
@@ -281,6 +314,7 @@ const onColumnIndexChange = () => {
 }
 
 onMounted(() => {
+	applyColumnWidths(tableProps.value.columns)
 	handleResize()
 	window.addEventListener('resize', handleResize)
 
@@ -296,14 +330,14 @@ onMounted(() => {
 		}
 	}
 
-	const columns = tableProps.value.columns.map((item) => {
-		const selected = cacheData.find(v => v.dataIndex === item.dataIndex)?.selected === false ? false : true;
-		return {
-			dataIndex: item.dataIndex,
-			title: item.title,
-			selected
-		}
-	})
+	const columns = Array.isArray(tableProps.value.columns) ? tableProps.value.columns.map((item) => {
+  const selected = cacheData.find(v => v.dataIndex === item.dataIndex)?.selected === false ? false : true;
+  return {
+    dataIndex: item.dataIndex,
+    title: item.title,
+    selected
+  }
+}) : [];
 
 	columns.sort((a, b) => {
 		const indexA = cacheData.findIndex(v => v.dataIndex === a.dataIndex);
