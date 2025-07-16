@@ -1,5 +1,5 @@
 <template>
-	<MyModal v-model="state.open" title="批量编辑" :loading="state.loading" width="520px" @close="handleClose" @submit="handleOk">
+	<MyModal v-model="state.open" title="批量编辑" :loading="state.loading" width="800px" @close="handleClose" @submit="handleOk">
 		<div class="body">
 			<a-tabs v-model:activeKey="state.activeTab">
 			    <a-tab-pane key="项目阶段" tab="项目阶段">
@@ -24,6 +24,11 @@
 					    </a-select>
 					</div>
 				</a-tab-pane>
+				<a-tab-pane key="赛道" tab="赛道">
+					<div class="">
+						<Domain ref="domainRef" :domains="state.industryInfo" :allDomain="allDomain" />
+					</div>
+				</a-tab-pane>
 			  </a-tabs>
 		</div>
 	</MyModal>
@@ -34,6 +39,8 @@ import { reactive, ref, watch } from 'vue';
 import MyModal from "@/components/Modal/index.vue";
 import { Modal, message } from 'ant-design-vue';
 import { updateProjectStage } from "@/api/industry";
+import Domain from "@/components/domain/index.vue";
+import { editProject } from "@/api/industry";
 
 const emits = defineEmits(['success'])
 
@@ -45,21 +52,39 @@ const props = defineProps({
 	followStageList: {
 		type: Array,
 		default: () => []
+	},
+	allDomain: {
+		type: Array,
+		default: () => []
 	}
 })
 
+const domainRef = ref(null);
 const state = reactive({
 	open: false,
 	loading: false,
 	activeTab: '项目阶段',
 	stage: '',
 	followStage: '',
-	ids: []
+	industryInfo: [
+		{
+			domain1: '',
+			domain2: '',
+			domain3: ''
+		}
+	],
+	ids: [],
+	rows: []
 })
 
 const handleClose = () => {
 	state.stage = '';
 	state.followStage = '';
+	state.industryInfo = [{
+		domain1: '',
+		domain2: '',
+		domain3: ''
+	}]
 	state.ids = [];
 	state.loading = false;
 	state.open = false;
@@ -67,11 +92,37 @@ const handleClose = () => {
 
 const handleOpen = (params) => {
 	state.ids = params?.ids || [];
+	state.rows = params?.rows || [];
 	state.open = true;
 }
 
-const handleOk = () => {
-	if (!state.stage && !state.followStage) {
+const handleOk = async () => {
+	let func = updateProjectStage;
+	let params = {
+		ids: state.ids,
+		stage: state.stage,
+		followStage: state.followStage
+	};
+	if (state.activeTab.includes('赛道')) {
+		func = editProject;
+		const industryInfo = await domainRef.value.validate();
+		if (state.rows.length === 1) {
+			params = {
+				...state.rows[0],
+				industryInfo,
+				memoInfo: null
+			}
+		} else {
+			params = state.rows.map(item => {
+				return {
+					...item,
+					industryInfo,
+					memoInfo: null
+				}
+			})
+		}
+
+	} else if (!state.stage && !state.followStage) {
 		message.warning('请最少选择一个阶段');
 		return;
 	}
@@ -80,12 +131,9 @@ const handleOk = () => {
         title: '确定保存',
         content: `是否确认保存${state.ids.length}条项目信息？`,
         onOk: () => {
+			
 			state.loading = true;
-			updateProjectStage({
-				ids: state.ids,
-				stage: state.stage,
-				followStage: state.followStage
-			}).then(res => {
+			func(params).then(res => {
 				message.success(res.message);
 				state.open = false;
 				handleClose()

@@ -88,7 +88,7 @@
 				            v-model:value="state.searchValue"
 				            enter-button
 				            placeholder="输入关键字搜索"
-				            style="width: 300px; "
+				            style="min-width: 120px;width: 100%; "
 				            @search="onSearch"
 				            :class="state.globalMode === 'edit' ? 'disabled' : ''"
 				          />
@@ -108,12 +108,13 @@
 			              <NodeCollapseOutlined class="custom-icon" @click="onExpandAll" />
 			            </a-tooltip>
 			        </div>
-					<div class="flex-col" style="margin-left: 10px;" v-if="!state.isEdit">
+					<!-- <div class="flex-col" style="margin-left: 10px;" v-if="!state.isEdit">
 						<a-button type="primary" ghost @click="state.isEdit = !state.isEdit">编辑</a-button>
 					</div>
-					<div class="flex-col" style="margin-left: 10px;" v-else>
-						<a-button type="primary" ghost @click="state.isEdit = !state.isEdit">取消</a-button>
-					</div>
+					<div class="flex-row" style="margin-left: 10px;" v-else>
+						<a-button type="primary" ghost style="margin-right: 10px;">保存</a-button>
+						<a-button @click="() => {state.isEdit = !state.isEdit;getData()}">取消</a-button>
+					</div> -->
 				</div>
 				<div class="tree-container">
 				<a-spin v-if="state.loading" />
@@ -139,7 +140,7 @@
 		            @select="onSelect"
 		          >
 		            <template #title="{ key: treeKey, data, title }">
-		              <span @click="handleTagClick(data)" @dblclick="handleNodeDblClick(data)">
+		              <span @click="!data.editing && handleTagClick(data)" @dblclick="!data.editing && handleNodeDblClick(data)">
 		                <a-dropdown :trigger="state.isEdit ? ['contextmenu'] : 'none'">
 						  
 		                  <span>
@@ -218,6 +219,53 @@
 				/>
 			</div>
 		</div>
+		<!-- 新的编辑信息对话框 -->
+		<a-modal v-model:visible="state.editInfoModalVisible" centered title="编辑优先级/责任人" @cancel="onEditInfoCancel" @ok="handleEditInfoSubmit">
+		    <a-form ref="editInfoFormRef" :model="state.formModel" class="antd-modal-form">
+		      <a-row style="padding-left: 30px; padding-top: 20px">
+		        <a-col :span="24">
+		          <a-form-item :labelCol="state.labelCol" :wrapperCol="state.wrapperCol" label="请选择主理人" name="main">
+					<a-select
+					    v-model:value="state.formModel.main"
+					    mode="multiple"
+					    :options="userStore.userList"
+						:fieldNames="{label: 'realname', value: 'realname'}"
+						placeholder="请选择"
+						allowClear
+					  >
+					</a-select>
+		          </a-form-item>
+		        </a-col>
+		      </a-row>
+		      <a-row style="padding-left: 30px; padding-top: 0">
+		        <a-col :span="24">
+		          <a-form-item :labelCol="state.labelCol" :wrapperCol="state.wrapperCol" label="请选择协理人" name="assistant">
+					<a-select
+					    v-model:value="state.formModel.assistant"
+					    mode="multiple"
+					    :options="userStore.userList"
+						:fieldNames="{label: 'realname', value: 'realname'}"
+						placeholder="请选择"
+						allowClear
+					  >
+					</a-select>
+		          </a-form-item>
+		        </a-col>
+		      </a-row>
+		      <a-row style="padding-left: 30px; padding-top: 0">
+		        <a-col :span="24">
+		          <a-form-item :labelCol="state.labelCol" :wrapperCol="state.wrapperCol" label="请选择优先级" name="priority">
+		            <a-select v-model:value="state.formModel.priority">
+		              <a-select-option value="跟进">跟进</a-select-option>
+		              <a-select-option value="关注">关注</a-select-option>
+		              <a-select-option value="其他">其他</a-select-option>
+		              <a-select-option value="投后">投后</a-select-option>
+		            </a-select>
+		          </a-form-item>
+		        </a-col>
+		      </a-row>
+		    </a-form>
+		</a-modal>
 	</div>
 </template>
 <script setup>
@@ -243,7 +291,8 @@ import {
 	moveTreeNode,
 	updateTreeNodeName,
 	addTreeNode,
-	deleteTreeNode
+	deleteTreeNode,
+	updateTreeNodeInfo
 } from '@/api/industry'
 import { PeopleOrder, prioritiesOrder } from "@/utils/util1";
 import { usePermission } from "@/utils/usePermission.ts";
@@ -301,16 +350,18 @@ const state = reactive({
 	data_editedTitle: '',
 	editMode: false,
 	formModel: {
-		main: '',
-	    assistant: '',
-	    other: '',
+		main: [],
+	    assistant: [],
+	    other: [],
 	    priority: 0,
 	    // 可以在这里添加更多的表单字段
 	},
+	labelCol: { xs: { span: 24 }, sm: { span: 5 } },
+    wrapperCol: { xs: { span: 24 }, sm: { span: 16 } },
 	editInfoModalVisible: false,
 	modal2Visible: false,
 	modal3Visible: false,
-	isEdit: false
+	isEdit: true
 })
 
 const barTags = computed(() => {
@@ -602,26 +653,6 @@ function bindAllDragStart() {
   });
 }
 
-onMounted(() => {
-  // 初始绑定
-  bindAllDragStart();
-  // 监听 DOM 变化
-  const tree = document.querySelector('.ant-tree');
-  if (tree) {
-    observer = new MutationObserver(() => {
-      bindAllDragStart();
-    });
-    observer.observe(tree, { childList: true, subtree: true });
-    document.addEventListener('dragstart', handleNativeDragStart, true);
-  }
-});
-onBeforeUnmount(() => {
-  if (observer) observer.disconnect();
-  document.querySelectorAll('.ant-tree-node-content-wrapper').forEach(node => {
-    node.removeEventListener('dragstart', handleNativeDragStart, true);
-  });
-  document.removeEventListener('dragstart', handleNativeDragStart, true);
-});
 // 拖动开始时的处理
 const onDragStart = (info) => {
     // 保存当前拖动的节点信息
@@ -762,6 +793,34 @@ async function moveTreeAction(info, moveInfo, skipConfirm = false) {
           }
         }
 
+		// console.log('移动节点', dropPosition, targetNodeTitle, info.dragNode.title)
+		/*
+		const fromNode = findNodeByTitle(state.gData, info.dragNode.title);
+		if (!fromNode) {
+			console.log("获取移动原始节点失败");
+			return;
+		}
+		// console.log("移动原始节点----》", fromNode)
+		
+		// 删除节点
+		deleteNode(info.dragNode.title, true);
+		const targetParent = findParentNodeByTitle(state.gData, targetNodeTitle);
+		// console.log("移动目标节点----》", targetParent)
+		if (!targetParent?.children) {
+			console.log("获取移动目标节点失败");
+			return;
+		}
+		if (-1 === Number(dropPosition)) {
+			// 移动到上方
+			targetParent.children = [fromNode, ...targetParent.children]
+		} else if (1 === Number(dropPosition)) {
+			// 移动到下方
+			targetParent.children = [...targetParent.children, fromNode]
+		}
+		// console.log("移动后：", targetParent)
+		
+		return;*/
+
         // 调用统一的moveTreeNode API
         await moveTreeNode({
           level: info.dragNode.level - 1,
@@ -788,9 +847,15 @@ async function moveTreeAction(info, moveInfo, skipConfirm = false) {
       await performMoveAction();
     } else {
       // 显示确认对话框
+	  console.log("======>", info)
+	  let content = `你确定要将【${info.dragNode.title}】移动到【${info.node.title}】${info.dropPosition === -1 ? '上方' : '下方'}吗？`;
+	  if (info.dragNode.level - 1 === info.node.level) {
+		content = `你确定要将【${info.dragNode.title}】移动到【${info.node.children?.[0]?.title || info.node.title}】${info.node.children?.length || info.dropPosition === -1 ? '上方' : '下方'}吗？`;
+	  }
+	  
       Modal.confirm({
         title: '移动确认',
-        content: `你确定要将【${info.dragNode.title}】移动到【${info.node.title}】${info.dropPosition === -1 ? '上方' : '下方'}吗？`,
+        content: content,
         onOk: performMoveAction,
         onCancel: () => {
           console.log('Operation canceled, node not moved');
@@ -1130,7 +1195,7 @@ async function moveTreeAction(info, moveInfo, skipConfirm = false) {
             dropPosition: dropPosition,
             targetNodeTitle: info.node.title,
           },
-          true
+          false
         );
 
         return false;
@@ -1357,7 +1422,7 @@ const handleNodeDblClick = async (data) => {
 
 function showPeople(data) {
     if (state.toggleShowAssigner && data.level === 4) {
-      return ` ${data.props?.main?.split(',')?.join('、') || '-'}/${data.props?.assistant?.split(',')?.join('、') || '-'}`;
+      return ` ${data.props?.main?.split?.(',')?.join?.('、') || '-'}/${data.props?.assistant?.split?.(',')?.join?.('、') || '-'}`;
     } else {
       return '';
     }
@@ -1409,6 +1474,12 @@ const saveEditedNode = async (node, event) => {
         params.level = node.level - 1;
         params.toName = value;
 
+		/*node.title = value;
+		node.props[`domain${params.level}`] = value;
+		node.props.domain_path = [node.props.domain1, node.props.domain2, node.props.domain3].join("-");
+		node.editing = false;
+		return;*/
+
         try {
           const { result } = await updateTreeNodeName(params);
           if (result && result.includes('成功')) {
@@ -1432,6 +1503,77 @@ const saveEditedNode = async (node, event) => {
         params.industryId = node.props?.industry_id;
         params.level = node.level - 1;
         params.toName = value;
+		// console.log(node);
+		/*node.title = value;
+		node.editing = false;
+		node.props[`domain${params.level}`] = value;
+		switch(params.level) {
+			case 1:
+				node.props.domain2 = node.title + '二级';
+				node.props.domain3 = node.title + '三级';
+				node.children = [
+					{ 
+						title: node.title + '二级', 
+						key: 'NEW_' + generateGUID(), 
+						level: node.level,
+						projNumber: 0,
+						props: {
+							assistant: "",
+							distinct_name_count: 0,
+							domain1: node.props.domain1,
+							domain2: node.props.domain2,
+							domain3: node.props.domain3,
+							domain_path: [node.props.domain1, node.props.domain2, node.props.domain3].join("-"),
+							main: "",
+							other: "",
+							priority: "其他"
+						},
+						children: [{
+							title: node.title + '三级', 
+							key: 'NEW_' + generateGUID(), 
+							level: Number(node.level) + 1,
+							projNumber: 0,
+							props: {
+								assistant: "",
+								distinct_name_count: 0,
+								domain1: node.props.domain1,
+								domain2: node.props.domain2,
+								domain3: node.props.domain3,
+								domain_path: [node.props.domain1, node.props.domain2, node.props.domain3].join("-"),
+								main: "",
+								other: "",
+								priority: "其他"
+							}
+						}]
+					},
+				]
+				break;
+			case 2:
+				node.props.domain3 = node.title + '三级';
+				node.children = [
+					{
+						title: node.title + '三级', 
+						key: 'NEW_' + generateGUID(), 
+						level: Number(node.level) + 1,
+						projNumber: 0,
+						props: {
+							assistant: "",
+							distinct_name_count: 0,
+							domain1: node.props.domain1,
+							domain2: node.props.domain2,
+							domain3: node.props.domain3,
+							domain_path: [node.props.domain1, node.props.domain2, node.props.domain3].join("-"),
+							main: "",
+							other: "",
+							priority: "其他"
+						}
+					}
+				]
+				break;
+		}
+		node.props.domain_path = [node.props.domain1, node.props.domain2, node.props.domain3].join("-")
+		console.log(node)
+		return;*/
 
         try {
           const { result } = await addTreeNode(params);
@@ -1456,7 +1598,16 @@ const updateEditedTitle = (node, event) => {
     state.data_editedTitle = event.target.value;
 };
 
-const handleKeyPress = (node, event) => {}
+const handleKeyPress = (node, event) => {
+	// console.log('handleKeyPress :',event)
+	if (event.key === 'Escape' || event.keyCode === 27) {
+		event.stopPropagation();
+		event.preventDefault();
+		const parentNode = findParentNodeByTitle(state.gData, node.title);
+		// console.log("parentNode :", parentNode)
+		parentNode.children = parentNode.children.filter((child) => !child.editing);
+	}
+}
 
 const getInputStyle = (value) => {
 	if (value.includes('value') || !hasTwoChineseCharacters(value)) {
@@ -1510,13 +1661,13 @@ const resetEditingStatus = (node) => {
     }
 };
 
-const findParentNodeByTitle = (gData, node_key) => {
+const findParentNodeByTitle = (gData, node_key, nodeField = 'title') => {
     if (!node_key) {
       return null;
     }
     for (const parent of gData) {
       if (parent.children) {
-        const childMatch = parent.children.find((child) => child.title === node_key);
+        const childMatch = parent.children.find((child) => child[nodeField] === node_key);
         if (childMatch) {
           return parent;
         } else {
@@ -1647,6 +1798,39 @@ const addSiblingNode = (node_key) => {
     state.autoExpandParent = true;
 };
 
+const deleteNodeNew = async (node_key, isMove = false) => {
+	// console.log('deleteNode :', node_key);
+	let parentNode = findParentNodeByTitle(state.gData, node_key);
+	if (parentNode && parentNode?.children?.length === 1) {
+		const isConfirmed = !isMove ? await new Promise((resolve) => {
+	        Modal.confirm({
+	          title: '确认删除',
+	          content: '该节点是唯一的子节点，删除它将导致父节点也被删除。是否继续？',
+	          okText: '确定',
+	          cancelText: '取消',
+	          onOk: () => resolve(true),
+	          onCancel: () => resolve(false),
+	        });
+	    }) : true;
+		// 如果用户取消，则中止删除操作
+	    if (!isConfirmed) {
+	        return;
+	    }
+		// 继续查到上级是否只有一个子节点
+		while(parentNode?.title) {
+			const lastTitle = parentNode.title;
+			parentNode = findParentNodeByTitle(state.gData, lastTitle);
+			if (parentNode?.children?.length !== 1) {
+				parentNode.children = parentNode.children.filter((child) => child.title !== lastTitle);
+				break;
+			}
+		}
+	} else if (parentNode?.children?.length) {
+		// 删除对应的节点
+		parentNode.children = parentNode.children.filter((child) => child.title !== node_key);
+	}
+	// console.log("parentNode", parentNode)
+}
 
 const deleteNode = async (node_key) => {
     const parentNode = findParentNodeByTitle(state.gData, node_key);
@@ -1683,6 +1867,8 @@ const deleteNode = async (node_key) => {
       deletedNode = state.gData.find((item) => item.title === node_key);
       state.gData = state.gData.filter((item) => item.title !== node_key);
     }
+
+	return;
 
     // 如果找到了要删除的节点，记录它的key
     if (deletedNode && !deletedNode.key.startsWith('NEW_')) {
@@ -1750,10 +1936,10 @@ const onContextMenuClick = (treeKey, menuKey, data) => {
       selected_node = findNodeByTitle(state.gData, data.title);
 
       // 设置表单模型的值
-      state.formModel.main = selected_node.props?.main || '';
-      state.formModel.assistant = selected_node.props?.assistant || '';
-      state.formModel.other = selected_node.props?.other || '';
-      state.formModel.priority = selected_node.props?.priority || 0;
+      state.formModel.main = selected_node.props?.main?.join?.(",") || [];
+      state.formModel.assistant = selected_node.props?.assistant?.join?.(",") || [];
+      state.formModel.other = selected_node.props?.other?.join?.(",") || [];
+      state.formModel.priority = selected_node.props?.priority || "";
 
       // 显示对话框
       state.editInfoModalVisible = true;
@@ -1762,9 +1948,9 @@ const onContextMenuClick = (treeKey, menuKey, data) => {
       // resetEditingStatus(state.gData);
       selected_node = findNodeByTitle(state.gData, data.title);
       state.modal2Visible = true;
-      state.formModel.main = selected_node.props?.main;
-      state.formModel.assistant = selected_node.props?.assistant;
-      state.formModel.other = selected_node.props?.other;
+      state.formModel.main = selected_node.props?.main?.join?.(",") || [];
+      state.formModel.assistant = selected_node.props?.assistant?.join?.(",") || [];
+      state.formModel.other = selected_node.props?.other?.join?.(",") || [];
       setMode('edit');
     } else if (menuKey === 'editPriority') {
       selected_node = findNodeByTitle(state.gData, data.title);
@@ -1773,6 +1959,62 @@ const onContextMenuClick = (treeKey, menuKey, data) => {
     }
 };
 
+// 取消编辑
+const onEditInfoCancel = () => {
+    state.editInfoModalVisible = false;
+    state.formModel = {
+      main: [],
+      assistant: [],
+      priority: '',
+    };
+};
+
+const handleEditInfoSubmit = async () => {
+	if (!selected_node) {
+		return;
+	}
+      // 更新节点的属性
+    selected_node.props = {
+        ...selected_node.props,
+        main: state.formModel.main.join(","),
+        assistant: state.formModel.assistant.join(","),
+        other: state.formModel.other.join(","),
+        priority: state.formModel.priority,
+    };
+	// console.log("====>gData :", state.gData)
+	// state.editInfoModalVisible = false;
+	// return;
+
+      // 准备请求参数
+    const payload = {
+        domain1: selected_node.props?.domain1 || (selected_node.level === 2 ? selected_node.title : ''),
+        domain2: selected_node.props?.domain2 || (selected_node.level === 3 ? selected_node.title : ''),
+        domain3: selected_node.props?.domain3 || (selected_node.level === 4 ? selected_node.title : ''),
+        level: selected_node.level - 1 || 0,
+        main: state.formModel.main.join(","),
+        assistant: state.formModel.assistant.join(","),
+        other: state.formModel.other.join(","),
+        priority: state.formModel.priority,
+	};
+
+    try {
+        // 调用 API 更新节点信息
+        const { result } = await updateTreeNodeInfo(payload);
+
+        // 处理响应结果
+        if (result.includes('成功')) {
+          console.log('节点信息更新成功');
+          refreshPage()
+          state.editInfoModalVisible = false;
+        } else {
+          console.error('更新失败: ' + (result?.message || '未知错误'));
+        }
+    } catch (error) {
+        console.error('调用更新API时出错:', error);
+        // message.error('更新失败: ' + error.message);
+    }
+    
+}
 
 function getAllKeys(node) {
     if (node && node.children) {
@@ -1950,7 +2192,7 @@ const getData = async () => {
 		});
 		if (res?.result?.domain) {
 			state.distinctNames = sumDistinctNamesByPerson(res.result.domain);
-			state.gData = convertToTreeData2(res.result.domain);
+			state.gData = convertToTreeData2(res.result.domain);console.log('--------->', state.gData)
 			let parentKeys;
 		    let domain3 = res.result.domain.map((obj) => obj.domain3).filter((obj) => obj);
 		    parentKeys = findParentKeysWithMatchingChildren(state.gData, domain3);
@@ -2042,6 +2284,7 @@ function onDataProvided() {
         return null;
       }
     }
+	return null;
 }
 
 const refreshPage = () => {
@@ -2062,10 +2305,14 @@ const refreshPage = () => {
 	getData()
 }
 
-onMounted(() => {
+const handleKeyDown = (e) => {
+    console.log('----handleKeyDown', e)
+}
+onMounted(async () => {
 	getToolTip().then(res => {
 		state.tooltips = res.result || []
 	})
+	await userStore.getUserList();
 
 	if (userStore.gUserRoles.includes('mgr') && userStore.gUserRoles.includes('admin')) {
 		state.isMgr = false
@@ -2074,8 +2321,25 @@ onMounted(() => {
 	}
 
 	refreshPage()
-})
-
+	// 初始绑定
+	bindAllDragStart();
+	// 监听 DOM 变化
+	const tree = document.querySelector('.ant-tree');
+	if (tree) {
+		observer = new MutationObserver(() => {
+		  bindAllDragStart();
+		});
+		observer.observe(tree, { childList: true, subtree: true });
+		document.addEventListener('dragstart', handleNativeDragStart, true);
+	}
+});
+onBeforeUnmount(() => {
+  if (observer) observer.disconnect();
+  document.querySelectorAll('.ant-tree-node-content-wrapper').forEach(node => {
+    node.removeEventListener('dragstart', handleNativeDragStart, true);
+  });
+  document.removeEventListener('dragstart', handleNativeDragStart, true);
+});
 
 </script>
 <style lang="less" scoped>
@@ -2210,7 +2474,7 @@ onMounted(() => {
 				padding-right: 20px;
 				flex-shrink: 0;
 				flex-grow: 0;
-				width: 301px;
+				// width: 301px;
 			    height: 32px;
 			    margin-bottom: 10px;
 			    margin-left: 2px;

@@ -108,7 +108,7 @@
 				<template #header-left>
 					<div style="display: flex; align-items: center;">
 						<a-button type="primary" class="mr-8" ghost :icon="h(PlusOutlined)" @click="handleAdd">新增</a-button>
-						<a-button type="primary" class="mr-8" ghost :icon="h(SaveOutlined)" :disabled="!state.selectedRowKeys.length">保存</a-button>
+						<a-button type="primary" class="mr-8" ghost :icon="h(SaveOutlined)" :disabled="!state.selectedRowKeys.length" @click="handleSave()">保存</a-button>
 						<a-input-search
 				            v-model:value="state.params.searchKey"
 				            enter-button
@@ -137,7 +137,7 @@
 			          <template #title>
 			            <span>保存</span>
 			          </template>
-					  <SaveOutlined class="action-btn save" />
+					  <SaveOutlined class="action-btn save" @click="handleSave([record])" />
 					</a-tooltip>
 				</template>
 			</Table>
@@ -160,7 +160,9 @@ import { PeopleOrder, prioritiesOrder } from "@/utils/util1";
 import { 
 	getToolTip,
 	getIndustrFieldValues,
-	domainConfigList
+	domainConfigList,
+	deleteIndustry,
+	saveIndustry
 } from '@/api/industry';
 import { usePermission } from "@/utils/usePermission.ts";
 import FullScreen from "@/components/common/fullScreen.vue";
@@ -168,6 +170,7 @@ import Redo from "@/components/common/redo.vue";
 import { useUser } from "@/store/user";
 import { getIndustryColumns } from "@/utils/industryHelper";
 import Table from "@/components/Table/index.vue";
+import { message as Message } from 'ant-design-vue';
 
 const { hasPermission } = usePermission();
 const userStore = useUser();
@@ -262,7 +265,24 @@ const handlePageChange = (params) => {
 	getData()
 }
 
-const handleRemove = () => {}
+const handleRemove = (id) => {
+	deleteIndustry({
+		id
+	}).then(res => {
+		Message.success(res.message || "删除成功")
+		getData()
+	})
+}
+
+const handleSave = (records = null) => {
+	if (null === records || !Array.isArray(records)) {
+		records = state.filterRecords.filter(v => state.selectedRowKeys.includes(v.industryId));
+	}
+    saveIndustry(records).then(res => {
+		Message.success(res.message || "保存成功")
+		getData()
+	})
+}
 
 const handleAdd = () => {}
 

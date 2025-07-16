@@ -280,10 +280,35 @@ export function deleteTreeNode(data) {
 	})
 }
 
+export function updateTreeNodeInfo(data) {
+	return request({
+		url: "/gy-core/gy.gy/vIndustryAllInfo/updateTreeNodeInfo",
+		method: "put",
+		data
+	})
+}
+
 export function domainConfigList(params) {
 	return request({
 		url: '/gy-core/gy.gy/vIndustryAllInfo/domainConfigList',
 		method: 'get',
 		params
+	})
+}
+
+export function deleteIndustry(data) {
+	return request({
+		url: '/gy-core/gy.gy/vIndustryAllInfo/delete',
+		method: 'delete',
+		data,
+		params: data
+	})
+}
+
+export function saveIndustry(data) {
+	return request({
+		url: '/gy-core/gy.gy/vIndustryAllInfo/saveIndustry',
+		method: 'post',
+		data
 	})
 }

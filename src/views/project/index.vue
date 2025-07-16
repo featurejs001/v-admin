@@ -228,6 +228,7 @@
 		 @success="getData" 
 		 :stageList="state.filterValuesMap?.stage || []"
 		 :followStageList="state.filterValuesMap?.followStage || []"
+		 :allDomain="state.filterValuesMap?.allDomain || []"
 		 />
 		 <EditFieldModal 
 		 	v-model="state.edit.modal"
@@ -643,6 +644,17 @@ const handleSelectCallback = (params) => {
 const handleBatchEdit = () => {
     batchEditModalRef.value?.handleOpen?.({
 		ids: state.selectedRowKeys,        
+		rows: state.selectedRowKeys.map(key => {
+			const item = state.filterRecords.find(record => record.projectId === key);
+			if (!item) {
+				return {
+					projectId: key
+				}
+			}
+			return {
+				...item,
+			}
+		})
     })
 }
 
