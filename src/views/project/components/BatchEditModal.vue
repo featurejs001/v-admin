@@ -120,7 +120,7 @@ const handleOk = async () => {
 			params = state.rows.map(item => {
 				return {
 					...item,
-					statege: state.stage,
+					stage: state.stage,
 					followStage: state.followStage,
 					industryInfo,
 					memoInfo: null
