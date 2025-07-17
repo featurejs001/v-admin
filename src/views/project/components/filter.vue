@@ -729,6 +729,21 @@ const initData = () => {
 					break;
 			}
 		}
+		if (route.query.stage) {
+			const stateIndex = state.leverList.findIndex(item => item.key === 'stage');
+			if (-1 !== stateIndex) {
+				state.leverList[stateIndex].selectedTags = [route.query.stage];
+				state.leverList[stateIndex].isHide = true;
+			}
+		}
+
+		if (route.query.followStage) {
+			const followIndex = state.leverList.findIndex(item => item.key === 'followStage');
+			if (-1 !== followIndex) {
+				state.leverList[followIndex].selectedTags = [route.query.followStage];
+				state.leverList[followIndex].isHide = true;
+			}
+		}
 		getFilterItems()
 	}).finally(() => {
 		state.loading = false;

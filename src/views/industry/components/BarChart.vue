@@ -8,14 +8,14 @@
 	        <div class="group_6"></div>
 	        <span class="text_44 text_first_level">项目阶段</span>
 	      </div>
-	      <Bar :chartData="state.barData" />
+	      <Bar :chartData="state.barData" @click="handleBarClick" />
 	    </div>
 		<div class="chart-section">
 	      <div class="chart-title">
 	        <div class="group_6"></div>
 	        <span class="text_44 text_first_level">跟进进度</span>
 	      </div>
-	      <Pie :chartData="state.pieData" />
+	      <Pie :chartData="state.pieData" @click="handlePieClick" />
 	    </div>
 	</div>
 </template>
@@ -25,7 +25,9 @@ import Pie from "@/components/chart/Pie.vue"
 import { reactive, onMounted } from 'vue'
 import { reportFilterBarChart, getIndustrFieldValues } from '@/api/industry'
 import { followStageTagsOrder, stageTagsOrder } from '@/utils/util1';
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 const props = defineProps({
   	nodeData: {
       type: Array,
@@ -59,6 +61,26 @@ const getClass = (tag) => {
 
     ret += ' ant-tag checked';
     return ret;
+}
+
+const handleBarClick = (params) => {
+	console.log("handleBarClick :", params)
+	router.push({
+      path: '/gy/projects',
+      query: {
+		stage: params.name.split('(')[0],
+	  },
+    });
+}
+
+const handlePieClick = (params) => {
+	console.log("handlePieClick :", params)
+	router.push({
+      path: '/gy/projects',
+      query: {
+		followStage: params.name
+	  }
+	})
 }
 
 onMounted(async () => {

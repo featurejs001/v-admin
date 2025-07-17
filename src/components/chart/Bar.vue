@@ -28,7 +28,8 @@
         default: '200px', // 修改图表高度
       },
     },
-    setup(props) {
+	emits: ['click'],
+    setup(props, { emit }) {
       const chartRef = ref(null);
       
       const option = reactive({
@@ -264,7 +265,14 @@
 	 		// chartObj.clear()
 			chartObj.setOption(option)
 			// chartObj.resize(); 
+			chartObj.off('click',)
+			chartObj.on('click', 'series', onClick)
 		}
+
+      }
+
+	  function onClick(params) {
+        emit('click', params);
       }
 	  
 
