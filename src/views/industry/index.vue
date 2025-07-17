@@ -108,6 +108,14 @@
 			              <NodeCollapseOutlined class="custom-icon" @click="onExpandAll" />
 			            </a-tooltip>
 			        </div>
+					<div class="flex-col" style="margin-left: 10px;">
+						<a-tooltip placement="top">
+			        		<template #title>
+								<span>重新载入</span>
+							</template>
+							<Redo :customClass="'custom-icon'" :loading="state.loading" />
+						</a-tooltip>
+					</div>
 					<!-- <div class="flex-col" style="margin-left: 10px;" v-if="!state.isEdit">
 						<a-button type="primary" ghost @click="state.isEdit = !state.isEdit">编辑</a-button>
 					</div>
@@ -1599,13 +1607,15 @@ const updateEditedTitle = (node, event) => {
 };
 
 const handleKeyPress = (node, event) => {
-	// console.log('handleKeyPress :',event)
+	console.log('handleKeyPress :',event)
 	if (event.key === 'Escape' || event.keyCode === 27) {
 		event.stopPropagation();
 		event.preventDefault();
 		const parentNode = findParentNodeByTitle(state.gData, node.title);
 		// console.log("parentNode :", parentNode)
 		parentNode.children = parentNode.children.filter((child) => !child.editing);
+	} else if (event.key === 'Enter' || event.keyCode === 13) {
+		saveEditedNode(node, event)
 	}
 }
 
@@ -1868,7 +1878,7 @@ const deleteNode = async (node_key) => {
       state.gData = state.gData.filter((item) => item.title !== node_key);
     }
 
-	return;
+	// return;
 
     // 如果找到了要删除的节点，记录它的key
     if (deletedNode && !deletedNode.key.startsWith('NEW_')) {
@@ -2482,6 +2492,10 @@ onBeforeUnmount(() => {
 				flex-direction: row;
 				align-items: center;
 				.custom-icon {
+					font-size: 18px;
+					color: #888888;
+				}
+				:deep(.custom-icon) {
 					font-size: 18px;
 					color: #888888;
 				}

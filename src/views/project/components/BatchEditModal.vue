@@ -97,6 +97,62 @@ const handleOpen = (params) => {
 }
 
 const handleOk = async () => {
+    if (!state.stage) {
+		message.warning('请选择项目阶段');
+		return;
+	} else if (!state.followStage) {
+		message.warning('请选择跟进阶段');
+		return;
+	}
+
+	let params;
+	try {
+		const industryInfo = await domainRef.value.validate();
+		if (state.rows.length === 1) {
+			params = {
+				...state.rows[0],
+				stage: state.stage,
+				followStage: state.followStage,
+				industryInfo,
+				memoInfo: null
+			}
+		} else {
+			params = state.rows.map(item => {
+				return {
+					...item,
+					statege: state.stage,
+					followStage: state.followStage,
+					industryInfo,
+					memoInfo: null
+				}
+			})
+		}
+	} catch(e) {
+		message.warning('请选择赛道');
+		return;
+	}
+
+	Modal.confirm({
+        title: '确定保存',
+        content: `是否确认保存${state.ids.length}条项目信息？`,
+        onOk: () => {
+			
+			state.loading = true;
+			editProject(params).then(res => {
+				message.success(res.message);
+				state.open = false;
+				handleClose()
+				emits('success')
+			}).finally(() => {
+				state.loading = false;
+			})
+		},
+        onCancel: () => {
+        },
+      });
+}
+
+const handleOkOld = async () => {
 	let func = updateProjectStage;
 	let params = {
 		ids: state.ids,

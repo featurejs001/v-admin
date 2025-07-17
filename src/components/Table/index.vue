@@ -42,7 +42,7 @@
 				</template>
 				<template #description>
 					<VueDraggable ref="el" class="list" v-model="state.sorter.columns" handle=".dragHandle" @end="onSorterEnd">
-						<div class="list-item" v-for="item in state.sorter.columns" :key="item.dataIndex" v-show="!isHideColumn(item.dataIndex)">
+						<div :class="['list-item', isColumnSettingFixed(item.dataIndex)]" v-for="item in state.sorter.columns" :key="item.dataIndex" v-show="!isHideColumn(item.dataIndex)">
 							<div :class="[isColumnSettingDrag(item.dataIndex) ? 'dragHandle' : '']">
 								<MenuOutlined  style="margin-right: 5px;" />
 							</div>
@@ -227,6 +227,13 @@ const isColumnSettingDrag = computed(() => {
 	return (dataIndex) => {
 	    const item = tableProps.value.columns.find(item => item.dataIndex === dataIndex);
 		return false === item?.columnSettingDrag ? false : true;
+	}
+})
+
+const isColumnSettingFixed = computed(() => {
+	return (dataIndex) => {
+	    const item = tableProps.value.columns.find(item => item.dataIndex === dataIndex);
+		return item?.columnSettingFixed;
 	}
 })
 

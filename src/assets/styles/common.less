@@ -525,6 +525,20 @@ a:focus-visible {
 					font-size: 13px;
 					display: flex;
 					align-items: center;
+					&.top {
+						position: sticky;
+						top: 0; /* 触发固定的阈值 */
+						background: white;
+						z-index: 100;
+						padding: 2px 0px;
+					}
+					&.bottom {
+						position: sticky;
+						bottom: 0; /* 触发固定的阈值 */
+						background: white;
+						z-index: 100;
+						padding: 2px 0px;
+					}
 				}
 			}
 		}
