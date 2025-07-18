@@ -193,23 +193,23 @@
 		                  </span>
 		                  <template v-if="hasPermission('industry_tree:manage') && (data.level === 2 || data.level === 3)" #overlay>
 		                    <a-menu @click="({ key: menuKey }) => onContextMenuClick(treeKey, menuKey, data)">
-		                      <a-menu-item key="addSibling">新增本级节点</a-menu-item>
-		                      <a-menu-item key="addChild">新增下级节点</a-menu-item>
-		                      <a-menu-item key="edit">编辑节点名称</a-menu-item>
-		                      <a-menu-item key="delete">删除节点</a-menu-item>
+		                      <a-menu-item style="color: #555;" key="addSibling">新增本级节点</a-menu-item>
+		                      <a-menu-item style="color: #555;" key="addChild">新增下级节点</a-menu-item>
+		                      <a-menu-item style="color: #555;" key="edit">编辑节点名称</a-menu-item>
+		                      <a-menu-item style="color: #555;" key="delete">删除节点</a-menu-item>
 		                    </a-menu>
 		                  </template>
 		                  <template v-else-if="hasPermission('industry_tree:manage') && data.level === 4" #overlay>
 		                    <a-menu @click="({ key: menuKey }) => onContextMenuClick(treeKey, menuKey, data)">
-		                      <a-menu-item key="addSibling">新增本级节点</a-menu-item>
-		                      <a-menu-item key="edit">编辑节点名称</a-menu-item>
-		                      <a-menu-item v-if="data.level === 4" key="editInfos">编辑优先级/责任人</a-menu-item>
-		                      <a-menu-item key="delete">删除节点</a-menu-item>
+		                      <a-menu-item style="color: #555;" key="addSibling">新增本级节点</a-menu-item>
+		                      <a-menu-item style="color: #555;" key="edit">编辑节点名称</a-menu-item>
+		                      <a-menu-item style="color: #555;" v-if="data.level === 4" key="editInfos">编辑优先级/责任人</a-menu-item>
+		                      <a-menu-item style="color: #555;" key="delete">删除节点</a-menu-item>
 		                    </a-menu>
 		                  </template>
 		                  <template v-else-if="hasPermission('industry_tree:manage') && data.level === 1" #overlay>
 		                    <a-menu @click="({ key: menuKey }) => onContextMenuClick(treeKey, menuKey, data)">
-		                      <a-menu-item key="addChild">新增下级节点</a-menu-item>
+		                      <a-menu-item style="color: #555;" key="addChild">新增下级节点</a-menu-item>
 		                    </a-menu>
 		                  </template>
 		                </a-dropdown>
@@ -2447,7 +2447,7 @@ onBeforeUnmount(() => {
 	.header {
 		flex-shrink: 0;
 		flex-grow: 0;
-		padding: 0.5rem 0.5rem 0px;
+		// padding: 0.5rem 0.5rem 0px;
 		> div {
 			display: flex;
 			align-items: center;
@@ -2681,6 +2681,7 @@ onBeforeUnmount(() => {
 				    line-height: 12px;
 				    margin-top: 8px;
 				    margin-left: 8px;
+            color: #555;
 					overflow-wrap: break-word;
 				}
 

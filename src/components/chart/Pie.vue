@@ -56,7 +56,7 @@
           symbolSize: 6, // 图例符号大小
           textStyle: {
             color: '#555555', // 默认颜色
-            fontWeight: 400,
+            fontWeight: 500,
           },
         },
         series: [
@@ -74,7 +74,7 @@
               show: true,
               formatter: '{name|{b}}({c})\n{time|{d}% }',
               color: '#555555',
-              fontWeight: 400,
+              fontWeight: 500,
               position: 'outside',
               minMargin: 15,
               edgeDistance: 20,
@@ -151,7 +151,7 @@
           fontColor: '#888888',
           fontSize: '12',
           fontFamily: 'PingFangSC-Medium, segoe ui, sans-serif',
-          fontWeight: '400',
+          fontWeight: '500',
         };
 
         if (chartRef.value) {

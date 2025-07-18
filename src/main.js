@@ -8,8 +8,10 @@ import App from './App.vue'
 import router from '@/router/index';
 import pinia from '@/store/index';
 import "@/permission";
+import deviceStylePlugin from '@/plugins/device';
 
 const app = createApp(App)
+app.use(deviceStylePlugin )
 
 app.use(Antd)
 
