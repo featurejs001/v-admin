@@ -1,7 +1,7 @@
 <template>
 	<MyModal v-model="state.open" title="批量编辑" :loading="state.loading" width="800px" @close="handleClose" @submit="handleOk">
 		<div class="body">
-			<a-tabs v-model:activeKey="state.activeTab">
+			<a-tabs v-model:activeKey="state.activeTab" class="my-batch-tabs">
 			    <a-tab-pane key="项目阶段" tab="项目阶段">
 					<div class="center">
 						<span class="label">项目阶段</span>
@@ -13,9 +13,9 @@
 					    </a-select>
 					</div>
 				</a-tab-pane>
-			    <a-tab-pane key="跟进阶段" tab="跟进阶段">
+			    <a-tab-pane key="跟进阶段" tab="跟进状态">
 					<div class="center">
-						<span class="label">跟进阶段</span>
+						<span class="label">跟进状态</span>
 						<a-select
 					      v-model:value="state.followStage"
 						  class="flex-1"
@@ -219,10 +219,14 @@ defineExpose({
 		padding: 20px 30px 80px;
 		.label {
 			margin-right: 10px;
+			color: #555;
 		}
 		.flex-1 {
 			flex: 1;
 		}
 	}
+}
+body .my-batch-tabs .ant-tabs-tab-btn {
+  color: #555 !important;
 }
 </style>

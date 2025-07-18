@@ -333,7 +333,7 @@ onMounted(async () => {
 	.header {
 		flex-shrink: 0;
 		flex-grow: 0;
-		padding: 0.5rem 0.5rem 0px;
+		// padding: 0.5rem 0.5rem 0px;
 		> div {
 			display: flex;
 			align-items: center;

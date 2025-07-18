@@ -1,0 +1,40 @@
+html {
+    text-shadow: 0 0 0.6px rgba(85, 85, 85, 0.2), 0 0 0 rgba(85, 85, 85, .7) !important;
+    /* -webkit-font-smooth: always;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility; */
+}
+
+.ant-tag-checkable-checked:active,
+.ant-tag-checkable-checked:focus-visible,
+.ant-tag-checkable-checked:focus-within,
+.ant-tag-checkable-checked:target,
+.ant-tag-checkable-checked:visited,
+.ant-tag:active,
+.ant-tag:focus-visible,
+.ant-tag:focus-within,
+.ant-tag:visited,
+.ant-tag:target,
+.ant-tag:focus,
+.text_14:active,
+.text_14:focus-visible,
+.text_14:focus-within,
+.text_14:target,
+.text_14:visited,
+.ant-tag-checkable:active,
+.ant-tag-checkable:focus-visible,
+.ant-tag-checkable:focus-within,
+.ant-tag-checkable:target,
+.ant-tag-checkable:focus,
+.ant-tag-checkable:visited {
+    color: #167FFF !important;
+    background-color: transparent !important;
+    text-decoration: none;
+    filter: brightness(1.05);
+    opacity: 1;
+}
+.less_btn_icon {
+    font-size: 21px!important;
+    right: -2px!important;
+}

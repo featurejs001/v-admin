@@ -90,7 +90,7 @@
             },
             textStyle: {
               color: '#555555', // 默认颜色
-              fontWeight: 400,
+              fontWeight: 500,
             },
             rich: {},
           },
