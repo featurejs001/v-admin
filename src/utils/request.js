@@ -92,7 +92,21 @@ service.interceptors.response.use(
 		// return res;
 		// console.log("___response :", res);
 		// if the custom code is not 20000, it is judged as an error. 602: 错误弹框提示（有确认、取消操作按钮）
-		if (![0, 200].includes(res.code)) {
+		if (response.headers['content-disposition']) {
+			const fileName = response.headers['content-disposition'].split('filename=')[1].split(";")[0].replace(/"/g, '');
+			// const blob = new Blob([res], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8' });
+			const downloadElement = document.createElement('a');
+			const href = window.URL.createObjectURL(res); // 创建下载的链接
+			downloadElement.href = href;
+			const arr = fileName.split(".")
+			downloadElement.download = response.config.filename ? response.config.filename + "." + (arr.length ? arr[arr.length - 1] : 'xls')  : fileName; // 下载后文件名
+			// document.body.appendChild(downloadElement);
+			downloadElement.click(); // 点击下载
+			// document.body.removeChild(downloadElement); // 下载完成移除元素
+			window.URL.revokeObjectURL(href); // 释放掉blob对象
+
+			return response;
+		} else if (![0, 200].includes(res.code)) {
 
 			if (response.config.url.includes('/vProjectAllInfo/push')) {
 				Modal.error({

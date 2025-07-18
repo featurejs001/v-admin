@@ -296,6 +296,14 @@ export function domainConfigList(params) {
 	})
 }
 
+export function addIndustry(data) {
+	return request({
+		url: '/gy-core/gy.gy/vIndustryAllInfo/add',
+		method: 'post',
+		data
+	})
+}
+
 export function deleteIndustry(data) {
 	return request({
 		url: '/gy-core/gy.gy/vIndustryAllInfo/delete',
@@ -310,5 +318,42 @@ export function saveIndustry(data) {
 		url: '/gy-core/gy.gy/vIndustryAllInfo/saveIndustry',
 		method: 'post',
 		data
+	})
+}
+
+export function exportIndustry(params, filename = '光跃赛道表') {
+	return request({
+		url: '/gy-core/gy.gy/vIndustryAllInfo/exportXls',
+		method: 'GET',
+		responseType: 'blob', // 二进制流
+		filename,
+		params
+	})
+}
+
+export function importIndustryFromLocalFile(params) {
+	return request({
+		url: '/gy-core/gy.gy/vIndustryAllInfo/importExcelFromLocal',
+		method: 'POST',
+		params
+	})
+}
+
+export function importIndustryExcel(data) {
+	return request({
+		url: '/gy-core/gy.gy/vIndustryAllInfo/importExcel',
+		method: 'POST',
+		data,
+		headers: {
+        	'Content-Type': 'multipart/form-data',
+      	},
+	})
+}
+
+export function getDictItems(path, params) {
+	return request({
+		url: '/gy-core/sys/dict/getDictItems/' + path,
+		method: 'GET',
+		params
 	})
 }

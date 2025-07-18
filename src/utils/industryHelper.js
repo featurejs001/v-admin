@@ -6,6 +6,7 @@ export const getIndustryColumns = () => {
 		width: 200,
 		resizable: true,
 		sorter: true,
+		slot: 'editCommon'
 	}, {
 		title: '二级赛道',
 	    align: 'center',
@@ -13,6 +14,7 @@ export const getIndustryColumns = () => {
 		width: 200,
 		resizable: true,
 		sorter: true,
+		slot: 'editCommon'
 	}, {
 		title: '三级赛道',
 	    align: 'center',
@@ -20,13 +22,15 @@ export const getIndustryColumns = () => {
 		width: 200,
 		resizable: true,
 		sorter: true,
+		slot: 'editCommon'
 	}, {
 		title: '优先级',
 	    align: 'center',
 	    dataIndex: 'priority',
 		width: 100,
 	    resizable: true,
-	    sorter: true
+	    sorter: true,
+		slot: 'editCommon'
 	}, {
 		title: '主理人',
 	    align: 'center',
@@ -34,6 +38,7 @@ export const getIndustryColumns = () => {
 		width: 150,
 	    resizable: true,
 	    sorter: true,
+		slot: 'editCommon'
 	}, {
 		title: '协理人',
 	    align: 'center',
@@ -41,6 +46,7 @@ export const getIndustryColumns = () => {
 	    width: 150,
 	    resizable: true,
 	    sorter: true,
+		slot: 'editCommon'
 	}, {
 		title: '操作',
 	    align: 'center',
@@ -50,5 +56,6 @@ export const getIndustryColumns = () => {
 	    resizable: true,
 		fixed: 'right',
 		columnSettingDrag: false, // 禁止拖拽
+		columnSettingFixed: 'bottom', // 固定在底部
 	}]
 }

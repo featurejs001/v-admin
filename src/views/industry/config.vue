@@ -13,7 +13,7 @@
 					   </template>
 		            </a-tooltip>
 		        </div>
-				<div style="display: flex; align-items: center; flex-grow: 1">
+				<div style="display: flex; align-items: center; flex-grow: 1; flex-wrap: wrap;">
 	              <a-checkable-tag
 				    v-for="tag in state.priorityTags"
 	                :checked="state.selectedPriorityTags.includes(tag)"
@@ -36,7 +36,7 @@
 							<span>导入</span>
 						</template>
 						<template #default>
-							<a-upload v-if="hasPermission('project_list:import')" :customRequest="(file) => console.log(file)" :showUploadList="false" name="file">
+							<a-upload class="flex" v-if="hasPermission('project_list:import')" :customRequest="(file) => handleImportFile(file)" :showUploadList="false" name="file">
                 				<span class="jeecg-multiple-tabs-content__extra-fold">
 									<ImportOutlined class="icon-wrapper mr" />
 								</span>
@@ -48,7 +48,7 @@
 							<span>导出</span>
 						</template>
 						<template #default>
-							<ExportOutlined class="icon-wrapper" />
+							<ExportOutlined class="icon-wrapper" @click="handleExport" />
 						</template>
 					</a-tooltip>
 					<div class="divider"></div>
@@ -65,7 +65,7 @@
 			</div>
 			<div v-if="state.isMgr">
 				<div class="first_introduction_text">负责人</div>
-				<div style="display: flex; align-items: center; flex-grow: 1">
+				<div style="display: flex; align-items: center; flex-grow: 1; flex-wrap: wrap;">
 					<a-checkable-tag
 						v-for="tag in state.peopleTags"
 						:key="tag"
@@ -119,6 +119,18 @@
 				          />
 					</div>
 				</template>
+				<template #editCommon="{ column, record, index, text }">
+					<div v-if="!record.isEdit" class="w-full min-h-22 custor-pointer" @click="handleEdit(record)">{{ record[column.dataIndex] }}</div>
+					<a-select
+					 v-else 
+					 class="w-full"
+					 v-model:value="record[column.dataIndex]"
+					 :showSearch="['priority'].includes(column.dataIndex) ? false : true"
+					 :mode="Array.isArray(record[column.dataIndex]) ? 'multiple' : 'combobox'"
+					 :options="getOptions(column.dataIndex)"
+					 @search="($event) => state.selectSearch[column.dataIndex] = $event"
+					/>
+				</template>
 				<template #action="{ column, record, index, text }">
 					<a-popconfirm
 					    title="是否确认删除?"
@@ -142,6 +154,10 @@
 				</template>
 			</Table>
 		</div>
+		<AddIndustry
+		 v-model="state.showAdd" 
+		 @success="() => {state.showAdd = false; state.params.pageNo = 1; getData();}"
+		/>
 	</div>
 </template>
 <script setup>
@@ -162,7 +178,9 @@ import {
 	getIndustrFieldValues,
 	domainConfigList,
 	deleteIndustry,
-	saveIndustry
+	saveIndustry,
+	importIndustryExcel,
+	exportIndustry
 } from '@/api/industry';
 import { usePermission } from "@/utils/usePermission.ts";
 import FullScreen from "@/components/common/fullScreen.vue";
@@ -171,12 +189,14 @@ import { useUser } from "@/store/user";
 import { getIndustryColumns } from "@/utils/industryHelper";
 import Table from "@/components/Table/index.vue";
 import { message as Message } from 'ant-design-vue';
+import AddIndustry from "./components/addIndustry.vue";
 
 const { hasPermission } = usePermission();
 const userStore = useUser();
 
 const state = reactive({
 	loading: false,
+	showAdd: false,
 	tooltips: [],
 	priorityTags: [],
 	selectedPriorityTags: [],
@@ -192,7 +212,21 @@ const state = reactive({
 		searchKey: ''
 	},
 	filterRecords: [],
-	selectedRowKeys: []
+	selectedRowKeys: [],
+	options: {
+		domain1: [],
+		domain2: [],
+		domain3: [],
+		main: [],
+		assistant: [],
+		other: [],
+		priority: [],
+	},
+	selectSearch: {
+		domain1: '',
+		domain2: '',
+		domain3: '',
+	}
 })
 
 const getClassForTag = (tag) => {
@@ -232,6 +266,10 @@ const handlePeopleChange = (tag, checked) => {
 const getData = () => {
 	const params = {
 		...state.params,
+	}
+	if (!params.column) {
+		params.column = 'createTime';
+		params.order = 'desc';
 	}
 	if (state.selectedPriorityTags.length > 0) {
 		params.priority = state.selectedPriorityTags;
@@ -275,21 +313,121 @@ const handleRemove = (id) => {
 }
 
 const handleSave = (records = null) => {
+	Message.loading({ content: '正在保存...', duration: 0, key: 'saving' });
 	if (null === records || !Array.isArray(records)) {
 		records = state.filterRecords.filter(v => state.selectedRowKeys.includes(v.industryId));
 	}
-    saveIndustry(records).then(res => {
+	const saveRecords = records.map(record => {
+	    return {
+			...record,
+			main: record.main?.join?.(",") || "",
+			assistant: record.assistant?.join?.(",") || "",
+			other: record.other?.join?.(",") || ""
+		}
+	})
+    saveIndustry(saveRecords).then(res => {
 		Message.success(res.message || "保存成功")
+		getData()
+	}).finally(() => {
+		Message.destroy('saving');
+	})
+}
+
+const handleAdd = () => {
+	state.showAdd = true;
+}
+
+const handleImportFile = (data) => {
+	console.log("handleImportFile :", data)
+	const formData = new FormData();
+	formData.append('file', data.file);
+	importIndustryExcel(formData).then(res => {
+	    Message.success(res.message || "导入成功")
 		getData()
 	})
 }
 
-const handleAdd = () => {}
+const handleExport = () => {
+	exportIndustry({
+		column: 'createTime',
+		order: 'desc',
+	}, 'v_industry_all_info')
+}
 
+const handleEdit = (record) => {
+	console.log("edit: ", {...record}, state.options)
+	record.main = record.main ? record.main?.split?.(",") : [];
+	record.assistant = record.assistant ? record.assistant?.split?.(",") : [];
+	record.other = record.other ? record.other?.split?.(",") : [];
+	record.domain1 = record.domain1 || "";
+	record.domain2 = record.domain2 || "";
+	record.domain3 = record.domain3 || "";
+	record.priority = record.priority || "";
+	record.isEdit = true;
+	getIndustrFieldValues('domain1_name_xgdh').then(res => {
+		state.options.domain1 = (res.result || []).map(item => {
+			return {
+				value: item.domain1,
+				label: item.domain1
+			}
+		});
+	})
+	getIndustrFieldValues('domain2_name_axeh').then(res => {
+		state.options.domain2 = (res.result || []).map(item => {
+			return {
+				value: item.domain2,
+				label: item.domain2
+			}
+		});
+	})
+	getIndustrFieldValues('domain3_name_zghf').then(res => {
+	    state.options.domain3 = (res.result || []).map(item => {
+			return {
+				value: item.domain3,
+				label: item.domain3
+			}
+		});
+	})
+}
+
+const getOptions = computed(() => {
+	return (dataIndex) => {
+		const options = state.options[dataIndex]
+		console.log("options :", dataIndex, options)
+		if (!dataIndex.includes('domain')) {
+			return [...options]
+		}
+		const check = options.findIndex(item => item.value === state.selectSearch[dataIndex]);
+		if (-1 === check) {
+			return [
+				...options, 
+				{
+					value: state.selectSearch[dataIndex], 
+					label: state.selectSearch[dataIndex]
+				}
+			]
+		}
+		return [...options]
+	}
+})
+
+const filterOption = (input, option) => {
+    return option.value.toLowerCase().indexOf(input.toLowerCase()) >= 0;
+}
 onMounted(async () => {
 	getToolTip().then(res => {
 		state.tooltips = res.result || []
 	})
+
+	const userList = (await userStore.getUserList()).map(item => {
+		return {
+			value: item.realname,
+			label: item.realname
+		}
+	});
+	state.options.main = [...userList];
+	state.options.assistant = [...userList];
+	state.options.other = [...userList];
 
 	if (userStore.gUserRoles.includes('mgr') && userStore.gUserRoles.includes('admin')) {
 		state.isMgr = false
@@ -319,7 +457,14 @@ onMounted(async () => {
 		return prioritiesOrder[a] - prioritiesOrder[b];
 	});
 
-    state.priorityTags = [...priorityTags]
+    state.priorityTags = [...priorityTags];
+
+	state.options.priority = priorityTags.filter(v => v).map(item => {
+		return {
+			value: item,
+			label: item
+		}
+	})
 
 	getData()
 })
@@ -336,7 +481,8 @@ onMounted(async () => {
 		padding: 0.5rem 0.5rem 0px;
 		> div {
 			display: flex;
-			align-items: center;
+			align-items: flex-start;
+			margin-bottom: 4px;
 			.first_introduction_text {
 				position: relative;
 				width: 60px;
@@ -344,6 +490,8 @@ onMounted(async () => {
 				line-height: 26px;
 				margin-right: 11px;
 				color: rgba(0, 0, 0, 0.7);
+				flex-shrink: 0;
+				flex-grow: 0;
 				.info-circle {
 				    color: #167FFF; 
 					cursor: pointer; 

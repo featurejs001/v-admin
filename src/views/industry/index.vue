@@ -45,13 +45,13 @@
 			    		<template #title>
 							<span>导入</span>
 						</template>
-						<ImportOutlined class="icon-wrapper mr" />
+						<ImportOutlined class="icon-wrapper mr" @click="state.importModalVisible = true" />
 					</a-tooltip>
 					<a-tooltip placement="top">
 		        		<template #title>
 							<span>导出</span>
 						</template>
-						<ExportOutlined class="icon-wrapper" />
+						<ExportOutlined class="icon-wrapper" @click="handleExport" />
 					</a-tooltip>
 					<div class="divider"></div>
 					<FullScreen :customClass="'icon-wrapper mr'" />
@@ -274,6 +274,16 @@
 		      </a-row>
 		    </a-form>
 		</a-modal>
+		<ImportUpload 
+			v-model="state.importModalVisible"
+			title="导入行业赛道表"
+			fileName="光跃行业赛道模版.xls"
+            templateUrl="https://gy-static-resource.oss-cn-beijing.aliyuncs.com/%E5%85%89%E8%B7%83%E8%A1%8C%E4%B8%9A%E8%B5%9B%E9%81%93%E6%A8%A1%E7%89%88.xls"
+			validateType="industry"
+			:importApi="importIndustryFromLocal"
+			:preFetchApi="preFetchIndustryData"
+			@success="refreshPage"
+		/>
 	</div>
 </template>
 <script setup>
@@ -300,7 +310,9 @@ import {
 	updateTreeNodeName,
 	addTreeNode,
 	deleteTreeNode,
-	updateTreeNodeInfo
+	updateTreeNodeInfo,
+	exportIndustry,
+	importIndustryFromLocalFile
 } from '@/api/industry'
 import { PeopleOrder, prioritiesOrder } from "@/utils/util1";
 import { usePermission } from "@/utils/usePermission.ts";
@@ -308,6 +320,7 @@ import FullScreen from "@/components/common/fullScreen.vue";
 import { useRouter } from "vue-router";
 import BarChart from "./components/BarChart.vue"; 
 import { useUser } from "@/store/user";
+import ImportUpload from "@/components/common/import.vue";
 
 const router = useRouter();
 
@@ -322,6 +335,7 @@ const inputRefs = ref({});
 const state = reactive({
 	loading: false,
 	isMgr: false,
+	importModalVisible: false,
 	tooltips: [],
 	priorityTags: Object.keys(prioritiesOrder),
 	selectedPriorityTags: ['跟进'],
@@ -369,7 +383,8 @@ const state = reactive({
 	editInfoModalVisible: false,
 	modal2Visible: false,
 	modal3Visible: false,
-	isEdit: true
+	isEdit: true,
+	barSubfix: ''
 })
 
 const barTags = computed(() => {
@@ -377,7 +392,7 @@ const barTags = computed(() => {
 })
 
 const barKey = computed(() => {
-	return barTags.value.join(',')
+	return barTags.value.join(',') + "," + state.barSubfix
 })
 
 function setMode(mode) {
@@ -2312,12 +2327,60 @@ const refreshPage = () => {
 		}
 	})
 
+	state.barSubfix = Date.now()
 	getData()
 }
 
 const handleKeyDown = (e) => {
     console.log('----handleKeyDown', e)
 }
+
+const handleExport = () => {
+	exportIndustry({
+		column: 'createTime',
+		order: 'desc',
+	})
+}
+
+const importIndustryFromLocal = async (file) => {
+	return await importIndustryFromLocalFile(file);
+}
+
+const preFetchIndustryData = async (file) => {
+    console.log('预获取行业数据');
+    console.log(file);
+
+    try {
+      // 导入预处理工具
+      const { preProcessExcelFile } = await import('@/utils/excelPreProcessor');
+
+      // 定义预期的表头
+      const expectedHeaders = ['一级赛道', '二级赛道', '三级赛道', '优先级', '主理人', '协理人'];
+
+      // 执行预处理
+      const result = await preProcessExcelFile(file, {
+        expectedHeaders,
+        keyColumnIndex: 2, // 三级赛道是关键列，索引为2
+        ignoreEmptyTrailingRows: true,
+        checkUtf8Encoding: true,
+      });
+
+      if (!result.success) {
+        return Promise.reject(new Error(result.errorMessage));
+      }
+
+      console.log('Excel数据解析结果:', result.data);
+
+      // 将解析结果存储在组件实例中，以便后续使用
+    //   industryData.value = result.data;
+
+      return Promise.resolve(result.data);
+    } catch (error) {
+      console.error('解析Excel文件失败:', error);
+      return Promise.reject(error);
+    }
+}
+
 onMounted(async () => {
 	getToolTip().then(res => {
 		state.tooltips = res.result || []
