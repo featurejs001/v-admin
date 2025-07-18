@@ -171,6 +171,23 @@ export const getRecordsByRowSpan = (originRecords) => {
 		const domains = [];
 		const mains = [];
 		const assistants = [];
+		const mergeFields = {
+			'investDate': {
+				len: 0,
+				list: []
+			}, 
+			'turn2': {
+				len: 0,
+				list: []
+			}, 
+			'amount': {
+				len: 0,
+				list: []
+			}, 
+			'investor': {
+				len: 0,
+				list: []
+			}}
 		for (let index = rowIndex; index < records.length; index++) {
 			if (records[index].name === records[rowIndex].name) {
 				records[index].domainRowSpan = 0; // 单元格都设置为0
@@ -184,6 +201,13 @@ export const getRecordsByRowSpan = (originRecords) => {
 					});
 					mains.push(records[index].main);
 					assistants.push(records[index].assistant);
+				}
+				for (const field in mergeFields) {
+					records[index][`${field}RowSpan`] = 0;
+					if (records[index][field]) {
+						mergeFields[field].len++;
+						mergeFields[field].list.push(records[index][field]);
+					}
 				}
 			} else {
 				break;
@@ -210,6 +234,25 @@ export const getRecordsByRowSpan = (originRecords) => {
 				records[nextIndex].main = mains[i];
 				records[nextIndex].assistant = assistants[i];
 				nextIndex += domainRowSpan;
+			}
+		}
+
+		for (const field in mergeFields) {
+			const base = 0 === mergeFields[field].len ? 0 : Math.floor(len / mergeFields[field].len); // 每行最少可以分的行数
+			let remainder = 0 === mergeFields[field].len ? 0 : len % mergeFields[field].len; // 剩余的行数
+			if (0 === mergeFields[field].len) { // 如果当前项目下没有赛道，将项目第一条数据直接合并单元格
+				records[rowIndex][`${field}RowSpan`] = len;
+			} else {
+				let nextIndex = rowIndex;
+				for (let i = 0; i < mergeFields[field].list.length; i++) {
+					const item = mergeFields[field].list[i];
+					const rowSpan = base + (remainder > 0 ? 1 : 0);
+					remainder--;
+					// 重新设置记录的赛道数据
+					records[nextIndex][`${field}RowSpan`] = rowSpan;
+					records[nextIndex][field] = item;
+					nextIndex += rowSpan;
+				}
 			}
 		}
 	}
@@ -690,29 +733,16 @@ export const getProjectColumns = (filterMaps = {}, filterValuesMap = {}, records
 		} else if (recordType === 'single' && newItem.dataIndex.includes('domain')) {
 			// 赛道只有一条有数据，合并单元格
 			newItem.customCell = (_, rowIndex, column) => {
-				/*const checks = records.filter(record => record.name === records[rowIndex].name);
-				const firstIndex = records.findIndex(record => record.name === records[rowIndex].name);
-				const len = checks.filter(v => v.domain1 && v.domain2 && v.domain3)?.length || 0;
-				// console.log('00000', records[rowIndex].name, rowIndex, len, firstIndex)
-				if (len === 1 && rowIndex == firstIndex) {
-				    // 只有一条数据 
-					return {
-						rowSpan: checks.length,
-						style: { verticalAlign: 'top' },
-					}
-				} else if (len === 1) {
-					return {
-						rowSpan: 0,
-						style: { verticalAlign: 'top' }
-					}
-				} else {
-					return {
-						rowSpan: 1,
-						style: { verticalAlign: 'top' }
-					}
-				}*/
 				return {
 					rowSpan: undefined === _.domainRowSpan ? 0 : _.domainRowSpan,
+					style: { verticalAlign: 'top' }
+				}
+			}
+		} else if (recordType === 'single' && ['investDate', 'turn2', 'amount', 'investor'].includes(newItem.dataIndex)) {
+			// 赛道只有一条有数据，合并单元格
+			newItem.customCell = (_, rowIndex, column) => {
+				return {
+					rowSpan: undefined === _[`${newItem.dataIndex}RowSpan`] ? 0 : _[`${newItem.dataIndex}RowSpan`],
 					style: { verticalAlign: 'top' }
 				}
 			}
