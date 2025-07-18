@@ -23,19 +23,19 @@ export default defineConfig((mode) => {
 			host: "0.0.0.0",
 			port: env.VITE_PORT,
 			open: true,
-			proxy: {
-				[env.VITE_APP_BASE_API]: {
-					target: "https://api.d.vlightcap.com",
-					ws: true,
-					changeOrigin: true,
-					rewrite: (path) => {
-						let reg = new RegExp("^" + env.VITE_APP_BASE_API);
-						console.log("____reg", reg);
-						// return path.replace(/^\/api/, "");
-						return path.replace(reg, "");
-					},
-				},
-			},
+			// proxy: {
+			// 	[env.VITE_APP_BASE_API]: {
+			// 		target: "https://api.d.vlightcap.com",
+			// 		ws: true,
+			// 		changeOrigin: true,
+			// 		rewrite: (path) => {
+			// 			let reg = new RegExp("^" + env.VITE_APP_BASE_API);
+			// 			console.log("____reg", reg);
+			// 			// return path.replace(/^\/api/, "");
+			// 			return path.replace(reg, "");
+			// 		},
+			// 	},
+			// },
 		}
 	}
 })
