@@ -80,6 +80,7 @@ export const useApp = defineStore("app", {
 			this.isDomFullscreen = value;
 		},
 		setHistoryRoutes(route) {
+			console.log("setHistoryRoutes :", route)
 			if (Array.isArray(route)) {
 				this.historyRoutes = route;
 				setHistoryRoutes(this.historyRoutes);
@@ -92,12 +93,17 @@ export const useApp = defineStore("app", {
 					}
 					break;
 			}
+			// console.log("setHistoryRoutes :", route)
+			if (route.query.title) {
+				route.meta.title = route.query.title;
+			}
 			
 			if (['/login', '/404', '/'].includes(route.path) || !route.meta?.title) {
 				return false;	
 			}
 			
-			const check = this.historyRoutes.find(item => item.path === route.path);
+			// const check = this.historyRoutes.find(item => item.path === route.path);
+			const check = this.historyRoutes.find(item => item.meta.title === route.meta.title);
 			// console.log("setHistoryRoutes :", check, route)
 			if (!check) {
 			    this.historyRoutes.push(route);

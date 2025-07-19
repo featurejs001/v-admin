@@ -1419,8 +1419,8 @@ const handleNodeDblClick = async (data) => {
     const query = {
       type: 1,
       title: data.title,
-      pageNo: 1,
-      pageSize: 10,
+    //   pageNo: 1,
+    //   pageSize: 10,
       level: level,
     };
 

@@ -23,35 +23,49 @@
 				</template>
 				<template #title>
 					<div style="width: 260px;display: flex; justify-content: space-between;">
-						<a-checkbox
-					      v-model:checked="state.sorter.checkAll"
-					      :indeterminate="state.sorter.indeterminate"
-						  class="custom-checkbox"
-					      @change="onColumnCheckAllChange"
-					    >
-						列展示
-						</a-checkbox>
+						
 						<a-checkbox
 					      v-model:checked="state.sorter.showDataIndex"
 						  class="custom-checkbox"
 					      @change="onColumnIndexChange"
 					    >
-						序号列
+							序号列
 						</a-checkbox>
+						<div class="flex items-center" style="margin-right: 7px;">
+							<!-- <a-checkbox
+						      v-model:checked="state.sorter.checkAll"
+						      :indeterminate="state.sorter.indeterminate"
+							  class="custom-checkbox custom-col-1"
+						      @change="onColumnCheckAllChange"
+						    >
+								展示
+							</a-checkbox> -->
+							<span class="custom-col-1">展示</span>
+							<span class="custom-col-1">冻结</span>
+						</div>
 					</div>
 				</template>
 				<template #description>
 					<VueDraggable ref="el" class="list" v-model="state.sorter.columns" handle=".dragHandle" @end="onSorterEnd">
 						<div :class="['list-item', isColumnSettingFixed(item.dataIndex)]" v-for="item in state.sorter.columns" :key="item.dataIndex" v-show="!isHideColumn(item.dataIndex)">
-							<div :class="[isColumnSettingDrag(item.dataIndex) ? 'dragHandle' : '']">
-								<MenuOutlined  style="margin-right: 5px;" />
+							<div class="flex items-center">
+								<span :class="[isColumnSettingFixed(item.dataIndex) || isColumnSettingDrag(item.dataIndex) ? 'dragHandle' : '']">
+									<MenuOutlined  style="margin-right: 5px;" />
+								</span>
+								<span>{{ item.title }}</span>
 							</div>
-							<a-checkbox
-							 :checked="state.sorter.selectedColumns.includes(item.dataIndex)" 
-							 class="custom-checkbox"
-							 @change="onColumnCheckChange(item.dataIndex)">
-							 {{ item.title }}
-							</a-checkbox>
+							<div class="flex items-center">
+								<a-checkbox
+								 :checked="state.sorter.selectedColumns.includes(item.dataIndex)" 
+								 class="custom-checkbox custom-col-1"
+								 @change="onColumnCheckChange(item.dataIndex)">
+								</a-checkbox>
+								<a-checkbox 
+								 :checked="state.sorter.fixedColumns.includes(item.dataIndex)"
+								 class="custom-checkbox custom-col-1"
+								 @change="onColumnFixedChange(item.dataIndex)"
+								/>
+							</div>
 						</div>
 					</VueDraggable>
 				</template>
@@ -60,7 +74,7 @@
 		<div class="table-content" ref="tableRef">
 			<a-table 
 			@resizeColumn="handleResizeColumn" 
-			v-bind="{...$props.tableProps, columns: tableProps.columns}" 
+			v-bind="{...$props.tableProps, columns: tableColumns}" 
 			:scroll="state.scroll" @change="handleTableChange" size="small">
 				<template #headerCell="{ column }">
 		          <span v-if="column.isCheckbox" >选择</span>
@@ -164,7 +178,8 @@ const state = reactive({
 		checkAll: false,
 		showDataIndex: false, // 是否显示序号列
 		columns: [], // 排序得字段
-		selectedColumns: []
+		selectedColumns: [], // 显示字段
+		fixedColumns: [], // 固定字段
 	}
 })
 const isResizing = ref(false);
@@ -172,6 +187,9 @@ const isResizing = ref(false);
 const tableColumns = computed(() => {
 	const fields = tableProps.value.columns.filter(item => {
 		if (item.isHide) return false;
+		if (state.sorter.fixedColumns.includes(item.dataIndex)) {
+			item.fixed = item.fixed ? item.fixed : 'left'
+		}
 		return -1 !== state.sorter.selectedColumns.indexOf(item.dataIndex)
 	});
 	fields.sort((a, b) => {
@@ -242,7 +260,8 @@ const handleSettingSave = () => {
 	const cacheData = state.sorter.columns.map((item) => {
 	    return {
 			...item,
-			selected: state.sorter.selectedColumns.includes(item.dataIndex)
+			selected: state.sorter.selectedColumns.includes(item.dataIndex),
+			fixed: state.sorter.fixedColumns.includes(item.dataIndex)
 		}
 	})
 	localStorage.setItem('columnSettings-' + route.name, JSON.stringify(cacheData));
@@ -316,6 +335,15 @@ const onColumnCheckChange = (key) => {
 	})
 }
 
+const onColumnFixedChange = (key) => {
+	const index = state.sorter.fixedColumns.indexOf(key);
+	if (index > -1) {
+		state.sorter.fixedColumns.splice(index, 1);
+	} else {
+		state.sorter.fixedColumns.push(key);
+	}
+}
+
 const onColumnIndexChange = () => {
 	// state.sorter.showDataIndex = !state.sorter.showDataIndex;
 }
@@ -338,13 +366,19 @@ onMounted(() => {
 	}
 
 	const columns = Array.isArray(tableProps.value.columns) ? tableProps.value.columns.map((item) => {
-  const selected = cacheData.find(v => v.dataIndex === item.dataIndex)?.selected === false ? false : true;
-  return {
-    dataIndex: item.dataIndex,
-    title: item.title,
-    selected
-  }
-}) : [];
+	  const catchItem = cacheData.find(v => v.dataIndex === item.dataIndex)
+	  const selected = catchItem?.selected === false ? false : true;
+	  let fixed = catchItem?.fixed;
+	  if (undefined === fixed || null === fixed) {
+		fixed = item.fixed ? true : false;
+	  }
+	  return {
+	    dataIndex: item.dataIndex,
+	    title: item.title,
+	    selected,
+		fixed,
+	  }
+	}) : [];
 
 	columns.sort((a, b) => {
 		const indexA = cacheData.findIndex(v => v.dataIndex === a.dataIndex);
@@ -355,6 +389,7 @@ onMounted(() => {
 	state.sorter.columns = columns;
 	state.sorter.selectedColumns = columns.filter(v => v.selected).map((item) => item.dataIndex)
 	state.sorter.checkAll = state.sorter.selectedColumns.length === columns.length  
+	state.sorter.fixedColumns = columns.filter(v => v.fixed).map((item) => item.dataIndex)
 })
 
 onBeforeUnmount(() => {

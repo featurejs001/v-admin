@@ -95,6 +95,10 @@ const props = defineProps({
 		type: Object,
 		default: () => ({})
 	},
+	isOption: {
+		type: Boolean,
+		default: false
+	},
 	fromWhichComponent: {
 		type: String,
 		default: 'project_center'
@@ -139,55 +143,61 @@ const state = reactive({
 			key: 'priority',
 			tags: [...priorityFilter],
 			selectedTags: [],
+			isHide: props.isOption
 		},
 		{
 			name: '轮次',
 			key: 'turn2',
 			tags: [...turnFilter],
 			selectedTags: [],
+			isHide: props.isOption
 		},
 		{
 			name: '项目阶段',
 			key: 'stage',
 			tags: [...stageFilter],
 			selectedTags: [],
+			isHide: props.isOption
 		},
 		{
 			name: '跟进状态',
 			key: 'followStage',
 			tags: [...followStageFilter],
 			selectedTags: [],
+			isHide: props.isOption
 		},
 		{
 			name: '主理人',
 			key: 'main',
 			tags: [],
 			selectedTags: [],
+			isHide: props.isOption
 		},
 		{
 			name: '协理人',
 			key: 'assistant',
 			tags: [],
 			selectedTags: [],
+			isHide: props.isOption
 		},
 		{
 			name: '省',
 			key: 'provinceMap',
-			isHide: true,
+			isHide: props.isOption || true,
 			tags: [],
 			selectedTags: [],
 		},
 		{
 			name: '市',
 			key: 'cityMap',
-			isHide: true,
+			isHide: props.isOption || true,
 			tags: [],
 			selectedTags: [],
 		},
 		{
 			name: '区',
 			key: 'regionMap',
-			isHide: true,
+			isHide: props.isOption || true,
 			tags: [],
 			selectedTags: [],
 		}

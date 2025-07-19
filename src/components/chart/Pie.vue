@@ -155,7 +155,7 @@
         };
 
         if (chartRef.value) {
-			console.log('chartRef', chartRef.value, props.chartData)
+			// console.log('chartRef', chartRef.value, props.chartData)
 			chartObj = echarts.init(chartRef.value)
 		}
 		

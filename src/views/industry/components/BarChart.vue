@@ -64,21 +64,24 @@ const getClass = (tag) => {
 }
 
 const handleBarClick = (params) => {
-	console.log("handleBarClick :", params)
+	// console.log("handleBarClick :", params)
+	const stage = params.name.split('(')[0]
 	router.push({
       path: '/gy/projects',
       query: {
-		stage: params.name.split('(')[0],
+		stage,
+		title: '项目信息查看(' + stage + ')'
 	  },
     });
 }
 
 const handlePieClick = (params) => {
-	console.log("handlePieClick :", params)
+	// console.log("handlePieClick :", params)
 	router.push({
       path: '/gy/projects',
       query: {
-		followStage: params.name
+		followStage: params.name,
+		title: '项目信息查看(' + params.name + ')'
 	  }
 	})
 }

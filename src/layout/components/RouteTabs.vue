@@ -7,7 +7,7 @@
 	  @tabClick="handleTabClick"
 	  @edit="handleDelClick"
     >
-      <a-tab-pane v-for="item in historyRoutes" :key="item.path"  >
+      <a-tab-pane v-for="item in historyRoutes" :key="item.meta.title"  >
 		<template #tab>
 			<ContainerOutlined />
 			<span class="title">{{ item.meta.title }}</span>
@@ -27,7 +27,7 @@ const curRoute = useRoute();
 
 const appStore = useApp();
 const { isSidebarOpened, historyRoutes } = storeToRefs(appStore);
-
+console.log('--->historyRoutes:', historyRoutes.value)
 const props = defineProps({
     tabPosition: {
       type: String,
@@ -39,12 +39,27 @@ const state = reactive({
 	activeKey: ''
 });
 
-watch(() => curRoute.path, (newVal) => {
-	state.activeKey = newVal;
-}, {immediate: true})
+watch(() => router.currentRoute.value, (newVal, oldVal) => {
+	// console.log("=======>watch :", newVal, oldVal)
+	state.activeKey = newVal.meta.title;
+	// console.log('watch :', state.activeKey, curRoute)
+	// 路径是同一个
+	if (oldVal && (newVal.path === oldVal.path || newVal.name === oldVal.name) && newVal.meta.title !== oldVal.meta.title) {
+		appStore.setRefreshPage()
+	}
+}, {immediate: true, deep: true})
 
 const handleTabClick = (val) => {
-	router.push({ path: val });
+	const check = historyRoutes.value.find((item) => item.meta.title === val);
+	if (check.path) {
+		router.push({ 
+			path: check.path,
+			query: {
+				...(check.query || {})
+			}
+		});
+		
+	}
 }
 
 const handleDelClick = (targetKey) => {
@@ -54,7 +69,13 @@ const handleDelClick = (targetKey) => {
 
 	if (state.activeKey === targetKey) {
 		const nextKey = routes[targetIndex - 1]?.path || routes[targetIndex]?.path || '/';
-		router.push({ path: nextKey })
+		const nextQuery = routes[targetIndex - 1]?.query || routes[targetIndex]?.query || {};
+		router.push({ 
+			path: nextKey,
+			query: {
+				...nextQuery
+			}
+		})
 	}
 }
 </script>

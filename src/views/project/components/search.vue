@@ -10,14 +10,15 @@
 			<a-button type="primary" class="ml-2" :icon="h(RedoOutlined)" @click="clearSearch">重置搜索</a-button>
 		</div>
 		<div class="right">
-			<Import @success="handleSuccess" />
-			<a-tooltip placement="top">
+			<Import v-if="$props.showImport" @success="handleSuccess" />
+			<a-tooltip v-if="$props.showExport" placement="top">
         		<template #title>
 					<span>导出</span>
 				</template>
 				<ExportOutlined @click="handleExport" />
 			</a-tooltip>
 			<FullScreen />
+			<Redo v-if="$props.showRedo" />
 		</div>
 	</div>
 </template>
@@ -27,8 +28,23 @@ import { ExportOutlined, RedoOutlined, ImportOutlined, FullscreenOutlined, Fulls
 import { useApp } from "@/store/app";
 import Import from "./import.vue";
 import FullScreen from "@/components/common/fullScreen.vue";
+import Redo from "@/components/common/Redo.vue";
 
 const emits = defineEmits(['search', 'success', 'export']);
+const props = defineProps({
+	showImport: {
+		type: Boolean,
+		default: true,
+	},
+	showExport: {
+		type: Boolean,
+		default: true,
+	},
+	showRedo: {
+		type: Boolean,
+		default: false,
+	}
+})
 
 const state = reactive({
 	value: ''   

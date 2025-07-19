@@ -255,7 +255,7 @@
         const visibleItems = props.chartData.filter((item) => !item.name.startsWith('hidden_placeholder_'));
         // option.legend.data = visibleItems.map((item) => item.name + '(' + item.value + ')');
 
-		console.log("Bar :", props.chartData, option)
+		// console.log("Bar :", props.chartData, option)
 		if (chartRef.value) {
 			chartObj = echarts.init(chartRef.value)
 		}
