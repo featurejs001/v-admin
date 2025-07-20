@@ -18,7 +18,7 @@ export default defineConfig((mode) => {
 				"@": resolve("src"),
 			}
 		},
-		base: "./",
+		base: "/v-admin/",
 		server: {
 			host: "0.0.0.0",
 			port: env.VITE_PORT,
