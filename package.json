@@ -8,6 +8,7 @@
     "build:dev": "vite build -m development",
     "build:pro": "vite build -m production",
     "build:projects": "vite build -c vite.config.projects.js -m production",
+    "build:industry": "vite build -c vite.config.industry.js -m production",
     "preview": "vite preview"
   },
   "dependencies": {
