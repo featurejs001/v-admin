@@ -19,6 +19,10 @@ export default defineConfig((mode) => {
 			}
 		},
 		base: "/v-admin/",
+		 build: {
+		    outDir: 'dist',
+		    assetsDir: 'assets'
+		  },
 		server: {
 			host: "0.0.0.0",
 			port: env.VITE_PORT,
