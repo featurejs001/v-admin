@@ -18,7 +18,7 @@ export default defineConfig((mode) => {
 				"@": resolve("src"),
 			}
 		},
-		base: "/v-admin/",
+		base: "/gy/projects/",
 		 build: {
 		    outDir: 'dist',
 		    assetsDir: 'assets'
