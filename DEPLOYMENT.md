@@ -1,56 +1,84 @@
-# Deployment Guide
+# 部署指南
 
-## Problem
-You're getting a 404 error when trying to access `featurejs001.github.io/v-admin/` because the project hasn't been deployed to GitHub Pages yet.
+## 问题描述
+您遇到的404错误是因为项目还没有部署到GitHub Pages。网站 `featurejs001.github.io/v-admin/` 目前不存在。
 
-## Solution
+## 解决方案
 
-### Option 1: Deploy to GitHub Pages (Recommended)
+### ✅ 当前状态
+- ✅ 项目构建成功
+- ✅ 本地预览服务器运行正常：`http://localhost:4173/v-admin/`
+- ✅ GitHub Actions自动构建工作流已配置
 
-1. **Push your code to GitHub** (if not already done):
-   ```bash
-   git add .
-   git commit -m "Build Vue admin project"
-   git push origin main
-   ```
+### 🚀 自动部署配置
 
-2. **Enable GitHub Pages**:
-   - Go to your repository on GitHub
-   - Go to Settings → Pages
-   - Set Source to "GitHub Actions"
-   - The workflow file `.github/workflows/deploy.yml` will automatically build and deploy
+#### 1. 工作流配置
+- **触发分支**: `master-githb`
+- **自动构建**: 每次推送到 `master-githb` 分支时自动触发
+- **部署目标**: GitHub Pages
 
-3. **Access your site**:
-   - After deployment, your site will be available at: `https://featurejs001.github.io/v-admin/`
+#### 2. 启用GitHub Pages
+1. 访问您的GitHub仓库：`https://github.com/featurejs001/v-admin`
+2. 点击 **Settings** 标签
+3. 在左侧菜单中找到 **Pages**
+4. 在 **Source** 部分选择 **GitHub Actions**
+5. 保存设置
 
-### Option 2: Manual Deployment
-
-1. **Build the project**:
-   ```bash
-   npm run build:pro
-   ```
-
-2. **Deploy the `dist` folder**:
-   - Upload the contents of the `dist` folder to your web server
-   - Make sure the server is configured to serve from the `/v-admin/` path
-
-### Option 3: Test Locally
-
-To test the built version locally:
+#### 3. 推送代码触发部署
 ```bash
-npm run preview
+# 确保在master-githb分支上
+git checkout master-githb
+
+# 添加文件
+git add .
+
+# 提交更改
+git commit -m "添加自动构建配置"
+
+# 推送到GitHub（这会触发自动构建）
+git push origin master-githb
 ```
-Then visit: `http://localhost:4173/v-admin/`
 
-## Project Structure
+### 📋 部署流程
 
-- **Base Path**: `/v-admin/` (configured in `vite.config.js`)
-- **Build Output**: `dist/` folder
-- **Framework**: Vue 3 + Vite + Ant Design Vue
-- **Features**: Admin dashboard with various components
+1. **代码推送** → 触发GitHub Actions
+2. **自动构建** → 运行 `npm run build:pro`
+3. **自动部署** → 部署到GitHub Pages
+4. **网站可用** → 访问 `https://featurejs001.github.io/v-admin/`
 
-## Troubleshooting
+### 🔍 监控部署状态
 
-- **404 Error**: Make sure the project is built and deployed
-- **Assets not loading**: Check that the base path `/v-admin/` is correctly configured
-- **Build errors**: Run `npm install` first to install dependencies 
+1. 在GitHub仓库页面点击 **Actions** 标签
+2. 查看最新的工作流运行状态
+3. 绿色勾表示部署成功
+4. 红色叉表示部署失败，点击查看错误详情
+
+### 🌐 访问网站
+
+部署成功后，您的Vue管理后台将在以下地址可用：
+- **生产环境**: `https://featurejs001.github.io/v-admin/`
+- **本地测试**: `http://localhost:4173/v-admin/`
+
+### 🛠️ 项目技术栈
+
+- **前端框架**: Vue 3 + Vite
+- **UI组件库**: Ant Design Vue
+- **路由管理**: Vue Router
+- **状态管理**: Pinia
+- **图表库**: ECharts
+- **构建工具**: Vite
+- **部署平台**: GitHub Pages
+
+### ❗ 故障排除
+
+- **404错误**: 确保GitHub Pages已启用且部署成功
+- **资源加载失败**: 检查base路径 `/v-admin/` 配置
+- **构建失败**: 查看Actions日志，确保依赖安装正确
+- **部署失败**: 检查仓库权限和GitHub Pages设置
+
+### 📞 支持
+
+如果遇到问题，请检查：
+1. GitHub Actions日志
+2. 仓库设置中的Pages配置
+3. 分支名称是否正确（master-githb） 
