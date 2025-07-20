@@ -189,7 +189,7 @@ import { useUser } from "@/store/user";
 import { getIndustryColumns } from "@/utils/industryHelper";
 import Table from "@/components/Table/index.vue";
 import { message as Message } from 'ant-design-vue';
-import AddIndustry from "./components/addIndustry.vue";
+import AddIndustry from "./components/AddIndustry.vue";
 
 const { hasPermission } = usePermission();
 const userStore = useUser();
