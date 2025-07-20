@@ -28,7 +28,7 @@ import { ExportOutlined, RedoOutlined, ImportOutlined, FullscreenOutlined, Fulls
 import { useApp } from "@/store/app";
 import Import from "./import.vue";
 import FullScreen from "@/components/common/fullScreen.vue";
-import Redo from "@/components/common/Redo.vue";
+import Redo from "@/components/common/redo.vue";
 
 const emits = defineEmits(['search', 'success', 'export']);
 const props = defineProps({
